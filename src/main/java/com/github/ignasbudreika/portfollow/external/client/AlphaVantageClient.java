@@ -5,6 +5,7 @@ import com.github.ignasbudreika.portfollow.external.dto.ForexDTO;
 import com.github.ignasbudreika.portfollow.external.dto.StockDTO;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -37,6 +38,7 @@ public class AlphaVantageClient {
     private HttpClient client;
 
     @Autowired
+    @Qualifier("unwrapped")
     private ObjectMapper objectMapper;
 
     public StockDTO getStockData(String ticker) throws IOException, InterruptedException, URISyntaxException {
