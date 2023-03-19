@@ -31,7 +31,6 @@ public class StockService {
             try {
                 stock = alphaVantageClient.getStockData(investment.getSymbol());
             } catch (Exception e) {
-                log.info(e.toString());
             }
 
             return StockInvestmentDTO.builder()
