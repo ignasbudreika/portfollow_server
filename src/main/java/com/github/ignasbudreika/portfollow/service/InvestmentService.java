@@ -3,7 +3,7 @@ package com.github.ignasbudreika.portfollow.service;
 import com.github.ignasbudreika.portfollow.api.dto.response.InvestmentDTO;
 import com.github.ignasbudreika.portfollow.enums.InvestmentType;
 import com.github.ignasbudreika.portfollow.external.client.AlphaVantageClient;
-import com.github.ignasbudreika.portfollow.external.dto.StockDTO;
+import com.github.ignasbudreika.portfollow.external.dto.response.StockDTO;
 import com.github.ignasbudreika.portfollow.model.Investment;
 import com.github.ignasbudreika.portfollow.model.User;
 import com.github.ignasbudreika.portfollow.repository.InvestmentRepository;

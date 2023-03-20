@@ -1,8 +1,8 @@
 package com.github.ignasbudreika.portfollow.external.client;
 
-import com.github.ignasbudreika.portfollow.external.dto.AccessTokenDTO;
-import com.github.ignasbudreika.portfollow.external.dto.AccessTokenRequestDTO;
-import com.github.ignasbudreika.portfollow.external.dto.AccountsDTO;
+import com.github.ignasbudreika.portfollow.external.dto.response.AccessTokenDTO;
+import com.github.ignasbudreika.portfollow.external.dto.request.AccessTokenRequestDTO;
+import com.github.ignasbudreika.portfollow.external.dto.response.AccountsDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,9 +22,9 @@ import java.nio.charset.StandardCharsets;
 @Slf4j
 @Component
 public class SpectroCoinClient {
-    private final String HTTP_REQUEST_HEADER_CONTENT_TYPE = "Content-Type";
-    private final String HTTP_REQUEST_HEADER_CONTENT_TYPE_JSON = "application/json";
-    private final String HTTP_REQUEST_HEADER_AUTHENTICATION = "Authentication";
+    private static final String HTTP_REQUEST_HEADER_CONTENT_TYPE = "Content-Type";
+    private static final String HTTP_REQUEST_HEADER_CONTENT_TYPE_JSON = "application/json";
+    private static final String HTTP_REQUEST_HEADER_AUTHENTICATION = "Authentication";
 
     @Value("${http.client.spectrocoin.oauth.url}")
     private String oauthUrl;

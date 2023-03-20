@@ -1,6 +1,6 @@
 package com.github.ignasbudreika.portfollow.api.controller;
 
-import com.github.ignasbudreika.portfollow.api.dto.request.CreateStockDTO;
+import com.github.ignasbudreika.portfollow.api.dto.request.StockDTO;
 import com.github.ignasbudreika.portfollow.api.dto.response.StockInvestmentDTO;
 import com.github.ignasbudreika.portfollow.model.User;
 import com.github.ignasbudreika.portfollow.service.StockService;
@@ -30,7 +30,7 @@ public class StockController {
     }
 
     @PostMapping
-    public ResponseEntity<StockInvestmentDTO> createStockInvestment(@RequestBody CreateStockDTO stock) {
+    public ResponseEntity<StockInvestmentDTO> createStockInvestment(@RequestBody StockDTO stock) {
         User user = userService.getByGoogleId(SecurityContextHolder.getContext().getAuthentication().getName());
 
         return ResponseEntity.ok(stockService.createStockInvestment(stock, user));

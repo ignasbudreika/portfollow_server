@@ -1,8 +1,8 @@
 package com.github.ignasbudreika.portfollow.external.client;
 
-import com.github.ignasbudreika.portfollow.external.dto.CryptocurrencyDTO;
-import com.github.ignasbudreika.portfollow.external.dto.ForexDTO;
-import com.github.ignasbudreika.portfollow.external.dto.StockDTO;
+import com.github.ignasbudreika.portfollow.external.dto.response.CryptocurrencyDTO;
+import com.github.ignasbudreika.portfollow.external.dto.response.ForexDTO;
+import com.github.ignasbudreika.portfollow.external.dto.response.StockDTO;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;

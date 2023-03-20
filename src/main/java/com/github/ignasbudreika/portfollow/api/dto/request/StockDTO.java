@@ -5,7 +5,7 @@ import lombok.Data;
 import java.math.BigDecimal;
 
 @Data
-public class CreateStockDTO {
+public class StockDTO {
     private String ticker;
     private BigDecimal quantity;
 }

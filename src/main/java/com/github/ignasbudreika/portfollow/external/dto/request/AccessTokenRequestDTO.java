@@ -1,4 +1,4 @@
-package com.github.ignasbudreika.portfollow.external.dto;
+package com.github.ignasbudreika.portfollow.external.dto.request;
 
 import lombok.*;
 import org.codehaus.jackson.annotate.JsonProperty;

@@ -2,9 +2,9 @@ package com.github.ignasbudreika.portfollow.api.controller;
 
 import com.github.ignasbudreika.portfollow.api.dto.response.AssetDTO;
 import com.github.ignasbudreika.portfollow.external.client.AlphaVantageClient;
-import com.github.ignasbudreika.portfollow.external.dto.CryptocurrencyDTO;
-import com.github.ignasbudreika.portfollow.external.dto.ForexDTO;
-import com.github.ignasbudreika.portfollow.external.dto.StockDTO;
+import com.github.ignasbudreika.portfollow.external.dto.response.CryptocurrencyDTO;
+import com.github.ignasbudreika.portfollow.external.dto.response.ForexDTO;
+import com.github.ignasbudreika.portfollow.external.dto.response.StockDTO;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
