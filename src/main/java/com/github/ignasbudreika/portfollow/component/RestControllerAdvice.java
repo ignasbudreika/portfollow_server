@@ -1,6 +1,7 @@
 package com.github.ignasbudreika.portfollow.component;
 
 import com.github.ignasbudreika.portfollow.api.dto.response.ApiErrorDTO;
+import com.github.ignasbudreika.portfollow.exception.BusinessLogicException;
 import com.github.ignasbudreika.portfollow.exception.UnauthorizedException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -21,7 +22,13 @@ public class RestControllerAdvice {
     @ExceptionHandler({EntityExistsException.class})
     public ResponseEntity<ApiErrorDTO> handleEntityExists(EntityExistsException exception) {
         log.info("handling entity exists: {}", exception.getMessage());
-        return ResponseEntity.status(400).body(ApiErrorDTO.builder().key("entity_exists").message("entity already exists").build());
+        return ResponseEntity.badRequest().body(ApiErrorDTO.builder().key("entity_exists").message("entity already exists").build());
+    }
+
+    @ExceptionHandler({BusinessLogicException.class})
+    public ResponseEntity<ApiErrorDTO> handleBusinessLogic(BusinessLogicException exception) {
+        log.info("handling business logic: {}", exception.getMessage());
+        return ResponseEntity.badRequest().body(ApiErrorDTO.builder().key("business_logic").message("invalid request").build());
     }
 
     @ExceptionHandler(Exception.class)

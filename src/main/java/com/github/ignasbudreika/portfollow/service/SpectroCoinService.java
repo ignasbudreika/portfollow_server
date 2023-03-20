@@ -1,7 +1,8 @@
 package com.github.ignasbudreika.portfollow.service;
 
-import com.github.ignasbudreika.portfollow.api.dto.request.SpectroCoinConnectionDTO;
+import com.github.ignasbudreika.portfollow.api.dto.response.SpectroCoinConnectionDTO;
 import com.github.ignasbudreika.portfollow.enums.SpectroCoinConnectionStatus;
+import com.github.ignasbudreika.portfollow.exception.BusinessLogicException;
 import com.github.ignasbudreika.portfollow.external.client.SpectroCoinClient;
 import com.github.ignasbudreika.portfollow.model.SpectroCoinConnection;
 import com.github.ignasbudreika.portfollow.model.User;
@@ -20,15 +21,15 @@ public class SpectroCoinService {
     @Autowired
     private SpectroCoinClient spectroCoinClient;
 
-    public void addConnection(SpectroCoinConnectionDTO connectionDTO, User user) throws Exception {
-        if (spectroCoinConnectionRepository.findByClientIdAndUserId(connectionDTO.getClientId(), user.getId()) != null) {
+    public void addConnection(com.github.ignasbudreika.portfollow.api.dto.request.SpectroCoinConnectionDTO connectionDTO, User user) throws Exception {
+        if (spectroCoinConnectionRepository.findByUserId(user.getId()) != null) {
             throw new EntityExistsException(String.format(
-                    "SpectroCoin connection for user: %s and clientId: %s already exists", user.getId(), connectionDTO.getClientId()
+                    "SpectroCoin connection for user: %s already exists", user.getId()
             ));
         }
 
         if (!spectroCoinClient.credentialsAreValid(connectionDTO.getClientId(), connectionDTO.getClientSecret())) {
-            throw new Exception(String.format("invalid SpectroCoin wallet API credentials for user: %s", user.getId()));
+            throw new BusinessLogicException(String.format("invalid SpectroCoin wallet API credentials for user: %s", user.getId()));
         }
 
         SpectroCoinConnection connection = SpectroCoinConnection.builder()
@@ -38,6 +39,18 @@ public class SpectroCoinService {
                 .status(SpectroCoinConnectionStatus.ACTIVE).build();
 
         spectroCoinConnectionRepository.save(connection);
+    }
+
+    public SpectroCoinConnectionDTO getConnection(String userId) {
+        SpectroCoinConnection connection = spectroCoinConnectionRepository.findByUserId(userId);
+        if (connection == null) {
+            return null;
+        }
+
+        return SpectroCoinConnectionDTO.builder()
+                .clientId(connection.getClientId())
+                .lastFetched(connection.getLastFetched())
+                .status(connection.getStatus()).build();
     }
 
     @Transactional
