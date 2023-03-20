@@ -7,6 +7,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
+import javax.persistence.EntityExistsException;
+
 @Slf4j
 @ControllerAdvice
 public class RestControllerAdvice {
@@ -14,6 +16,12 @@ public class RestControllerAdvice {
     public ResponseEntity<ApiErrorDTO> handleUnauthorized(UnauthorizedException exception) {
         log.info("handling unauthorized: {}", exception.getMessage());
         return ResponseEntity.status(401).body(ApiErrorDTO.builder().key("unauthorized").message("access to this resource requires authorization").build());
+    }
+
+    @ExceptionHandler({EntityExistsException.class})
+    public ResponseEntity<ApiErrorDTO> handleEntityExists(EntityExistsException exception) {
+        log.info("handling entity exists: {}", exception.getMessage());
+        return ResponseEntity.status(400).body(ApiErrorDTO.builder().key("entity_exists").message("entity already exists").build());
     }
 
     @ExceptionHandler(Exception.class)

@@ -48,13 +48,19 @@ public class SpectroCoinClient {
 
     public AccountsDTO getAccountData(String clientId, String clientSecret) throws IOException, URISyntaxException, InterruptedException {
         String accessToken = getAccessToken(clientId, clientSecret);
+        if (accessToken == null) {
+            return new AccountsDTO();
+        }
 
-        // todo extract this to env vars
         HttpResponse<String> response = client.send(HttpRequest.newBuilder(new URI(walletUrl))
                 .header(HTTP_REQUEST_HEADER_AUTHENTICATION, String.format("Bearer %s", accessToken))
                 .GET().build(), HttpResponse.BodyHandlers.ofString());
 
         return wrappedObjectMapper.readValue(response.body(), AccountsDTO.class);
+    }
+
+    public boolean credentialsAreValid(String clientId, String clientSecret) throws IOException, URISyntaxException, InterruptedException {
+        return getAccessToken(clientId, clientSecret) != null;
     }
 
     private String getAccessToken(String clientId, String clientSecret) throws IOException, URISyntaxException, InterruptedException {
@@ -71,6 +77,10 @@ public class SpectroCoinClient {
                             .clientSecret(clientSecret).build()
                         ), StandardCharsets.UTF_8)
                 ).build(), HttpResponse.BodyHandlers.ofString());
+
+        if (response.statusCode() != 200) {
+            return null;
+        }
 
         return wrappedObjectMapper.readValue(response.body(), AccessTokenDTO.class).getAccessToken();
     }

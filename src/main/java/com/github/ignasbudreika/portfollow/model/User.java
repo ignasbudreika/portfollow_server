@@ -25,4 +25,7 @@ public class User {
     @OneToMany
     @JoinColumn(name = "user_id")
     private Set<Investment> holdings;
+    @OneToMany
+    @JoinColumn(name = "user_id")
+    private Set<SpectroCoinConnection> spectroCoinConnections;
 }
