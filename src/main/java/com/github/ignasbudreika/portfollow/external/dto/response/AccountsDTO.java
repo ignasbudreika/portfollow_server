@@ -16,7 +16,7 @@ public class AccountsDTO {
     @Getter
     @NoArgsConstructor
     @JsonIgnoreProperties(ignoreUnknown = true)
-    private static class AccountDTO {
+    public static class AccountDTO {
         @JsonProperty("currencyCode")
         private String currencyCode;
         @JsonProperty("balance")

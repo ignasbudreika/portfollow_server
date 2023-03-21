@@ -24,7 +24,7 @@ import java.nio.charset.StandardCharsets;
 public class SpectroCoinClient {
     private static final String HTTP_REQUEST_HEADER_CONTENT_TYPE = "Content-Type";
     private static final String HTTP_REQUEST_HEADER_CONTENT_TYPE_JSON = "application/json";
-    private static final String HTTP_REQUEST_HEADER_AUTHENTICATION = "Authentication";
+    private static final String HTTP_REQUEST_HEADER_AUTHORIZATION = "Authorization";
 
     @Value("${http.client.spectrocoin.oauth.url}")
     private String oauthUrl;
@@ -53,7 +53,7 @@ public class SpectroCoinClient {
         }
 
         HttpResponse<String> response = client.send(HttpRequest.newBuilder(new URI(walletUrl))
-                .header(HTTP_REQUEST_HEADER_AUTHENTICATION, String.format("Bearer %s", accessToken))
+                .header(HTTP_REQUEST_HEADER_AUTHORIZATION, String.format("Bearer %s", accessToken))
                 .GET().build(), HttpResponse.BodyHandlers.ofString());
 
         return wrappedObjectMapper.readValue(response.body(), AccountsDTO.class);

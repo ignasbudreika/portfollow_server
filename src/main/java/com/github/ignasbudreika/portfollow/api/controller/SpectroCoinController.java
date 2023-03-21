@@ -32,4 +32,13 @@ public class SpectroCoinController {
 
         return ResponseEntity.ok().body(spectroCoinService.getConnection(user.getId()));
     }
+
+    @PostMapping("/fetch")
+    public ResponseEntity fetch() {
+        User user = userService.getByGoogleId(SecurityContextHolder.getContext().getAuthentication().getName());
+
+        spectroCoinService.fetchCryptocurrencies(user);
+
+        return ResponseEntity.noContent().build();
+    }
 }
