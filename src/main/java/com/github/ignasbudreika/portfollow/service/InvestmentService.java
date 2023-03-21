@@ -3,7 +3,6 @@ package com.github.ignasbudreika.portfollow.service;
 import com.github.ignasbudreika.portfollow.api.dto.response.InvestmentDTO;
 import com.github.ignasbudreika.portfollow.enums.InvestmentType;
 import com.github.ignasbudreika.portfollow.external.client.AlphaVantageClient;
-import com.github.ignasbudreika.portfollow.external.dto.response.StockDTO;
 import com.github.ignasbudreika.portfollow.model.Investment;
 import com.github.ignasbudreika.portfollow.model.User;
 import com.github.ignasbudreika.portfollow.repository.InvestmentRepository;
@@ -12,12 +11,15 @@ import org.springframework.stereotype.Service;
 
 import javax.persistence.EntityNotFoundException;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.Collection;
 
 @Service
 public class InvestmentService {
     @Autowired
     private AlphaVantageClient alphaVantageClient;
+
+    @Autowired private AssetService assetService;
 
     @Autowired
     private InvestmentRepository investmentRepository;
@@ -26,26 +28,13 @@ public class InvestmentService {
         Collection<Investment> investments = investmentRepository.findAllByUserId(userId);
 
         Collection<InvestmentDTO> result = investments.stream().map(investment -> {
-            switch (investment.getType()) {
-                case STOCK -> {
-                    StockDTO stock = new StockDTO();
-                    try {
-                        stock = alphaVantageClient.getStockData(investment.getSymbol());
-                    } catch (Exception e) {
-                    }
-
-                    return InvestmentDTO.builder()
-                            .id(investment.getId())
-                            .type(InvestmentType.STOCK)
-                            .symbol(investment.getSymbol())
-                            .value(stock.getPrice() == null ?
-                                    null : investment.getQuantity().multiply(new BigDecimal(stock.getPrice())).setScale(2)).build();
-                }
-            }
+            BigDecimal price = assetService.getRecentPrice(investment.getSymbol(), investment.getType());
 
             return InvestmentDTO.builder()
                     .id(investment.getId())
-                    .symbol(investment.getSymbol()).build();
+                    .symbol(investment.getSymbol())
+                    .value(investment.getQuantity().multiply(price).setScale(8, RoundingMode.HALF_UP))
+                    .type(investment.getType()).build();
         }).toList();
 
         return result;

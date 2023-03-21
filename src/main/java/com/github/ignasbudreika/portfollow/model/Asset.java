@@ -6,17 +6,21 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.GenericGenerator;
+import org.hibernate.annotations.UpdateTimestamp;
 
-import javax.persistence.*;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.Id;
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
 @Data
 @Entity
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "investment")
-public class Investment {
+public class Asset {
     @Id
     @GeneratedValue(generator = "uuid")
     @GenericGenerator(name = "uuid", strategy = "uuid2")
@@ -24,10 +28,10 @@ public class Investment {
     @Column(nullable = false)
     private String symbol;
     @Column(precision = 19, scale = 8, nullable = false)
-    private BigDecimal quantity;
+    private BigDecimal price;
     @Column(nullable = false)
     private InvestmentType type;
-    @ManyToOne
-    @JoinColumn(name="user_id", nullable=false)
-    private User user;
+    @UpdateTimestamp
+    @Column(name = "updated_at", nullable = false)
+    private LocalDateTime updatedAt;
 }
