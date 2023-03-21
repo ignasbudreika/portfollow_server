@@ -6,6 +6,7 @@ import com.github.ignasbudreika.portfollow.external.client.AlphaVantageClient;
 import com.github.ignasbudreika.portfollow.model.Investment;
 import com.github.ignasbudreika.portfollow.model.User;
 import com.github.ignasbudreika.portfollow.repository.InvestmentRepository;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -14,6 +15,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.Collection;
 
+@Slf4j
 @Service
 public class InvestmentService {
     @Autowired
@@ -50,6 +52,21 @@ public class InvestmentService {
 
     public Investment createInvestment(Investment investment, User user) {
         investment.setUser(user);
+
+        return investmentRepository.save(investment);
+    }
+
+    public Investment saveInvestmentFetchedFromConnection(Investment investment, String connectionId) {
+        Investment existing = investmentRepository.findBySymbolAndConnectionId(investment.getSymbol(), connectionId);
+        if (existing != null) {
+            log.info("investment: {} for connection: {} exists, updating quantity", investment.getSymbol(), connectionId);
+
+            existing.setQuantity(investment.getQuantity());
+
+            return investmentRepository.save(existing);
+        }
+
+        investment.setConnectionId(connectionId);
 
         return investmentRepository.save(investment);
     }

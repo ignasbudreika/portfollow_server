@@ -105,10 +105,11 @@ public class SpectroCoinService {
 
             Arrays.stream(accounts.getAccounts()).forEach(account -> {
                 if (SUPPORTED_CRYPTOCURRENCIES.contains(account.getCurrencyCode())) {
-                    investmentService.createInvestment(Investment.builder()
+                    investmentService.saveInvestmentFetchedFromConnection(Investment.builder()
                             .symbol(account.getCurrencyCode())
                             .quantity(account.getBalance().setScale(8, RoundingMode.HALF_UP))
-                            .type(InvestmentType.CRYPTOCURRENCY).build(), user);
+                            .type(InvestmentType.CRYPTOCURRENCY)
+                            .user(user).build(), connection.getId());
 
                     log.info("importing {} cryptocurrency for user: {} from SpectroCoin", account.getCurrencyCode(), user.getId());
                 }
