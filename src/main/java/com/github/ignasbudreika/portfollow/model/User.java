@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 import org.hibernate.annotations.GenericGenerator;
 
 import javax.persistence.*;
+import java.util.HashSet;
 import java.util.Set;
 
 @Data
@@ -21,11 +22,12 @@ public class User {
     @GenericGenerator(name = "uuid", strategy = "uuid2")
     private String id;
     private String email;
+    @Column(nullable = false)
     private String googleId;
     @OneToMany
     @JoinColumn(name = "user_id")
-    private Set<Investment> holdings;
+    private Set<Investment> holdings = new HashSet<>();
     @OneToMany
     @JoinColumn(name = "user_id")
-    private Set<SpectroCoinConnection> spectroCoinConnections;
+    private Set<SpectroCoinConnection> spectroCoinConnections = new HashSet<>();
 }
