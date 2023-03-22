@@ -2,15 +2,14 @@ package com.github.ignasbudreika.portfollow.service;
 
 import com.github.ignasbudreika.portfollow.model.User;
 import com.github.ignasbudreika.portfollow.repository.UserRepository;
-import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Service
 @Slf4j
-@AllArgsConstructor
 public class UserService {
-
+    @Autowired
     private UserRepository repo;
 
     public boolean existsById(String id) {
@@ -32,6 +31,8 @@ public class UserService {
     public User getByGoogleId(String googleId) {
         return repo.getByGoogleId(googleId);
     }
+
+    public Iterable<User> getAll() { return repo.findAll(); }
 
     public void createUser(User user) {
         if (repo.existsByEmail(user.getEmail()) || repo.existsByGoogleId(user.getGoogleId())) {

@@ -70,4 +70,14 @@ public class InvestmentService {
 
         return investmentRepository.save(investment);
     }
+
+    public BigDecimal getTotalValueByUserId(String userId) {
+        Collection<Investment> investments = investmentRepository.findAllByUserId(userId);
+
+        BigDecimal totalValue = investments.stream().map(investment ->
+                assetService.getRecentPrice(investment.getSymbol(), investment.getType())
+        ).reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        return totalValue;
+    }
 }
