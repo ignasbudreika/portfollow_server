@@ -7,6 +7,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.GenericGenerator;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
@@ -28,6 +29,7 @@ public class SpectroCoinConnection {
     @Convert(converter = Encrypt.class)
     @Column(name = "client_secret")
     private String clientSecret;
+    @UpdateTimestamp
     @Column(name = "last_fetched")
     private LocalDateTime lastFetched;
     @ManyToOne

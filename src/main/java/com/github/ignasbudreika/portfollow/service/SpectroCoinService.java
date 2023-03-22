@@ -18,6 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.persistence.EntityExistsException;
 import javax.persistence.EntityNotFoundException;
 import java.math.RoundingMode;
+import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Set;
 
@@ -98,6 +99,7 @@ public class SpectroCoinService {
         spectroCoinConnectionRepository.save(connection);
     }
 
+    @Transactional
     public void fetchCryptocurrencies(User user) {
         try {
             SpectroCoinConnection connection = getActiveConnectionOrThrowException(user.getId());
@@ -115,6 +117,9 @@ public class SpectroCoinService {
                     log.info("importing {} cryptocurrency for user: {} from SpectroCoin", account.getCurrencyCode(), user.getId());
                 }
             });
+
+            connection.setLastFetched(LocalDateTime.now());
+            spectroCoinConnectionRepository.save(connection);
         } catch (EntityNotFoundException e) {
             log.info("could not fetch cryptocurrencies for user: {} because no active SpectroCoin connection exists", user.getId());
         } catch (Exception e) {
