@@ -17,17 +17,19 @@ import java.time.temporal.ChronoUnit;
 @Slf4j
 @Service
 public class AssetService {
+    private static final long PRICE_UPDATE_INTERVAL_IN_HOURS = 6l;
+
     @Autowired
     private AssetRepository assetRepository;
-
     @Autowired
     private AlphaVantageClient alphaVantageClient;
 
     public BigDecimal getRecentPrice(String symbol, InvestmentType type) {
         Asset asset = assetRepository.getBySymbolAndType(symbol, type);
-        // return saved price if it was fetched today
+        // return saved price if it was already fetched during the same price update interval
         if (asset != null
-                && asset.getUpdatedAt().isAfter(LocalDateTime.now().toLocalDate().atStartOfDay())) {
+                && asset.getUpdatedAt().isAfter(LocalDateTime.now().truncatedTo(ChronoUnit.HOURS)
+                        .minusHours(LocalDateTime.now().getHour() % PRICE_UPDATE_INTERVAL_IN_HOURS))) {
             log.info("asset: {} was updated at: {}, returning last fetched price: {}",
                     asset.getSymbol(), asset.getUpdatedAt().truncatedTo(ChronoUnit.MINUTES), asset.getPrice());
             return asset.getPrice();

@@ -23,7 +23,7 @@ public class PortfolioValueCollectorCommand {
     @Autowired
     private PortfolioService portfolioService;
 
-    @Scheduled(cron = "0 0 * * * *")
+    @Scheduled(cron = "0 0 */6 * * *")
     public void retrievePortfolioValues() {
         log.info("Updating portfolios values. Current time: {}", LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS));
 
