@@ -3,6 +3,7 @@ package com.github.ignasbudreika.portfollow.command.scheduled;
 import com.github.ignasbudreika.portfollow.model.User;
 import com.github.ignasbudreika.portfollow.service.InvestmentService;
 import com.github.ignasbudreika.portfollow.service.PortfolioService;
+import com.github.ignasbudreika.portfollow.service.SpectroCoinService;
 import com.github.ignasbudreika.portfollow.service.UserService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,6 +20,8 @@ public class PortfolioValueCollectorCommand {
     @Autowired
     private InvestmentService investmentService;
     @Autowired
+    private SpectroCoinService spectroCoinService;
+    @Autowired
     private UserService userService;
     @Autowired
     private PortfolioService portfolioService;
@@ -30,6 +33,10 @@ public class PortfolioValueCollectorCommand {
         Iterable<User> users = userService.getAll();
 
         users.forEach(user -> {
+            // todo move into separate command that happens earlier
+            log.info("Fetching user: {} SpectroCoin connection", user.getId());
+            spectroCoinService.fetchCryptocurrencies(user);
+
             log.info("Calculating user: {} portfolio value", user.getId());
             BigDecimal totalValue = investmentService.getTotalValueByUserId(user.getId());
 

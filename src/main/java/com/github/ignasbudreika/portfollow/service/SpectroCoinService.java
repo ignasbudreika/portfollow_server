@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.EntityExistsException;
+import javax.persistence.EntityNotFoundException;
 import java.math.RoundingMode;
 import java.util.Arrays;
 import java.util.Set;
@@ -71,7 +72,7 @@ public class SpectroCoinService {
     private SpectroCoinConnection getActiveConnectionOrThrowException(String userId) throws BusinessLogicException {
         SpectroCoinConnection connection = spectroCoinConnectionRepository.findByUserId(userId);
         if (connection == null || !connection.getStatus().equals(SpectroCoinConnectionStatus.ACTIVE)) {
-            throw new BusinessLogicException(String.format("no active SpectroCoin connection found for user: %s", userId));
+            throw new EntityNotFoundException(String.format("no active SpectroCoin connection found for user: %s", userId));
         }
 
         return connection;
@@ -114,8 +115,8 @@ public class SpectroCoinService {
                     log.info("importing {} cryptocurrency for user: {} from SpectroCoin", account.getCurrencyCode(), user.getId());
                 }
             });
-        } catch (BusinessLogicException e) {
-            log.error("unable to fetch cryptocurrencies for user: {} because no active SpectroCoin connection exists", user.getId());
+        } catch (EntityNotFoundException e) {
+            log.info("could not fetch cryptocurrencies for user: {} because no active SpectroCoin connection exists", user.getId());
         } catch (Exception e) {
             log.error("error occurred while fetching cryptocurrencies for user: {} from SpectroCoin", user.getId(), e);
         }
