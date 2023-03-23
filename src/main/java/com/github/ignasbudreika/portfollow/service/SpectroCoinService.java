@@ -2,7 +2,7 @@ package com.github.ignasbudreika.portfollow.service;
 
 import com.github.ignasbudreika.portfollow.api.dto.response.SpectroCoinConnectionDTO;
 import com.github.ignasbudreika.portfollow.enums.InvestmentType;
-import com.github.ignasbudreika.portfollow.enums.SpectroCoinConnectionStatus;
+import com.github.ignasbudreika.portfollow.enums.ConnectionStatus;
 import com.github.ignasbudreika.portfollow.exception.BusinessLogicException;
 import com.github.ignasbudreika.portfollow.external.client.SpectroCoinClient;
 import com.github.ignasbudreika.portfollow.external.dto.response.AccountsDTO;
@@ -17,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.EntityExistsException;
 import javax.persistence.EntityNotFoundException;
+import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.Arrays;
@@ -49,7 +50,7 @@ public class SpectroCoinService {
                 .clientId(connectionDTO.getClientId())
                 .clientSecret(connectionDTO.getClientSecret())
                 .user(user)
-                .status(SpectroCoinConnectionStatus.ACTIVE).build();
+                .status(ConnectionStatus.ACTIVE).build();
 
         spectroCoinConnectionRepository.save(connection);
 
@@ -72,7 +73,7 @@ public class SpectroCoinService {
 
     private SpectroCoinConnection getActiveConnectionOrThrowException(String userId) throws BusinessLogicException {
         SpectroCoinConnection connection = spectroCoinConnectionRepository.findByUserId(userId);
-        if (connection == null || !connection.getStatus().equals(SpectroCoinConnectionStatus.ACTIVE)) {
+        if (connection == null || !connection.getStatus().equals(ConnectionStatus.ACTIVE)) {
             throw new EntityNotFoundException(String.format("no active SpectroCoin connection found for user: %s", userId));
         }
 
@@ -83,7 +84,7 @@ public class SpectroCoinService {
     public void removeConnection(String id) {
         SpectroCoinConnection connection = spectroCoinConnectionRepository.findById(id).orElseThrow();
 
-        connection.setStatus(SpectroCoinConnectionStatus.INACTIVE);
+        connection.setStatus(ConnectionStatus.INACTIVE);
         connection.setClientSecret(null);
 
         spectroCoinConnectionRepository.save(connection);
@@ -93,7 +94,7 @@ public class SpectroCoinService {
     public void invalidateConnection(String id) {
         SpectroCoinConnection connection = spectroCoinConnectionRepository.findById(id).orElseThrow();
 
-        connection.setStatus(SpectroCoinConnectionStatus.INVALID);
+        connection.setStatus(ConnectionStatus.INVALID);
         connection.setClientSecret(null);
 
         spectroCoinConnectionRepository.save(connection);
@@ -107,14 +108,16 @@ public class SpectroCoinService {
             AccountsDTO accounts = spectroCoinClient.getAccountData(connection.getClientId(), connection.getClientSecret());
 
             Arrays.stream(accounts.getAccounts()).forEach(account -> {
-                if (SUPPORTED_CRYPTOCURRENCIES.contains(account.getCurrencyCode())) {
+                if (SUPPORTED_CRYPTOCURRENCIES.contains(account.getCurrencyCode())
+                        && account.getBalance().compareTo(BigDecimal.ZERO) > 0) {
                     investmentService.saveInvestmentFetchedFromConnection(Investment.builder()
                             .symbol(account.getCurrencyCode())
                             .quantity(account.getBalance().setScale(8, RoundingMode.HALF_UP))
                             .type(InvestmentType.CRYPTOCURRENCY)
                             .user(user).build(), connection.getId());
 
-                    log.info("importing {} cryptocurrency for user: {} from SpectroCoin", account.getCurrencyCode(), user.getId());
+                    log.info("imported {} cryptocurrency for user: {} from SpectroCoin, balance: {}",
+                            account.getCurrencyCode(), user.getId(), account.getBalance());
                 }
             });
 

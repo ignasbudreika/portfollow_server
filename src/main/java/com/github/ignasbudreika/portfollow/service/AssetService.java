@@ -38,10 +38,12 @@ public class AssetService {
         BigDecimal price = fetchPrice(symbol, type);
 
         if (asset == null && !BigDecimal.ZERO.equals(price)) {
-            assetRepository.save(Asset.builder().symbol(symbol).type(type).price(price).build());
+            asset = assetRepository.save(Asset.builder().symbol(symbol).type(type).price(price).build());
+            log.info("created asset: {} with price: {}", asset.getSymbol(), asset.getPrice());
         } else if (asset != null && !BigDecimal.ZERO.equals(price)) {
             asset.setPrice(price);
             assetRepository.save(asset);
+            log.info("updated asset: {} price: {}", asset.getSymbol(), asset.getPrice());
         }
 
         return price;

@@ -1,6 +1,5 @@
 package com.github.ignasbudreika.portfollow.model;
 
-import com.github.ignasbudreika.portfollow.component.Encrypt;
 import com.github.ignasbudreika.portfollow.enums.ConnectionStatus;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -17,23 +16,20 @@ import java.time.LocalDateTime;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "spectrocoin_connection")
-public class SpectroCoinConnection {
+@Table(name = "ethereum_wallet_connection")
+public class EthereumWalletConnection {
     @Id
     @GeneratedValue(generator = "uuid")
     @GenericGenerator(name = "uuid", strategy = "uuid2")
     private String id;
-    @Convert(converter = Encrypt.class)
-    @Column(name = "client_id", nullable = false)
-    private String clientId;
-    @Convert(converter = Encrypt.class)
-    @Column(name = "client_secret")
-    private String clientSecret;
+    @Column(nullable = false)
+    private String address;
+    @Column(nullable = false)
+    private ConnectionStatus status;
     @UpdateTimestamp
     @Column(name = "last_fetched")
     private LocalDateTime lastFetched;
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
-    private ConnectionStatus status;
 }

@@ -24,10 +24,13 @@ public class User {
     private String email;
     @Column(nullable = false)
     private String googleId;
-    @OneToMany
+    @OneToMany(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
     private Set<Investment> holdings = new HashSet<>();
-    @OneToMany
+    @OneToMany(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
     private Set<SpectroCoinConnection> spectroCoinConnections = new HashSet<>();
+    @OneToMany(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id")
+    private Set<EthereumWalletConnection> ethereumWalletConnections = new HashSet<>();
 }

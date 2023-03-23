@@ -10,7 +10,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/connections/spectrocoin")
+@RequestMapping("/connection/spectrocoin")
 public class SpectroCoinController {
     @Autowired
     private UserService userService;

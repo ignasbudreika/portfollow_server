@@ -13,15 +13,14 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 
 @Component
-public class EthereumWallet {
+public class EthereumWalletHelper {
     @Value("${web3j.http.service.url}")
     private String serviceUrl;
 
     // todo consider using builder with scheduled executor
-    private final Web3j web3j = Web3j.build(new HttpService(serviceUrl));
 
     public BigDecimal getWalletBalanceInEther(String address) throws IOException {
-        EthGetBalance balance = web3j.ethGetBalance(address, DefaultBlockParameterName.LATEST).send();
+        EthGetBalance balance = Web3j.build(new HttpService(serviceUrl)).ethGetBalance(address, DefaultBlockParameterName.LATEST).send();
         BigInteger weiBalance = balance.getBalance();
         BigDecimal etherBalance = Convert.fromWei(new BigDecimal(weiBalance), Convert.Unit.ETHER);
 

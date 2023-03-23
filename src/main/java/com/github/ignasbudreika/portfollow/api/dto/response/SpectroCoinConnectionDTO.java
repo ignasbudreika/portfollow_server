@@ -1,7 +1,7 @@
 package com.github.ignasbudreika.portfollow.api.dto.response;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.github.ignasbudreika.portfollow.enums.SpectroCoinConnectionStatus;
+import com.github.ignasbudreika.portfollow.enums.ConnectionStatus;
 import lombok.Builder;
 import lombok.Data;
 import org.codehaus.jackson.annotate.JsonProperty;
@@ -16,5 +16,5 @@ public class SpectroCoinConnectionDTO {
     private String clientId;
     @JsonProperty("updated_at")
     private LocalDateTime lastFetched;
-    private SpectroCoinConnectionStatus status;
+    private ConnectionStatus status;
 }
