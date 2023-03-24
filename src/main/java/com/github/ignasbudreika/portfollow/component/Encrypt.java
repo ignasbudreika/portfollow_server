@@ -2,7 +2,7 @@ package com.github.ignasbudreika.portfollow.component;
 
 import org.springframework.beans.factory.annotation.Autowired;
 
-import javax.persistence.AttributeConverter;
+import jakarta.persistence.AttributeConverter;
 
 public class Encrypt implements AttributeConverter<String,String> {
     @Autowired
