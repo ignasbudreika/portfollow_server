@@ -34,7 +34,7 @@ public class EthereumWalletService {
     public void addConnection(EthereumWalletConnectionDTO connectionDTO, User user) throws Exception {
         if (connectionRepository.findByAddress(connectionDTO.getAddress()) != null) {
             throw new EntityExistsException(String.format(
-                    "Ethereum wallet connection of address: {} for user: {} already exists", connectionDTO.getAddress(), user.getId()
+                    "Ethereum wallet connection of address: %s for user: %s already exists", connectionDTO.getAddress(), user.getId()
             ));
         }
 
