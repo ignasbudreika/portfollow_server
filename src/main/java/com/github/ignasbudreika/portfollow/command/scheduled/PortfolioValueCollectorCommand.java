@@ -32,18 +32,30 @@ public class PortfolioValueCollectorCommand {
         Iterable<User> users = userService.getAll();
 
         users.forEach(user -> {
-            // todo move into separate command that happens earlier
-            log.info("Fetching user: {} SpectroCoin connection", user.getId());
-            spectroCoinService.fetchCryptocurrencies(user);
+            // todo move into separate commands
+            try {
+                log.info("fetching user: {} SpectroCoin connection", user.getId());
+                spectroCoinService.fetchCryptocurrencies(user);
+            } catch (Exception e) {
+                log.error("failed to fetch SpectroCoin connection for user: {}", user.getId(), e);
+            }
 
-            log.info("Fetching user: {} Ethereum wallet connections", user.getId());
-            walletService.fetchBalances(user);
+            try {
+                log.info("fetching user: {} Ethereum wallet connections", user.getId());
+                walletService.fetchBalances(user);
+            } catch (Exception e) {
+                log.error("failed to fetch Ethereum wallet connections for user: {}", user.getId(), e);
+            }
 
-            log.info("Calculating user: {} portfolio value", user.getId());
-            BigDecimal totalValue = investmentService.getTotalValueByUserId(user.getId());
+            try {
+                log.info("Calculating user: {} portfolio value", user.getId());
+                BigDecimal totalValue = investmentService.getTotalValueByUserId(user.getId());
 
-            log.info("Saving user: {} portfolio value: {}", user.getId(), totalValue);
-            portfolioService.savePortfolio(user.getId(), totalValue, LocalDateTime.now().truncatedTo(ChronoUnit.MINUTES));
+                log.info("Saving user: {} portfolio value: {}", user.getId(), totalValue);
+                portfolioService.savePortfolio(user.getId(), totalValue, LocalDateTime.now().truncatedTo(ChronoUnit.MINUTES));
+            } catch (Exception e) {
+                log.error("failed to update total portfolio value for user: {}", user.getId(), e);
+            }
         });
     }
 }
