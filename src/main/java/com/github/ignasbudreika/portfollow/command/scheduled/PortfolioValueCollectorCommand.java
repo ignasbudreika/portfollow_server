@@ -17,41 +17,22 @@ public class PortfolioValueCollectorCommand {
     @Autowired
     private InvestmentService investmentService;
     @Autowired
-    private SpectroCoinService spectroCoinService;
-    @Autowired
     private UserService userService;
     @Autowired
     private PortfolioService portfolioService;
-    @Autowired
-    private EthereumWalletService walletService;
 
-    @Scheduled(cron = "0 0 */6 * * *")
+    @Scheduled(cron = "0 20 */6 * * *")
     public void retrievePortfolioValues() {
-        log.info("Updating portfolios values. Current time: {}", LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS));
+        log.info("updating portfolios values. Current time: {}", LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS));
 
         Iterable<User> users = userService.getAll();
 
         users.forEach(user -> {
-            // todo move into separate commands
             try {
-                log.info("fetching user: {} SpectroCoin connection", user.getId());
-                spectroCoinService.fetchCryptocurrencies(user);
-            } catch (Exception e) {
-                log.error("failed to fetch SpectroCoin connection for user: {}", user.getId(), e);
-            }
-
-            try {
-                log.info("fetching user: {} Ethereum wallet connections", user.getId());
-                walletService.fetchBalances(user);
-            } catch (Exception e) {
-                log.error("failed to fetch Ethereum wallet connections for user: {}", user.getId(), e);
-            }
-
-            try {
-                log.info("Calculating user: {} portfolio value", user.getId());
+                log.info("calculating user: {} portfolio value", user.getId());
                 BigDecimal totalValue = investmentService.getTotalValueByUserId(user.getId());
 
-                log.info("Saving user: {} portfolio value: {}", user.getId(), totalValue);
+                log.info("saving user: {} portfolio value: {}", user.getId(), totalValue);
                 portfolioService.savePortfolio(user.getId(), totalValue, LocalDateTime.now().truncatedTo(ChronoUnit.MINUTES));
             } catch (Exception e) {
                 log.error("failed to update total portfolio value for user: {}", user.getId(), e);
