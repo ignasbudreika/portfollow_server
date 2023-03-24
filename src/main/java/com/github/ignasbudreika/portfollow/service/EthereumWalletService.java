@@ -22,6 +22,8 @@ import java.time.LocalDateTime;
 @Slf4j
 @Service
 public class EthereumWalletService {
+    private static final String ETHEREUM = "ETH";
+
     @Autowired
     private EthereumWalletConnectionRepository connectionRepository;
     @Autowired
@@ -79,7 +81,7 @@ public class EthereumWalletService {
             BigDecimal etherQuantity = walletHelper.getWalletBalanceInEther(connection.getAddress());
 
             investmentService.saveInvestmentFetchedFromConnection(Investment.builder()
-                    .symbol("ETH")
+                    .symbol(ETHEREUM)
                     .quantity(etherQuantity.setScale(8, RoundingMode.HALF_UP))
                     .type(InvestmentType.CRYPTOCURRENCY)
                     .user(user).build(), connection.getId());
