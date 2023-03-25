@@ -42,7 +42,7 @@ public class InvestmentService {
     }
 
     public Collection<InvestmentDTO> getUserInvestmentsByType(User user, InvestmentType type) {
-        Collection<Investment> investments = investmentRepository.findAllByUserId(user.getId());
+        Collection<Investment> investments = investmentRepository.findAllByUserIdAndType(user.getId(), type);
 
         Collection<InvestmentDTO> result = investments.stream().map(investment -> {
             BigDecimal price = assetService.getRecentPrice(investment.getSymbol(), investment.getType());

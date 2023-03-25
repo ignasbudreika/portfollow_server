@@ -25,7 +25,7 @@ public class InvestmentController {
     private UserService userService;
 
     @GetMapping
-    public ResponseEntity<Collection<InvestmentDTO>> getInvestments(@RequestParam("type") String type) {
+    public ResponseEntity<Collection<InvestmentDTO>> getInvestments(@RequestParam(value = "type", required = false) String type) {
         User user = userService.getByGoogleId(SecurityContextHolder.getContext().getAuthentication().getName());
 
         if (StringUtils.isBlank(type)) {
