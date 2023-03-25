@@ -14,8 +14,6 @@ import java.math.BigDecimal;
 public class InvestmentDTO {
     private String id;
     private String symbol;
-    private DateTime date;
     private BigDecimal value;
-    private BigDecimal percentage;
     private InvestmentType type;
 }

@@ -85,12 +85,10 @@ public class InvestmentService {
     public BigDecimal getTotalValueByUserId(String userId) {
         Collection<Investment> investments = investmentRepository.findAllByUserId(userId);
 
-        BigDecimal totalValue = investments.stream().map(investment ->
+        return investments.stream().map(investment ->
                 investment.getQuantity().multiply(
                         assetService.getRecentPrice(investment.getSymbol(), investment.getType())
                 ).setScale(8, RoundingMode.HALF_UP)
         ).reduce(BigDecimal.ZERO, BigDecimal::add);
-
-        return totalValue;
     }
 }
