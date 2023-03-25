@@ -10,7 +10,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import jakarta.persistence.EntityNotFoundException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.Collection;
@@ -26,8 +25,24 @@ public class InvestmentService {
     @Autowired
     private InvestmentRepository investmentRepository;
 
-    public Collection<InvestmentDTO> getInvestmentsByUserId(String userId) {
-        Collection<Investment> investments = investmentRepository.findAllByUserId(userId);
+    public Collection<InvestmentDTO> getUserInvestments(User user) {
+        Collection<Investment> investments = investmentRepository.findAllByUserId(user.getId());
+
+        Collection<InvestmentDTO> result = investments.stream().map(investment -> {
+            BigDecimal price = assetService.getRecentPrice(investment.getSymbol(), investment.getType());
+
+            return InvestmentDTO.builder()
+                    .id(investment.getId())
+                    .symbol(investment.getSymbol())
+                    .value(investment.getQuantity().multiply(price).setScale(8, RoundingMode.HALF_UP))
+                    .type(investment.getType()).build();
+        }).toList();
+
+        return result;
+    }
+
+    public Collection<InvestmentDTO> getUserInvestmentsByType(User user, InvestmentType type) {
+        Collection<Investment> investments = investmentRepository.findAllByUserId(user.getId());
 
         Collection<InvestmentDTO> result = investments.stream().map(investment -> {
             BigDecimal price = assetService.getRecentPrice(investment.getSymbol(), investment.getType());
@@ -44,10 +59,6 @@ public class InvestmentService {
 
     public Collection<Investment> getInvestmentsByUserIdAndType(String userId, InvestmentType type) {
         return investmentRepository.findAllByUserIdAndType(userId, type);
-    }
-
-    public Investment getInvestmentById(String id) {
-        return investmentRepository.findById(id).orElseThrow(EntityNotFoundException::new);
     }
 
     public Investment createInvestment(Investment investment, User user) {
