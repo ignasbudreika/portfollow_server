@@ -3,6 +3,7 @@ package com.github.ignasbudreika.portfollow.service;
 import com.github.ignasbudreika.portfollow.enums.InvestmentType;
 import com.github.ignasbudreika.portfollow.external.client.AlphaVantageClient;
 import com.github.ignasbudreika.portfollow.external.dto.response.CryptocurrencyDTO;
+import com.github.ignasbudreika.portfollow.external.dto.response.ForexDTO;
 import com.github.ignasbudreika.portfollow.external.dto.response.StockDTO;
 import com.github.ignasbudreika.portfollow.model.Asset;
 import com.github.ignasbudreika.portfollow.repository.AssetRepository;
@@ -17,6 +18,7 @@ import java.time.temporal.ChronoUnit;
 @Slf4j
 @Service
 public class AssetService {
+    private static final String USD = "USD";
     private static final long PRICE_UPDATE_INTERVAL_IN_HOURS = 6l;
 
     @Autowired
@@ -26,7 +28,6 @@ public class AssetService {
 
     public BigDecimal getRecentPrice(String symbol, InvestmentType type) {
         Asset asset = assetRepository.getBySymbolAndType(symbol, type);
-        // return saved price if it was already fetched during the same price update interval
         if (asset != null
                 && asset.getUpdatedAt().isAfter(LocalDateTime.now().truncatedTo(ChronoUnit.HOURS)
                         .minusHours(LocalDateTime.now().getHour() % PRICE_UPDATE_INTERVAL_IN_HOURS))) {
@@ -58,8 +59,10 @@ public class AssetService {
                 } catch (Exception e) {
                 }
 
+                BigDecimal usdEur = getRecentPrice(USD, InvestmentType.FOREX);
+
                 return stock.getPrice() == null ?
-                        BigDecimal.ZERO : new BigDecimal(stock.getPrice());
+                        BigDecimal.ZERO : new BigDecimal(stock.getPrice()).multiply(usdEur);
             }
             case CRYPTOCURRENCY -> {
                 CryptocurrencyDTO cryptocurrency = new CryptocurrencyDTO();
@@ -70,6 +73,16 @@ public class AssetService {
 
                 return cryptocurrency.getExchangeRate() == null ?
                         BigDecimal.ZERO : new BigDecimal(cryptocurrency.getExchangeRate());
+            }
+            case FOREX -> {
+                ForexDTO forex = new ForexDTO();
+                try {
+                    forex = alphaVantageClient.getCurrencyData(symbol);
+                } catch (Exception e) {
+                }
+
+                return forex.getExchangeRate() == null ?
+                        BigDecimal.ZERO : new BigDecimal(forex.getExchangeRate());
             }
             default -> {
                 return BigDecimal.ZERO;
