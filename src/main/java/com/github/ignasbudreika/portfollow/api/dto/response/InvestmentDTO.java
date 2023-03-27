@@ -1,7 +1,6 @@
 package com.github.ignasbudreika.portfollow.api.dto.response;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.google.api.client.util.DateTime;
 import com.github.ignasbudreika.portfollow.enums.InvestmentType;
 import lombok.Builder;
 import lombok.Data;

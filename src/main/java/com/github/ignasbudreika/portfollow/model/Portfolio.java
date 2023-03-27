@@ -20,7 +20,7 @@ public class Portfolio {
     @GeneratedValue(generator = "uuid")
     @GenericGenerator(name = "uuid", strategy = "uuid2")
     private String id;
-    @Column(nullable = false)
+    @Column(precision = 19, scale = 8, nullable = false)
     private BigDecimal value;
     @Column(nullable = false)
     private LocalDateTime date;

@@ -1,6 +1,8 @@
 package com.github.ignasbudreika.portfollow.api.controller;
 
 import com.github.ignasbudreika.portfollow.api.dto.response.PortfolioDTO;
+import com.github.ignasbudreika.portfollow.api.dto.response.PortfolioDistributionDTO;
+import com.github.ignasbudreika.portfollow.api.dto.response.PortfolioHistoryDTO;
 import com.github.ignasbudreika.portfollow.enums.InvestmentType;
 import com.github.ignasbudreika.portfollow.model.User;
 import com.github.ignasbudreika.portfollow.service.PortfolioService;
@@ -14,6 +16,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.time.LocalDateTime;
+import java.util.List;
+
 @RestController
 @RequestMapping("/portfolio")
 public class PortfolioController {
@@ -23,13 +28,29 @@ public class PortfolioController {
     private PortfolioService portfolioService;
 
     @GetMapping
-    public ResponseEntity<PortfolioDTO> getPortfolioDistribution(@RequestParam(value = "type", required = false) String type) {
+    public ResponseEntity<PortfolioDTO> getPortfolio() {
+        User user = userService.getByGoogleId(SecurityContextHolder.getContext().getAuthentication().getName());
+
+        return ResponseEntity.ok(portfolioService.getUserPortfolio(user));
+    }
+
+    @GetMapping("/distribution")
+    public ResponseEntity<List<PortfolioDistributionDTO>> getPortfolioDistribution(@RequestParam(value = "type", required = false) String type) {
         User user = userService.getByGoogleId(SecurityContextHolder.getContext().getAuthentication().getName());
 
         if (StringUtils.isBlank(type)) {
-            return ResponseEntity.ok(portfolioService.getUserPortfolio(user));
+            return ResponseEntity.ok(portfolioService.getUserPortfolioDistribution(user));
         }
 
-        return ResponseEntity.ok(portfolioService.getUserPortfolioByType(user, InvestmentType.valueOf(type)));
+        return ResponseEntity.ok(portfolioService.getUserPortfolioDistributionByType(user, InvestmentType.valueOf(type)));
+    }
+
+    @GetMapping("/history")
+    public ResponseEntity<List<PortfolioHistoryDTO>> getPortfolioHistory(
+            @RequestParam(value = "from", required = false) LocalDateTime from,
+            @RequestParam(value = "from", required = false) LocalDateTime to) {
+        User user = userService.getByGoogleId(SecurityContextHolder.getContext().getAuthentication().getName());
+
+        return ResponseEntity.ok(portfolioService.getUserPortfolioHistory(user));
     }
 }
