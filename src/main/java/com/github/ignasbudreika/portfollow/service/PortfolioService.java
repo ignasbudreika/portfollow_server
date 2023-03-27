@@ -44,7 +44,8 @@ public class PortfolioService {
         return PortfolioDTO.builder()
                 .totalValue(totalValue)
                 .change(totalValue.subtract(lastDaysPortfolio.getValue())
-                        .divide(lastDaysPortfolio.getValue(), 2, RoundingMode.HALF_UP))
+                        .divide(lastDaysPortfolio.getValue(), 4, RoundingMode.HALF_UP)
+                        .multiply(BigDecimal.valueOf(100L).setScale(2, RoundingMode.HALF_UP)))
                 .build();
     }
 
@@ -92,7 +93,7 @@ public class PortfolioService {
         Collection<Portfolio> portfolios = portfolioRepository.findAllByUserIdOrderByDateAsc(user.getId());
 
         return portfolios.stream().map(portfolio -> PortfolioHistoryDTO.builder()
-                .value(portfolio.getValue())
+                .value(portfolio.getValue().setScale(2, RoundingMode.HALF_UP))
                 // todo return timestamp
                 .time(String.valueOf(portfolio.getDate().truncatedTo(ChronoUnit.MINUTES).toEpochSecond(ZoneOffset.UTC))).build())
                 .toList();
