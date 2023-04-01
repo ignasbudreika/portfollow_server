@@ -2,29 +2,54 @@ package com.github.ignasbudreika.portfollow.service;
 
 import com.github.ignasbudreika.portfollow.enums.InvestmentType;
 import com.github.ignasbudreika.portfollow.external.client.AlphaVantageClient;
-import com.github.ignasbudreika.portfollow.external.dto.response.CryptocurrencyDTO;
-import com.github.ignasbudreika.portfollow.external.dto.response.ForexDTO;
-import com.github.ignasbudreika.portfollow.external.dto.response.StockDTO;
+import com.github.ignasbudreika.portfollow.external.dto.response.*;
 import com.github.ignasbudreika.portfollow.model.Asset;
+import com.github.ignasbudreika.portfollow.model.AssetHistory;
+import com.github.ignasbudreika.portfollow.repository.AssetHistoryRepository;
 import com.github.ignasbudreika.portfollow.repository.AssetRepository;
+import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.sql.Date;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
+import java.util.Collection;
 
 @Slf4j
 @Service
 public class AssetService {
     private static final String USD = "USD";
-    private static final long PRICE_UPDATE_INTERVAL_IN_HOURS = 6l;
+    private static final long PRICE_UPDATE_INTERVAL_IN_HOURS = 6;
+    private static final long PRICE_HISTORY_FETCH_IN_YEARS = 1;
 
     @Autowired
     private AssetRepository assetRepository;
     @Autowired
+    private AssetHistoryRepository assetHistoryRepository;
+    @Autowired
     private AlphaVantageClient alphaVantageClient;
+
+    public Asset getAsset(String symbol, InvestmentType type) {
+        return assetRepository.getBySymbolAndType(symbol, type);
+    }
+
+    @Transactional
+    public Asset createAsset(String symbol, InvestmentType type) {
+        getRecentPrice(symbol, type);
+
+        Asset asset = assetRepository.getBySymbolAndType(symbol, type);
+
+        if (asset != null) {
+            fetchPriceHistory(asset, type);
+        }
+
+        return asset;
+    }
 
     public BigDecimal getRecentPrice(String symbol, InvestmentType type) {
         Asset asset = assetRepository.getBySymbolAndType(symbol, type);
@@ -86,6 +111,76 @@ public class AssetService {
             }
             default -> {
                 return BigDecimal.ZERO;
+            }
+        }
+    }
+
+    private void fetchPriceHistory(Asset asset, InvestmentType type) {
+        switch (type) {
+            case STOCK -> {
+                try {
+                    StockHistoryDailyDTO history = alphaVantageClient.getStockHistoryDaily(asset.getSymbol());
+
+                    Date after = Date.valueOf(LocalDate.now().minus(PRICE_HISTORY_FETCH_IN_YEARS, ChronoUnit.YEARS));
+
+                    Collection<AssetHistory> assetHistory = history.getHistory().entrySet().stream()
+                            .filter(entry -> Date.valueOf(entry.getKey()).after(after))
+                            .map(entry ->
+                                    AssetHistory.builder()
+                                            .asset(asset)
+                                            .date(Date.valueOf(entry.getKey()))
+                                            .price(new BigDecimal(entry.getValue().getPrice()).setScale(2, RoundingMode.HALF_UP))
+                                            .build()
+                            ).toList();
+
+                    assetHistoryRepository.saveAll(assetHistory);
+                } catch (Exception e) {
+                    log.warn("exception occured while fetching stocks historical data", e);
+                }
+            }
+            case FOREX -> {
+                try {
+                    ForexHistoryDailyDTO history = alphaVantageClient.getForexHistoryDaily(asset.getSymbol());
+
+                    Date after = Date.valueOf(LocalDate.now().minus(PRICE_HISTORY_FETCH_IN_YEARS, ChronoUnit.YEARS));
+
+                    Collection<AssetHistory> assetHistory = history.getHistory().entrySet().stream()
+                            .filter(entry -> Date.valueOf(entry.getKey()).after(after))
+                            .map(entry ->
+                                    AssetHistory.builder()
+                                            .asset(asset)
+                                            .date(Date.valueOf(entry.getKey()))
+                                            .price(new BigDecimal(entry.getValue().getPrice()).setScale(2, RoundingMode.HALF_UP))
+                                            .build()
+                            ).toList();
+
+                    assetHistoryRepository.saveAll(assetHistory);
+                } catch (Exception e) {
+                    log.warn("exception occured while fetching forex historical data", e);
+                }
+            }
+            case CRYPTOCURRENCY -> {
+                try {
+                    CryptocurrencyHistoryDailyDTO history = alphaVantageClient.getCryptoHistoryDaily(asset.getSymbol());
+
+                    Date after = Date.valueOf(LocalDate.now().minus(PRICE_HISTORY_FETCH_IN_YEARS, ChronoUnit.YEARS));
+
+                    Collection<AssetHistory> assetHistory = history.getHistory().entrySet().stream()
+                            .filter(entry -> Date.valueOf(entry.getKey()).after(after))
+                            .map(entry ->
+                                    AssetHistory.builder()
+                                            .asset(asset)
+                                            .date(Date.valueOf(entry.getKey()))
+                                            .price(new BigDecimal(entry.getValue().getPrice()).setScale(2, RoundingMode.HALF_UP))
+                                            .build()
+                            ).toList();
+
+                    assetHistoryRepository.saveAll(assetHistory);
+                } catch (Exception e) {
+                    log.warn("exception occured while fetching cryptocurrency historical data", e);
+                }
+            }
+            default -> {
             }
         }
     }
