@@ -2,7 +2,9 @@ package com.github.ignasbudreika.portfollow.service;
 
 import com.github.ignasbudreika.portfollow.api.dto.response.InvestmentDTO;
 import com.github.ignasbudreika.portfollow.enums.InvestmentType;
+import com.github.ignasbudreika.portfollow.exception.BusinessLogicException;
 import com.github.ignasbudreika.portfollow.external.client.AlphaVantageClient;
+import com.github.ignasbudreika.portfollow.model.Asset;
 import com.github.ignasbudreika.portfollow.model.Investment;
 import com.github.ignasbudreika.portfollow.model.User;
 import com.github.ignasbudreika.portfollow.repository.InvestmentRepository;
@@ -29,7 +31,12 @@ public class InvestmentService {
         Collection<Investment> investments = investmentRepository.findAllByUserId(user.getId());
 
         Collection<InvestmentDTO> result = investments.stream().map(investment -> {
-            BigDecimal price = assetService.getRecentPrice(investment.getSymbol(), investment.getType());
+            BigDecimal price;
+            if (investment.getAsset() != null) {
+                price = investment.getAsset().getPrice();
+            } else {
+                price = assetService.getRecentPrice(investment.getSymbol(), investment.getType());
+            }
 
             return InvestmentDTO.builder()
                     .id(investment.getId())
@@ -45,7 +52,12 @@ public class InvestmentService {
         Collection<Investment> investments = investmentRepository.findAllByUserIdAndType(user.getId(), type);
 
         Collection<InvestmentDTO> result = investments.stream().map(investment -> {
-            BigDecimal price = assetService.getRecentPrice(investment.getSymbol(), investment.getType());
+            BigDecimal price;
+            if (investment.getAsset() != null) {
+                price = investment.getAsset().getPrice();
+            } else {
+                price = assetService.getRecentPrice(investment.getSymbol(), investment.getType());
+            }
 
             return InvestmentDTO.builder()
                     .id(investment.getId())
@@ -61,13 +73,32 @@ public class InvestmentService {
         return investmentRepository.findAllByUserIdAndType(userId, type);
     }
 
-    public Investment createInvestment(Investment investment, User user) {
+    public Investment createInvestment(Investment investment, User user) throws BusinessLogicException {
+        Asset asset = assetService.getAsset(investment.getSymbol(), investment.getType());
+        if (asset == null) {
+            asset = assetService.createAsset(investment.getSymbol(), investment.getType());
+
+            if (asset == null) {
+                throw new BusinessLogicException("invalid symbol");
+            }
+        }
+
         investment.setUser(user);
+        investment.setAsset(asset);
 
         return investmentRepository.save(investment);
     }
 
-    public Investment saveInvestmentFetchedFromConnection(Investment investment, String connectionId) {
+    public Investment saveInvestmentFetchedFromConnection(Investment investment, String connectionId) throws BusinessLogicException {
+        Asset asset = assetService.getAsset(investment.getSymbol(), investment.getType());
+        if (asset == null) {
+            asset = assetService.createAsset(investment.getSymbol(), investment.getType());
+
+            if (asset == null) {
+                throw new BusinessLogicException("invalid symbol");
+            }
+        }
+
         Investment existing = investmentRepository.findBySymbolAndConnectionId(investment.getSymbol(), connectionId);
         if (existing != null) {
             log.info("investment: {} for connection: {} exists, updating quantity", investment.getSymbol(), connectionId);
@@ -78,6 +109,7 @@ public class InvestmentService {
         }
 
         investment.setConnectionId(connectionId);
+        investment.setAsset(asset);
 
         return investmentRepository.save(investment);
     }

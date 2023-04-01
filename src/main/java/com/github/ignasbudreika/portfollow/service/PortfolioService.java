@@ -38,8 +38,11 @@ public class PortfolioService {
     public PortfolioDTO getUserPortfolio(User user) {
         BigDecimal totalValue = investmentService.getTotalValueByUserId(user.getId());
 
-        Portfolio lastDaysPortfolio = portfolioRepository.findFirstByDateBetweenOrderByDateAsc(
-                LocalDateTime.now().minusDays(1L).truncatedTo(ChronoUnit.MILLIS), LocalDateTime.now().truncatedTo(ChronoUnit.MILLIS));
+        Portfolio lastDaysPortfolio = portfolioRepository.findFirstByUserIdAndDateBeforeOrderByDateDesc(user.getId(), LocalDateTime.now().truncatedTo(ChronoUnit.DAYS));
+
+        if (lastDaysPortfolio == null) {
+            return PortfolioDTO.builder().totalValue(totalValue).change(BigDecimal.ZERO.setScale(2, RoundingMode.HALF_UP)).build();
+        }
 
         return PortfolioDTO.builder()
                 .totalValue(totalValue)
@@ -92,10 +95,16 @@ public class PortfolioService {
     public List<PortfolioHistoryDTO> getUserPortfolioHistory(User user) {
         Collection<Portfolio> portfolios = portfolioRepository.findAllByUserIdOrderByDateAsc(user.getId());
 
-        return portfolios.stream().map(portfolio -> PortfolioHistoryDTO.builder()
+        List<PortfolioHistoryDTO> history = portfolios.stream().map(portfolio -> PortfolioHistoryDTO.builder()
                 .value(portfolio.getValue().setScale(2, RoundingMode.HALF_UP))
-                // todo return timestamp
                 .time(String.valueOf(portfolio.getDate().truncatedTo(ChronoUnit.MINUTES).toEpochSecond(ZoneOffset.UTC))).build())
-                .toList();
+                .collect(Collectors.toList());
+
+        history.add(PortfolioHistoryDTO.builder()
+                .value(investmentService.getTotalValueByUserId(user.getId()))
+                .time(String.valueOf(LocalDateTime.now().truncatedTo(ChronoUnit.MINUTES).toEpochSecond(ZoneOffset.UTC)))
+                .build());
+
+        return history;
     }
 }

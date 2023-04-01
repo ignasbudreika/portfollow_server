@@ -10,5 +10,5 @@ import java.util.Collection;
 @Repository
 public interface PortfolioRepository extends CrudRepository<Portfolio, String> {
     Collection<Portfolio> findAllByUserIdOrderByDateAsc(String userId);
-    Portfolio findFirstByDateBetweenOrderByDateAsc(LocalDateTime startOfDay, LocalDateTime endOfDay);
+    Portfolio findFirstByUserIdAndDateBeforeOrderByDateDesc(String userId, LocalDateTime before);
 }

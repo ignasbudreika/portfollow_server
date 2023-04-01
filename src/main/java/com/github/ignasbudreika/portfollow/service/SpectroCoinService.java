@@ -71,7 +71,7 @@ public class SpectroCoinService {
                 .status(connection.getStatus()).build();
     }
 
-    private SpectroCoinConnection getActiveConnectionOrThrowException(String userId) throws BusinessLogicException {
+    private SpectroCoinConnection getActiveConnectionOrThrowException(String userId) {
         SpectroCoinConnection connection = spectroCoinConnectionRepository.findByUserId(userId);
         if (connection == null || !connection.getStatus().equals(ConnectionStatus.ACTIVE)) {
             throw new EntityNotFoundException(String.format("no active SpectroCoin connection found for user: %s", userId));
@@ -110,11 +110,15 @@ public class SpectroCoinService {
             Arrays.stream(accounts.getAccounts()).forEach(account -> {
                 if (SUPPORTED_CRYPTOCURRENCIES.contains(account.getCurrencyCode())
                         && account.getBalance().compareTo(BigDecimal.ZERO) > 0) {
-                    investmentService.saveInvestmentFetchedFromConnection(Investment.builder()
-                            .symbol(account.getCurrencyCode())
-                            .quantity(account.getBalance().setScale(8, RoundingMode.HALF_UP))
-                            .type(InvestmentType.CRYPTOCURRENCY)
-                            .user(user).build(), connection.getId());
+                    try {
+                        investmentService.saveInvestmentFetchedFromConnection(Investment.builder()
+                                .symbol(account.getCurrencyCode())
+                                .quantity(account.getBalance().setScale(8, RoundingMode.HALF_UP))
+                                .type(InvestmentType.CRYPTOCURRENCY)
+                                .user(user).build(), connection.getId());
+                    } catch (BusinessLogicException e) {
+                        log.error("failed to import: {} symbol for user: {}", account.getCurrencyCode(), user.getId(), e);
+                    }
 
                     log.info("imported {} cryptocurrency for user: {} from SpectroCoin, balance: {}",
                             account.getCurrencyCode(), user.getId(), account.getBalance());

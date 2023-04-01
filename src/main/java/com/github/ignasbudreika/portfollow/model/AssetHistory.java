@@ -22,7 +22,7 @@ public class AssetHistory {
     @GenericGenerator(name = "uuid", strategy = "uuid2")
     private String id;
     @ManyToOne
-    @JoinColumn(name="asset_id")
+    @JoinColumn(name="asset_id", nullable = false)
     private Asset asset;
     @Column(nullable = false)
     private Date date;

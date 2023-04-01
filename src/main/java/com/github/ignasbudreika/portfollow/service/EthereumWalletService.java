@@ -3,6 +3,7 @@ package com.github.ignasbudreika.portfollow.service;
 import com.github.ignasbudreika.portfollow.api.dto.request.EthereumWalletConnectionDTO;
 import com.github.ignasbudreika.portfollow.enums.ConnectionStatus;
 import com.github.ignasbudreika.portfollow.enums.InvestmentType;
+import com.github.ignasbudreika.portfollow.exception.BusinessLogicException;
 import com.github.ignasbudreika.portfollow.external.helper.EthereumWalletHelper;
 import com.github.ignasbudreika.portfollow.model.EthereumWalletConnection;
 import com.github.ignasbudreika.portfollow.model.Investment;
@@ -90,6 +91,8 @@ public class EthereumWalletService {
         } catch (IOException e) {
             log.error("error occurred while fetching balance for user: {} from Ethereum address: {}",
                     user.getId(), connection.getAddress(), e);
+        } catch (BusinessLogicException e) {
+            log.error("something went wrong while fetching ETH balance from wallet");
         }
 
         connection.setLastFetched(LocalDateTime.now());

@@ -3,6 +3,7 @@ package com.github.ignasbudreika.portfollow.service;
 import com.github.ignasbudreika.portfollow.api.dto.request.CryptocurrencyDTO;
 import com.github.ignasbudreika.portfollow.api.dto.response.CryptocurrencyInvestmentDTO;
 import com.github.ignasbudreika.portfollow.enums.InvestmentType;
+import com.github.ignasbudreika.portfollow.exception.BusinessLogicException;
 import com.github.ignasbudreika.portfollow.model.Investment;
 import com.github.ignasbudreika.portfollow.model.User;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,7 +14,7 @@ public class CryptocurrencyService {
     @Autowired
     private InvestmentService investmentService;
 
-    public CryptocurrencyInvestmentDTO createCryptocurrencyInvestment(CryptocurrencyDTO crypto, User user) {
+    public CryptocurrencyInvestmentDTO createCryptocurrencyInvestment(CryptocurrencyDTO crypto, User user) throws BusinessLogicException {
         Investment investment = Investment.builder()
                 .symbol(crypto.getSymbol())
                 .quantity(crypto.getQuantity())

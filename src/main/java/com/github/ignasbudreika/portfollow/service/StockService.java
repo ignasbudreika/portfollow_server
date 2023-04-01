@@ -3,6 +3,7 @@ package com.github.ignasbudreika.portfollow.service;
 import com.github.ignasbudreika.portfollow.api.dto.request.StockDTO;
 import com.github.ignasbudreika.portfollow.api.dto.response.StockInvestmentDTO;
 import com.github.ignasbudreika.portfollow.enums.InvestmentType;
+import com.github.ignasbudreika.portfollow.exception.BusinessLogicException;
 import com.github.ignasbudreika.portfollow.external.client.AlphaVantageClient;
 import com.github.ignasbudreika.portfollow.model.Investment;
 import com.github.ignasbudreika.portfollow.model.User;
@@ -11,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.Collection;
 
 @Slf4j
@@ -36,13 +38,13 @@ public class StockService {
                     .id(investment.getId())
                     .ticker(investment.getSymbol())
                     .value(stock.getPrice() == null ?
-                            null : investment.getQuantity().multiply(new BigDecimal(stock.getPrice())).setScale(2)).build();
+                            null : investment.getQuantity().multiply(new BigDecimal(stock.getPrice())).setScale(2, RoundingMode.HALF_UP)).build();
         }).toList();
 
         return result;
     }
 
-    public StockInvestmentDTO createStockInvestment(StockDTO stock, User user) {
+    public StockInvestmentDTO createStockInvestment(StockDTO stock, User user) throws BusinessLogicException {
         Investment investment = Investment.builder()
                 .symbol(stock.getTicker())
                 .quantity(stock.getQuantity())

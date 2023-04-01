@@ -32,4 +32,7 @@ public class Investment {
     private User user;
     @Column(name = "connection_id")
     private String connectionId;
+    @ManyToOne
+    @JoinColumn(name="asset_id")
+    private Asset asset;
 }
