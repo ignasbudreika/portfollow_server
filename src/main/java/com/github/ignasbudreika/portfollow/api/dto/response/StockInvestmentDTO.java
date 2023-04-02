@@ -5,6 +5,7 @@ import lombok.Builder;
 import lombok.Data;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 
 @Data
 @Builder
@@ -12,5 +13,8 @@ import java.math.BigDecimal;
 public class StockInvestmentDTO {
     private String id;
     private String ticker;
+    private BigDecimal quantity;
+    private BigDecimal price;
     private BigDecimal value;
+    private LocalDate date;
 }

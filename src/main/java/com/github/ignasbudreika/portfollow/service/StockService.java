@@ -4,7 +4,6 @@ import com.github.ignasbudreika.portfollow.api.dto.request.StockDTO;
 import com.github.ignasbudreika.portfollow.api.dto.response.StockInvestmentDTO;
 import com.github.ignasbudreika.portfollow.enums.InvestmentType;
 import com.github.ignasbudreika.portfollow.exception.BusinessLogicException;
-import com.github.ignasbudreika.portfollow.external.client.AlphaVantageClient;
 import com.github.ignasbudreika.portfollow.model.Investment;
 import com.github.ignasbudreika.portfollow.model.User;
 import lombok.extern.slf4j.Slf4j;
@@ -19,7 +18,7 @@ import java.util.Collection;
 @Service
 public class StockService {
     @Autowired
-    private AlphaVantageClient alphaVantageClient;
+    private AssetService assetService;
 
     @Autowired
     private InvestmentService investmentService;
@@ -27,21 +26,17 @@ public class StockService {
     public Collection<StockInvestmentDTO> getUserStockInvestments(String userId) {
         Collection<Investment> stockInvestments = investmentService.getInvestmentsByUserIdAndType(userId, InvestmentType.STOCK);
 
-        Collection<StockInvestmentDTO> result = stockInvestments.stream().map(investment -> {
-            com.github.ignasbudreika.portfollow.external.dto.response.StockDTO stock = new com.github.ignasbudreika.portfollow.external.dto.response.StockDTO();
-            try {
-                stock = alphaVantageClient.getStockData(investment.getSymbol());
-            } catch (Exception e) {
-            }
+        return stockInvestments.stream().map(investment -> {
+            BigDecimal price = assetService.getRecentPrice(investment.getSymbol(), InvestmentType.STOCK);
 
             return StockInvestmentDTO.builder()
                     .id(investment.getId())
                     .ticker(investment.getSymbol())
-                    .value(stock.getPrice() == null ?
-                            null : investment.getQuantity().multiply(new BigDecimal(stock.getPrice())).setScale(2, RoundingMode.HALF_UP)).build();
+                    .quantity(investment.getQuantity().setScale(2, RoundingMode.HALF_UP))
+                    .price(price.setScale(2, RoundingMode.HALF_UP))
+                    .value(investment.getQuantity().multiply(price).setScale(2, RoundingMode.HALF_UP))
+                    .date(investment.getDate()).build();
         }).toList();
-
-        return result;
     }
 
     public StockInvestmentDTO createStockInvestment(StockDTO stock, User user) throws BusinessLogicException {
@@ -53,10 +48,8 @@ public class StockService {
 
         investment = investmentService.createInvestment(investment, user);
 
-        StockInvestmentDTO stockInvestment = StockInvestmentDTO.builder()
+        return StockInvestmentDTO.builder()
                 .id(investment.getId())
                 .ticker(investment.getSymbol()).build();
-
-        return stockInvestment;
     }
 }

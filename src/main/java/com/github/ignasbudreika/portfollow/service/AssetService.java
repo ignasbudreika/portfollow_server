@@ -24,7 +24,6 @@ import java.util.Collection;
 @Service
 public class AssetService {
     private static final String USD = "USD";
-    private static final long PRICE_UPDATE_INTERVAL_IN_HOURS = 1;
     private static final LocalDate PRICE_HISTORY_FETCH_SINCE = LocalDate.of(2022, 12, 1);
 
     @Autowired
@@ -54,8 +53,7 @@ public class AssetService {
     public BigDecimal getRecentPrice(String symbol, InvestmentType type) {
         Asset asset = assetRepository.getBySymbolAndType(symbol, type);
         if (asset != null
-                && asset.getUpdatedAt().isAfter(LocalDateTime.now().truncatedTo(ChronoUnit.HOURS)
-                        .minusHours(LocalDateTime.now().getHour() % PRICE_UPDATE_INTERVAL_IN_HOURS))) {
+                && asset.getUpdatedAt().isAfter(LocalDateTime.now().truncatedTo(ChronoUnit.HOURS))) {
             log.info("asset: {} was updated at: {}, returning last fetched price: {}",
                     asset.getSymbol(), asset.getUpdatedAt().truncatedTo(ChronoUnit.MINUTES), asset.getPrice());
             return asset.getPrice();
@@ -68,6 +66,7 @@ public class AssetService {
             log.info("created asset: {} with price: {}", asset.getSymbol(), asset.getPrice());
         } else if (asset != null && !BigDecimal.ZERO.equals(price)) {
             asset.setPrice(price);
+            asset.setUpdatedAt(LocalDateTime.now());
             assetRepository.save(asset);
             log.info("updated asset: {} price: {}", asset.getSymbol(), asset.getPrice());
         }
