@@ -18,7 +18,7 @@ public class CryptocurrencyHistoryDailyDTO {
     @NoArgsConstructor
     @JsonIgnoreProperties(ignoreUnknown = true)
     public static class HistoryDTO {
-        @JsonProperty("4a. close (EUR)")
+        @JsonProperty("4a. close (USD)")
         private String price;
     }
 }

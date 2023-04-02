@@ -27,7 +27,9 @@ public class AlphaVantageClient {
     private static final String QUERY_PARAM_CURRENCY_TO = "to_currency";
     private static final String QUERY_PARAM_SYMBOL_FROM = "from_symbol";
     private static final String QUERY_PARAM_SYMBOL_TO = "to_symbol";
+    // todo add all prices conversion to eur
     private static final String QUERY_PARAM_CURRENCY_TO_EUR = "EUR";
+    private static final String QUERY_PARAM_CURRENCY_TO_USD = "USD";
     private static final String QUERY_PARAM_SYMBOL_TO_EUR = "EUR";
     private static final String QUERY_PARAM_API_KEY = "apikey";
     private static final String QUERY_PARAM_MARKET = "market";
@@ -69,7 +71,7 @@ public class AlphaVantageClient {
                 .queryParam(QUERY_PARAM_FUNCTION, QUERY_PARAM_FUNCTION_CURRENCY_EXCHANGE_RATE)
                 .queryParam(QUERY_PARAM_API_KEY, apiKey)
                 .queryParam(QUERY_PARAM_CURRENCY_FROM, code)
-                .queryParam(QUERY_PARAM_CURRENCY_TO, QUERY_PARAM_CURRENCY_TO_EUR).build().toUri();
+                .queryParam(QUERY_PARAM_CURRENCY_TO, QUERY_PARAM_CURRENCY_TO_USD).build().toUri();
 
         HttpResponse<String> response = client.send(HttpRequest.newBuilder(uri).GET().build(), HttpResponse.BodyHandlers.ofString());
 
@@ -81,7 +83,7 @@ public class AlphaVantageClient {
                 .queryParam(QUERY_PARAM_FUNCTION, QUERY_PARAM_FUNCTION_CURRENCY_EXCHANGE_RATE)
                 .queryParam(QUERY_PARAM_API_KEY, apiKey)
                 .queryParam(QUERY_PARAM_CURRENCY_FROM, code)
-                .queryParam(QUERY_PARAM_CURRENCY_TO, QUERY_PARAM_CURRENCY_TO_EUR).build().toUri();
+                .queryParam(QUERY_PARAM_CURRENCY_TO, QUERY_PARAM_CURRENCY_TO_USD).build().toUri();
 
         HttpResponse<String> response = client.send(HttpRequest.newBuilder(uri).GET().build(), HttpResponse.BodyHandlers.ofString());
 
@@ -106,7 +108,7 @@ public class AlphaVantageClient {
                 .queryParam(QUERY_PARAM_API_KEY, apiKey)
                 .queryParam(QUERY_PARAM_OUTPUT_SIZE, QUERY_PARAM_OUTPUT_SIZE_FULL)
                 .queryParam(QUERY_PARAM_SYMBOL_FROM, currency)
-                .queryParam(QUERY_PARAM_SYMBOL_TO, QUERY_PARAM_CURRENCY_TO_EUR).build().toUri();
+                .queryParam(QUERY_PARAM_SYMBOL_TO, QUERY_PARAM_CURRENCY_TO_USD).build().toUri();
 
         HttpResponse<String> response = client.send(HttpRequest.newBuilder(uri).GET().build(), HttpResponse.BodyHandlers.ofString());
 
@@ -118,7 +120,7 @@ public class AlphaVantageClient {
                 .queryParam(QUERY_PARAM_FUNCTION, QUERY_PARAM_FUNCTION_DIGITAL_CURRENCY_DAILY)
                 .queryParam(QUERY_PARAM_API_KEY, apiKey)
                 .queryParam(QUERY_PARAM_OUTPUT_SIZE, QUERY_PARAM_OUTPUT_SIZE_FULL)
-                .queryParam(QUERY_PARAM_MARKET, QUERY_PARAM_CURRENCY_TO_EUR)
+                .queryParam(QUERY_PARAM_MARKET, QUERY_PARAM_CURRENCY_TO_USD)
                 .queryParam(QUERY_PARAM_TICKER, currency).build().toUri();
 
         HttpResponse<String> response = client.send(HttpRequest.newBuilder(uri).GET().build(), HttpResponse.BodyHandlers.ofString());

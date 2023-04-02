@@ -25,7 +25,7 @@ import java.util.Collection;
 public class AssetService {
     private static final String USD = "USD";
     private static final long PRICE_UPDATE_INTERVAL_IN_HOURS = 1;
-    private static final long PRICE_HISTORY_FETCH_IN_YEARS = 1;
+    private static final LocalDate PRICE_HISTORY_FETCH_SINCE = LocalDate.of(2022, 12, 1);
 
     @Autowired
     private AssetRepository assetRepository;
@@ -75,7 +75,7 @@ public class AssetService {
         return price;
     }
 
-    private BigDecimal fetchPrice(String symbol, InvestmentType type) {
+    public BigDecimal fetchPrice(String symbol, InvestmentType type) {
         switch (type) {
             case STOCK -> {
                 StockDTO stock = new StockDTO();
@@ -84,10 +84,10 @@ public class AssetService {
                 } catch (Exception e) {
                 }
 
-                BigDecimal usdEur = getRecentPrice(USD, InvestmentType.FOREX);
+//                BigDecimal usdEur = getRecentPrice(USD, InvestmentType.FOREX);
 
                 return stock.getPrice() == null ?
-                        BigDecimal.ZERO : new BigDecimal(stock.getPrice()).multiply(usdEur);
+                        BigDecimal.ZERO : new BigDecimal(stock.getPrice());
             }
             case CRYPTOCURRENCY -> {
                 CryptocurrencyDTO cryptocurrency = new CryptocurrencyDTO();
@@ -115,16 +115,14 @@ public class AssetService {
         }
     }
 
-    private void fetchPriceHistory(Asset asset, InvestmentType type) {
+    public void fetchPriceHistory(Asset asset, InvestmentType type) {
         switch (type) {
             case STOCK -> {
                 try {
                     StockHistoryDailyDTO history = alphaVantageClient.getStockHistoryDaily(asset.getSymbol());
 
-                    Date after = Date.valueOf(LocalDate.now().minus(PRICE_HISTORY_FETCH_IN_YEARS, ChronoUnit.YEARS));
-
                     Collection<AssetHistory> assetHistory = history.getHistory().entrySet().stream()
-                            .filter(entry -> Date.valueOf(entry.getKey()).after(after))
+                            .filter(entry -> LocalDate.parse(entry.getKey()).isAfter(PRICE_HISTORY_FETCH_SINCE))
                             .map(entry ->
                                     AssetHistory.builder()
                                             .asset(asset)
@@ -142,10 +140,8 @@ public class AssetService {
                 try {
                     ForexHistoryDailyDTO history = alphaVantageClient.getForexHistoryDaily(asset.getSymbol());
 
-                    Date after = Date.valueOf(LocalDate.now().minus(PRICE_HISTORY_FETCH_IN_YEARS, ChronoUnit.YEARS));
-
                     Collection<AssetHistory> assetHistory = history.getHistory().entrySet().stream()
-                            .filter(entry -> Date.valueOf(entry.getKey()).after(after))
+                            .filter(entry -> LocalDate.parse(entry.getKey()).isAfter(PRICE_HISTORY_FETCH_SINCE))
                             .map(entry ->
                                     AssetHistory.builder()
                                             .asset(asset)
@@ -163,10 +159,8 @@ public class AssetService {
                 try {
                     CryptocurrencyHistoryDailyDTO history = alphaVantageClient.getCryptoHistoryDaily(asset.getSymbol());
 
-                    Date after = Date.valueOf(LocalDate.now().minus(PRICE_HISTORY_FETCH_IN_YEARS, ChronoUnit.YEARS));
-
                     Collection<AssetHistory> assetHistory = history.getHistory().entrySet().stream()
-                            .filter(entry -> Date.valueOf(entry.getKey()).after(after))
+                            .filter(entry -> LocalDate.parse(entry.getKey()).isAfter(PRICE_HISTORY_FETCH_SINCE))
                             .map(entry ->
                                     AssetHistory.builder()
                                             .asset(asset)
@@ -192,5 +186,9 @@ public class AssetService {
         }
 
         return history.getPrice();
+    }
+
+    public Iterable<Asset> getAllAssets() {
+        return assetRepository.findAll();
     }
 }

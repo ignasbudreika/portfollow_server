@@ -6,7 +6,7 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface EthereumWalletConnectionRepository extends CrudRepository<EthereumWalletConnection, String> {
-    EthereumWalletConnection findByAddress(String address);
+    EthereumWalletConnection findByUserIdAndAddress(String userId, String address);
 
     Iterable<EthereumWalletConnection> findAllByUserId(String userId);
 }

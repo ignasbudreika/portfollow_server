@@ -9,6 +9,7 @@ import com.github.ignasbudreika.portfollow.model.Investment;
 import com.github.ignasbudreika.portfollow.model.User;
 import com.github.ignasbudreika.portfollow.repository.InvestmentRepository;
 import lombok.extern.slf4j.Slf4j;
+import net.bytebuddy.asm.Advice;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -124,8 +125,13 @@ public class InvestmentService {
 
         investment.setConnectionId(connectionId);
         investment.setAsset(asset);
+        investment.setDate(LocalDate.now());
 
-        return investmentRepository.save(investment);
+        investment = investmentRepository.save(investment);
+
+        portfolioService.createOrUpdatePortfolioHistory(investment);
+
+        return investment;
     }
 
     public BigDecimal getTotalValueByUserId(String userId) {

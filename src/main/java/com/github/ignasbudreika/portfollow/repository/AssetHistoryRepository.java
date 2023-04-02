@@ -9,4 +9,5 @@ import java.time.LocalDate;
 @Repository
 public interface AssetHistoryRepository extends CrudRepository<AssetHistory, String> {
     AssetHistory findFirstByAssetIdAndDateBeforeOrderByDateDesc(String id, LocalDate date);
+    boolean existsByAssetId(String id);
 }
