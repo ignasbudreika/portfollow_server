@@ -3,6 +3,7 @@ package com.github.ignasbudreika.portfollow.api.controller;
 import com.github.ignasbudreika.portfollow.api.dto.response.PortfolioDTO;
 import com.github.ignasbudreika.portfollow.api.dto.response.PortfolioDistributionDTO;
 import com.github.ignasbudreika.portfollow.api.dto.response.PortfolioHistoryDTO;
+import com.github.ignasbudreika.portfollow.enums.HistoryType;
 import com.github.ignasbudreika.portfollow.enums.InvestmentType;
 import com.github.ignasbudreika.portfollow.model.User;
 import com.github.ignasbudreika.portfollow.service.PortfolioService;
@@ -46,11 +47,9 @@ public class PortfolioController {
     }
 
     @GetMapping("/history")
-    public ResponseEntity<List<PortfolioHistoryDTO>> getPortfolioHistory(
-            @RequestParam(value = "from", required = false) LocalDateTime from,
-            @RequestParam(value = "from", required = false) LocalDateTime to) {
+    public ResponseEntity<List<PortfolioHistoryDTO>> getPortfolioHistory(@RequestParam(value = "type", defaultValue = "WEEKLY") HistoryType type) {
         User user = userService.getByGoogleId(SecurityContextHolder.getContext().getAuthentication().getName());
 
-        return ResponseEntity.ok(portfolioService.getUserPortfolioHistory(user));
+        return ResponseEntity.ok(portfolioService.getUserPortfolioHistory(user, type));
     }
 }

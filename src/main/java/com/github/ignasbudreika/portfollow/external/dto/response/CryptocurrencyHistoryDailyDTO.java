@@ -12,7 +12,7 @@ import java.util.Map;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class CryptocurrencyHistoryDailyDTO {
     @JsonProperty("Time Series (Digital Currency Daily)")
-    private Map<String, StockHistoryDailyDTO.HistoryDTO> history;
+    private Map<String, HistoryDTO> history;
 
     @Getter
     @NoArgsConstructor

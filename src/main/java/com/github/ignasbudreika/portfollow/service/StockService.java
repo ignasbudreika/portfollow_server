@@ -48,7 +48,8 @@ public class StockService {
         Investment investment = Investment.builder()
                 .symbol(stock.getTicker())
                 .quantity(stock.getQuantity())
-                .type(InvestmentType.STOCK).build();
+                .type(InvestmentType.STOCK)
+                .date(stock.getDate()).build();
 
         investment = investmentService.createInvestment(investment, user);
 

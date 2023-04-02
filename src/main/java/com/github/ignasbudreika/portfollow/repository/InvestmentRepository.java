@@ -12,4 +12,6 @@ public interface InvestmentRepository extends CrudRepository<Investment, String>
     Collection<Investment> findAllByUserIdAndType(String userId, InvestmentType type);
     Collection<Investment> findAllByUserId(String userId);
     Investment findBySymbolAndConnectionId(String symbol, String connectionId);
+    Collection<Investment> findByPortfoliosId(String portfolioId);
+    Collection<Investment> findByTypeAndPortfoliosId(InvestmentType type, String portfolioId);
 }

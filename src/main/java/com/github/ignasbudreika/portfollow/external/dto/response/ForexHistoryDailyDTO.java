@@ -12,7 +12,7 @@ import java.util.Map;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class ForexHistoryDailyDTO {
     @JsonProperty("Time Series FX (Daily)")
-    private Map<String, ForexHistoryDailyDTO.HistoryDTO> history;
+    private Map<String, HistoryDTO> history;
 
     @Getter
     @NoArgsConstructor

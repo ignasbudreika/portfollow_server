@@ -18,7 +18,8 @@ public class CryptocurrencyService {
         Investment investment = Investment.builder()
                 .symbol(crypto.getSymbol())
                 .quantity(crypto.getQuantity())
-                .type(InvestmentType.CRYPTOCURRENCY).build();
+                .type(InvestmentType.CRYPTOCURRENCY)
+                .date(crypto.getDate()).build();
 
         investment = investmentService.createInvestment(investment, user);
 

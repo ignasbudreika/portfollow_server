@@ -5,11 +5,12 @@ import lombok.Builder;
 import lombok.Data;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 
 @Data
 @Builder
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class PortfolioHistoryDTO {
-    private String time;
+    private LocalDate time;
     private BigDecimal value;
 }

@@ -24,7 +24,7 @@ import java.util.Collection;
 @Service
 public class AssetService {
     private static final String USD = "USD";
-    private static final long PRICE_UPDATE_INTERVAL_IN_HOURS = 6;
+    private static final long PRICE_UPDATE_INTERVAL_IN_HOURS = 1;
     private static final long PRICE_HISTORY_FETCH_IN_YEARS = 1;
 
     @Autowired
@@ -171,7 +171,7 @@ public class AssetService {
                                     AssetHistory.builder()
                                             .asset(asset)
                                             .date(Date.valueOf(entry.getKey()))
-                                            .price(new BigDecimal(entry.getValue().getPrice()).setScale(2, RoundingMode.HALF_UP))
+                                            .price(new BigDecimal(entry.getValue().getPrice()).setScale(8, RoundingMode.HALF_UP))
                                             .build()
                             ).toList();
 
@@ -183,5 +183,14 @@ public class AssetService {
             default -> {
             }
         }
+    }
+
+    public BigDecimal getLatestAssetPriceForDate(Asset asset, LocalDate date) {
+        AssetHistory history = assetHistoryRepository.findFirstByAssetIdAndDateBeforeOrderByDateDesc(asset.getId(), date);
+        if (history == null) {
+            return BigDecimal.ZERO;
+        }
+
+        return history.getPrice();
     }
 }

@@ -1,14 +1,15 @@
 package com.github.ignasbudreika.portfollow.model;
 
 import com.github.ignasbudreika.portfollow.enums.InvestmentType;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.hibernate.annotations.GenericGenerator;
 
 import jakarta.persistence.*;
+
 import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.util.HashSet;
+import java.util.Set;
 
 @Data
 @Entity
@@ -35,4 +36,10 @@ public class Investment {
     @ManyToOne
     @JoinColumn(name="asset_id")
     private Asset asset;
+    private LocalDate date;
+    @OneToMany(mappedBy = "id")
+    private Set<InvestmentTransaction> transactions = new HashSet<>();
+    @ManyToMany(mappedBy = "investments")
+    @Getter(AccessLevel.NONE)
+    private Set<Portfolio> portfolios;
 }

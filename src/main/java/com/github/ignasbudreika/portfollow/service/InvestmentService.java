@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.LocalDate;
 import java.util.Collection;
 
 @Slf4j
@@ -23,6 +24,8 @@ public class InvestmentService {
     private AlphaVantageClient alphaVantageClient;
 
     @Autowired private AssetService assetService;
+    @Autowired
+    private PortfolioService portfolioService;
 
     @Autowired
     private InvestmentRepository investmentRepository;
@@ -46,6 +49,10 @@ public class InvestmentService {
         }).toList();
 
         return result;
+    }
+
+    public Collection<Investment> getInvestmentsByUserId(String userId) {
+        return investmentRepository.findAllByUserId(userId);
     }
 
     public Collection<InvestmentDTO> getUserInvestmentsByType(User user, InvestmentType type) {
@@ -83,10 +90,17 @@ public class InvestmentService {
             }
         }
 
+        if (investment.getDate().isBefore(LocalDate.of(2023, 1, 1))) {
+            throw new BusinessLogicException("only investments made after 2023-01-01 are supported");
+        }
+
         investment.setUser(user);
         investment.setAsset(asset);
+        investment = investmentRepository.save(investment);
 
-        return investmentRepository.save(investment);
+        portfolioService.createOrUpdatePortfolioHistory(investment);
+
+        return investment;
     }
 
     public Investment saveInvestmentFetchedFromConnection(Investment investment, String connectionId) throws BusinessLogicException {
@@ -121,6 +135,6 @@ public class InvestmentService {
                 investment.getQuantity().multiply(
                         assetService.getRecentPrice(investment.getSymbol(), investment.getType())
                 ).setScale(8, RoundingMode.HALF_UP)
-        ).reduce(BigDecimal.ZERO, BigDecimal::add);
+        ).reduce(BigDecimal.ZERO, BigDecimal::add).setScale(2, RoundingMode.HALF_UP);
     }
 }

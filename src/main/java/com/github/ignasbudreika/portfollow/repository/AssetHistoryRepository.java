@@ -4,6 +4,9 @@ import com.github.ignasbudreika.portfollow.model.AssetHistory;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDate;
+
 @Repository
 public interface AssetHistoryRepository extends CrudRepository<AssetHistory, String> {
+    AssetHistory findFirstByAssetIdAndDateBeforeOrderByDateDesc(String id, LocalDate date);
 }
