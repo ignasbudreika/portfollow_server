@@ -259,9 +259,16 @@ public class AssetService {
             asset = assetRepository.save(asset);
         }
 
-        if (!priceForHistory.equals(BigDecimal.ZERO) && !assetHistoryRepository.existsByAssetIdAndDate(asset.getId(), date)) {
-            log.info("saving asset: {} price: {} for: {}", asset.getId(), priceForHistory, date);
-            assetHistoryRepository.save(AssetHistory.builder().asset(asset).date(Date.valueOf(date)).price(priceForHistory).build());
+        if (!priceForHistory.equals(BigDecimal.ZERO)) {
+            AssetHistory history = assetHistoryRepository.findByAssetIdAndDate(asset.getId(), date);
+            if (history == null) {
+                log.info("saving asset: {} price: {} for: {}", asset.getId(), priceForHistory, date);
+                assetHistoryRepository.save(AssetHistory.builder().asset(asset).date(Date.valueOf(date)).price(priceForHistory).build());
+            } else {
+                log.info("updating asset: {} price: {} for: {}", asset.getId(), priceForHistory, date);
+                history.setPrice(priceForHistory);
+                assetHistoryRepository.save(history);
+            }
         }
     }
 

@@ -63,6 +63,7 @@ public class PortfolioService {
         return portfolioRepository.save(portfolio);
     }
 
+    // todo fix so that it shows same value as in distribution
     public PortfolioDTO getUserPortfolio(User user) {
         Portfolio portfolio = portfolioRepository.findFirstByUserIdAndDateBeforeOrderByDateDesc(user.getId(), LocalDate.now().plusDays(1));
         BigDecimal totalValue = portfolio == null ? BigDecimal.ZERO : portfolio.getValue();

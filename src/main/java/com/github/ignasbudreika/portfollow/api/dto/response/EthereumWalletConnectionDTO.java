@@ -11,9 +11,8 @@ import java.time.LocalDateTime;
 @Data
 @Builder
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class SpectroCoinConnectionDTO {
-    @JsonProperty("client_id")
-    private String clientId;
+public class EthereumWalletConnectionDTO {
+    private String address;
     @JsonProperty("updated_at")
     private String lastFetched;
     private ConnectionStatus status;

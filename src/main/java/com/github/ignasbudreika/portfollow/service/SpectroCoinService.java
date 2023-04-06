@@ -20,6 +20,7 @@ import jakarta.persistence.EntityNotFoundException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.Set;
 
@@ -62,12 +63,13 @@ public class SpectroCoinService {
     public SpectroCoinConnectionDTO getConnection(String userId) {
         SpectroCoinConnection connection = spectroCoinConnectionRepository.findByUserId(userId);
         if (connection == null) {
-            return null;
+            return SpectroCoinConnectionDTO.builder().status(ConnectionStatus.INACTIVE).build();
         }
 
         return SpectroCoinConnectionDTO.builder()
                 .clientId(connection.getClientId())
-                .lastFetched(connection.getLastFetched())
+                // todo reuse datetimeformatter throughout the project -> create date utils
+                .lastFetched(connection.getLastFetched().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")))
                 .status(connection.getStatus()).build();
     }
 

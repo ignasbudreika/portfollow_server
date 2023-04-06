@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 @Slf4j
 @Service
@@ -49,6 +50,19 @@ public class EthereumWalletService {
         log.info("successfully added Ethereum wallet connection for user: {}, fetching balance", user.getId());
 
         fetchBalance(connection, user);
+    }
+
+    public com.github.ignasbudreika.portfollow.api.dto.response.EthereumWalletConnectionDTO getConnectionByUserId(String userId) {
+        EthereumWalletConnection connection = connectionRepository.findByUserId(userId);
+        if (connection == null) {
+            return com.github.ignasbudreika.portfollow.api.dto.response.EthereumWalletConnectionDTO.builder()
+                    .status(ConnectionStatus.INACTIVE).build();
+        }
+
+        return com.github.ignasbudreika.portfollow.api.dto.response.EthereumWalletConnectionDTO.builder()
+                .address(connection.getAddress())
+                .lastFetched(connection.getLastFetched().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")))
+                .status(connection.getStatus()).build();
     }
 
     @Transactional
