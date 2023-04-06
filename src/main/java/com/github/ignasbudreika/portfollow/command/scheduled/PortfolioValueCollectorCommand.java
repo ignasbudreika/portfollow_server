@@ -23,7 +23,7 @@ public class PortfolioValueCollectorCommand {
     @Autowired
     private PortfolioService portfolioService;
 
-    @Scheduled(cron = "0 15 0 * * *")
+    @Scheduled(cron = "0 20 * * * *")
     public void retrievePortfolioValues() {
         log.info("updating portfolios values. Current time: {}", LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS));
 
@@ -31,12 +31,8 @@ public class PortfolioValueCollectorCommand {
 
         users.forEach(user -> {
             try {
-                log.info("calculating user: {} portfolio value", user.getId());
-                BigDecimal totalValue = investmentService.getTotalValueByUserId(user.getId());
-                Collection<Investment> investments = investmentService.getInvestmentsByUserId(user.getId());
-
-                log.info("saving user: {} portfolio value: {}", user.getId(), totalValue);
-                portfolioService.savePortfolio(user.getId(), totalValue, investments, LocalDateTime.now().toLocalDate());
+                log.info("updating user: {} portfolio value", user.getId());
+                portfolioService.saveCurrentPortfolio(user.getId());
             } catch (Exception e) {
                 log.error("failed to update total portfolio value for user: {}", user.getId(), e);
             }

@@ -7,6 +7,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDate;
+
 @Slf4j
 @Component
 public class AssetPriceFetchCommand {
@@ -24,7 +26,7 @@ public class AssetPriceFetchCommand {
                 assetService.fetchPriceHistory(asset, asset.getType());
             }
 
-            assetService.getRecentPrice(asset.getSymbol(), asset.getType());
+            assetService.fetchPriceAndSaveInHistory(asset.getSymbol(), asset.getType(), LocalDate.now());
         });
     }
 }

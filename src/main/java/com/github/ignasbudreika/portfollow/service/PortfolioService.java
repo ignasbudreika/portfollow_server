@@ -10,6 +10,7 @@ import com.github.ignasbudreika.portfollow.model.Portfolio;
 import com.github.ignasbudreika.portfollow.model.User;
 import com.github.ignasbudreika.portfollow.repository.InvestmentRepository;
 import com.github.ignasbudreika.portfollow.repository.PortfolioRepository;
+import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -31,19 +32,35 @@ public class PortfolioService {
     @Autowired
     private PortfolioRepository portfolioRepository;
 
-    public Portfolio savePortfolio(String userId, BigDecimal value, Collection<Investment> investments, LocalDate date) {
+    @Transactional
+    public Portfolio saveCurrentPortfolio(String userId) {
+        LocalDate date = LocalDate.now();
         Portfolio portfolio = portfolioRepository.findFirstByUserIdAndDate(userId, date);
-        if (portfolio != null) {
-            portfolio.setValue(value);
-            portfolio.setInvestments(investments);
-            return portfolioRepository.save(portfolio);
+        if (portfolio == null) {
+            Collection<Investment> investments = investmentRepository.findAllByUserId(userId);
+            BigDecimal totalValue = investments.stream().map(investment ->
+                    investment.getQuantity().multiply(
+                            assetService.getRecentPrice(investment.getSymbol(), investment.getType())
+                    ).setScale(8, RoundingMode.HALF_UP)
+            ).reduce(BigDecimal.ZERO, BigDecimal::add).setScale(2, RoundingMode.HALF_UP);
+
+            return portfolioRepository.save(Portfolio.builder()
+                    .user(User.builder().id(userId).build())
+                    .value(totalValue)
+                    .investments(investments)
+                    .date(date).build());
         }
 
-        return portfolioRepository.save(Portfolio.builder()
-                .user(User.builder().id(userId).build())
-                .value(value)
-                .investments(investments)
-                .date(date).build());
+        Collection<Investment> investments = investmentRepository.findByPortfoliosId(portfolio.getId());
+        BigDecimal totalValue = investments.stream().map(investment ->
+                investment.getQuantity().multiply(
+                        assetService.getRecentPrice(investment.getSymbol(), investment.getType())
+                ).setScale(8, RoundingMode.HALF_UP)
+        ).reduce(BigDecimal.ZERO, BigDecimal::add).setScale(2, RoundingMode.HALF_UP);
+
+        portfolio.setValue(totalValue);
+        portfolio.setInvestments(investments);
+        return portfolioRepository.save(portfolio);
     }
 
     public PortfolioDTO getUserPortfolio(User user) {
@@ -123,7 +140,7 @@ public class PortfolioService {
             case WEEKLY -> from = from.minusWeeks(1L);
             case MONTHLY -> from = from.minusMonths(1L);
             case QUARTERLY -> from = from.minusMonths(3L);
-            case ALL -> from = LocalDate.of(2023, 1, 1);
+            case ALL -> from = LocalDate.of(2022, 12, 31);
         }
 
         Collection<Portfolio> portfolios = portfolioRepository.findAllByUserIdAndDateAfterOrderByDateAsc(user.getId(), from);
@@ -148,13 +165,31 @@ public class PortfolioService {
                             assetService.getLatestAssetPriceForDate(investment.getAsset(), date)
                         ).setScale(8, RoundingMode.HALF_UP)));
             } else {
-                portfolio = Portfolio.builder()
-                        .value(investment.getQuantity().multiply(
-                                assetService.getLatestAssetPriceForDate(investment.getAsset(), date)
-                        ).setScale(8, RoundingMode.HALF_UP))
-                        .investments(Set.of(investment))
-                        .date(date)
-                        .user(investment.getUser()).build();
+                Portfolio lastDaysPortfolio = portfolioRepository.findFirstByUserIdAndDate(investment.getUser().getId(), date.minusDays(1));
+                if (lastDaysPortfolio != null) {
+                    Collection<Investment> investments = investmentRepository.findByPortfoliosId(portfolio.getId());
+                    investments.add(investment);
+
+                    BigDecimal totalValue = investments.stream().map(previousDayInvestment ->
+                            previousDayInvestment.getQuantity().multiply(
+                                    assetService.getRecentPrice(previousDayInvestment.getSymbol(), previousDayInvestment.getType())
+                            ).setScale(8, RoundingMode.HALF_UP)
+                    ).reduce(BigDecimal.ZERO, BigDecimal::add).setScale(2, RoundingMode.HALF_UP).setScale(8, RoundingMode.HALF_UP);
+
+                    portfolio = Portfolio.builder()
+                            .value(totalValue)
+                            .investments(investments)
+                            .date(date)
+                            .user(investment.getUser()).build();
+                } else {
+                    portfolio = Portfolio.builder()
+                            .value(investment.getQuantity().multiply(
+                                    assetService.getLatestAssetPriceForDate(investment.getAsset(), date)
+                            ).setScale(8, RoundingMode.HALF_UP))
+                            .investments(Set.of(investment))
+                            .date(date)
+                            .user(investment.getUser()).build();
+                }
             }
 
             log.info("saving portfolio for user: {} at: {}, total value: {}",

@@ -24,6 +24,7 @@ import java.util.Collection;
 @Service
 public class AssetService {
     private static final String USD = "USD";
+    private static final long PRICE_UPDATE_INTERVAL_IN_HOURS = 3L;
     private static final LocalDate PRICE_HISTORY_FETCH_SINCE = LocalDate.of(2022, 12, 1);
 
     @Autowired
@@ -52,24 +53,24 @@ public class AssetService {
 
     public BigDecimal getRecentPrice(String symbol, InvestmentType type) {
         Asset asset = assetRepository.getBySymbolAndType(symbol, type);
-        if (asset != null
-                && asset.getUpdatedAt().isAfter(LocalDateTime.now().truncatedTo(ChronoUnit.HOURS))) {
-            log.info("asset: {} was updated at: {}, returning last fetched price: {}",
+        if (asset != null && asset.getUpdatedAt().isAfter(LocalDateTime.now().minusHours(PRICE_UPDATE_INTERVAL_IN_HOURS))) {
+            log.debug("asset: {} was updated at: {}, returning last fetched price: {}",
                     asset.getSymbol(), asset.getUpdatedAt().truncatedTo(ChronoUnit.MINUTES), asset.getPrice());
             return asset.getPrice();
         }
 
         BigDecimal price = fetchPrice(symbol, type);
 
-        if (asset == null && !BigDecimal.ZERO.equals(price)) {
-            asset = assetRepository.save(Asset.builder().symbol(symbol).type(type).price(price).build());
-            log.info("created asset: {} with price: {}", asset.getSymbol(), asset.getPrice());
-        } else if (asset != null && !BigDecimal.ZERO.equals(price)) {
+        if (asset != null) {
             asset.setPrice(price);
             asset.setUpdatedAt(LocalDateTime.now());
             assetRepository.save(asset);
             log.info("updated asset: {} price: {}", asset.getSymbol(), asset.getPrice());
+            return price;
         }
+
+        asset = assetRepository.save(Asset.builder().symbol(symbol).type(type).price(price).build());
+        log.info("created asset: {} with price: {}", asset.getSymbol(), asset.getPrice());
 
         return price;
     }
@@ -81,6 +82,7 @@ public class AssetService {
                 try {
                     stock = alphaVantageClient.getStockData(symbol);
                 } catch (Exception e) {
+                    log.error("exception occured while fetching stock: {} data", symbol, e);
                 }
 
 //                BigDecimal usdEur = getRecentPrice(USD, InvestmentType.FOREX);
@@ -93,6 +95,7 @@ public class AssetService {
                 try {
                     cryptocurrency = alphaVantageClient.getCryptocurrencyData(symbol);
                 } catch (Exception e) {
+                    log.error("exception occured while fetching crypto: {} data", symbol, e);
                 }
 
                 return cryptocurrency.getExchangeRate() == null ?
@@ -103,6 +106,7 @@ public class AssetService {
                 try {
                     forex = alphaVantageClient.getCurrencyData(symbol);
                 } catch (Exception e) {
+                    log.error("exception occured while fetching forex: {} data", symbol, e);
                 }
 
                 return forex.getExchangeRate() == null ?
@@ -175,6 +179,89 @@ public class AssetService {
             }
             default -> {
             }
+        }
+    }
+
+    public void fetchPriceAndSaveInHistory(String symbol, InvestmentType type, LocalDate date) {
+        Asset asset = assetRepository.getBySymbolAndType(symbol, type);
+        if (asset == null) {
+            log.warn("asset: {} of type: {} not found", symbol, type);
+            return;
+        }
+
+        BigDecimal price = BigDecimal.ZERO;
+        BigDecimal priceForHistory = BigDecimal.ZERO;
+
+        switch (type) {
+            case STOCK -> {
+                StockDTO stock = new StockDTO();
+                try {
+                    stock = alphaVantageClient.getStockData(symbol);
+                } catch (Exception e) {
+                    log.error("exception occured while fetching stock: {} data", symbol, e);
+                }
+
+//                BigDecimal usdEur = getRecentPrice(USD, InvestmentType.FOREX);
+
+                if (stock.getPrice() != null) {
+                    price = new BigDecimal(stock.getPrice());
+                }
+
+                if (stock.getPreviousClose() != null) {
+                    priceForHistory = new BigDecimal(stock.getPreviousClose());
+                }
+
+                break;
+            }
+            case CRYPTOCURRENCY -> {
+                CryptocurrencyDTO cryptocurrency = new CryptocurrencyDTO();
+                try {
+                    cryptocurrency = alphaVantageClient.getCryptocurrencyData(symbol);
+                } catch (Exception e) {
+                    log.error("exception occured while fetching crypto: {} data", symbol, e);
+                }
+
+                if (cryptocurrency.getExchangeRate() != null) {
+                    price = new BigDecimal(cryptocurrency.getExchangeRate());
+                    priceForHistory = new BigDecimal(cryptocurrency.getExchangeRate());
+                }
+
+                break;
+            }
+            case FOREX -> {
+                ForexDTO forex = new ForexDTO();
+                try {
+                    forex = alphaVantageClient.getCurrencyData(symbol);
+                } catch (Exception e) {
+                    log.error("exception occured while fetching forex: {} data", symbol, e);
+                }
+
+                if (forex.getExchangeRate() != null && new BigDecimal(forex.getExchangeRate()).equals(BigDecimal.ZERO)) {
+                    asset.setPrice(new BigDecimal(forex.getExchangeRate()));
+                    asset.setUpdatedAt(LocalDateTime.now());
+                }
+
+                if (forex.getExchangeRate() != null) {
+                    price = new BigDecimal(forex.getExchangeRate());
+                    priceForHistory = new BigDecimal(forex.getExchangeRate());
+                }
+
+                break;
+            }
+            default -> {
+            }
+        }
+
+        if (!price.equals(BigDecimal.ZERO)) {
+            log.info("saving current asset: {} price: {}", asset.getId(), price);
+            asset.setPrice(price);
+            asset.setUpdatedAt(LocalDateTime.now());
+            asset = assetRepository.save(asset);
+        }
+
+        if (!priceForHistory.equals(BigDecimal.ZERO) && !assetHistoryRepository.existsByAssetIdAndDate(asset.getId(), date)) {
+            log.info("saving asset: {} price: {} for: {}", asset.getId(), priceForHistory, date);
+            assetHistoryRepository.save(AssetHistory.builder().asset(asset).date(Date.valueOf(date)).price(priceForHistory).build());
         }
     }
 
