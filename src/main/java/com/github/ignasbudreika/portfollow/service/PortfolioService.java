@@ -168,7 +168,7 @@ public class PortfolioService {
             } else {
                 Portfolio lastDaysPortfolio = portfolioRepository.findFirstByUserIdAndDate(investment.getUser().getId(), date.minusDays(1));
                 if (lastDaysPortfolio != null) {
-                    Collection<Investment> investments = investmentRepository.findByPortfoliosId(portfolio.getId());
+                    Collection<Investment> investments = investmentRepository.findByPortfoliosId(lastDaysPortfolio.getId());
                     investments.add(investment);
 
                     BigDecimal totalValue = investments.stream().map(previousDayInvestment ->
