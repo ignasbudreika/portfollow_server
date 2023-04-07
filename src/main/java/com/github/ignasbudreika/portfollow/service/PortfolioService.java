@@ -155,10 +155,14 @@ public class PortfolioService {
     public void createOrUpdatePortfolioHistory(Investment investment) {
         for (LocalDate date = investment.getDate(); date.isBefore(LocalDate.now().plusDays(1)); date = date.plusDays(1))
         {
+            final LocalDate day = date;
+
             Portfolio portfolio = portfolioRepository.findFirstByUserIdAndDate(investment.getUser().getId(), date);
             if (portfolio != null) {
                 Collection<Investment> investments = investmentRepository.findByPortfoliosId(portfolio.getId());
-                investments.add(investment);
+                if (investments.stream().filter(i -> i.getId().equals(investment.getId())).findAny().isEmpty()) {
+                    investments.add(investment);
+                }
                 portfolio.setInvestments(investments);
 
                 portfolio.setValue(portfolio.getValue()
@@ -169,11 +173,13 @@ public class PortfolioService {
                 Portfolio lastDaysPortfolio = portfolioRepository.findFirstByUserIdAndDate(investment.getUser().getId(), date.minusDays(1));
                 if (lastDaysPortfolio != null) {
                     Collection<Investment> investments = investmentRepository.findByPortfoliosId(lastDaysPortfolio.getId());
-                    investments.add(investment);
+                    if (investments.stream().filter(i -> i.getId().equals(investment.getId())).findAny().isEmpty()) {
+                        investments.add(investment);
+                    }
 
                     BigDecimal totalValue = investments.stream().map(previousDayInvestment ->
                             previousDayInvestment.getQuantity().multiply(
-                                    assetService.getRecentPrice(previousDayInvestment.getSymbol(), previousDayInvestment.getType())
+                                    assetService.getLatestAssetPriceForDate(previousDayInvestment.getAsset(), day)
                             ).setScale(8, RoundingMode.HALF_UP)
                     ).reduce(BigDecimal.ZERO, BigDecimal::add).setScale(2, RoundingMode.HALF_UP).setScale(8, RoundingMode.HALF_UP);
 
