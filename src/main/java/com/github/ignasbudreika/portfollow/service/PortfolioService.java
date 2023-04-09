@@ -28,8 +28,6 @@ public class PortfolioService {
     @Autowired
     private AssetService assetService;
     @Autowired
-    private InvestmentRepository investmentRepository;
-    @Autowired
     private PortfolioRepository portfolioRepository;
 
     @Transactional
@@ -37,7 +35,16 @@ public class PortfolioService {
         LocalDate date = LocalDate.now();
         Portfolio portfolio = portfolioRepository.findFirstByUserIdAndDate(userId, date);
         if (portfolio == null) {
-            Collection<Investment> investments = investmentRepository.findAllByUserId(userId);
+            Portfolio lastDaysPortfolio = portfolioRepository.findFirstByUserIdAndDateBeforeOrderByDateDesc(userId, date);
+            if (lastDaysPortfolio == null) {
+                return portfolioRepository.save(Portfolio.builder()
+                        .user(User.builder().id(userId).build())
+                        .value(BigDecimal.ZERO)
+                        .investments(new ArrayList<>())
+                        .date(date).build());
+            }
+
+            Collection<Investment> investments = lastDaysPortfolio.getInvestments().stream().collect(Collectors.toList());
             BigDecimal totalValue = investments.stream().map(investment ->
                     investment.getQuantity().multiply(
                             assetService.getRecentPrice(investment.getSymbol(), investment.getType())
@@ -51,15 +58,13 @@ public class PortfolioService {
                     .date(date).build());
         }
 
-        Collection<Investment> investments = investmentRepository.findByPortfoliosId(portfolio.getId());
-        BigDecimal totalValue = investments.stream().map(investment ->
+        BigDecimal totalValue = portfolio.getInvestments().stream().map(investment ->
                 investment.getQuantity().multiply(
                         assetService.getRecentPrice(investment.getSymbol(), investment.getType())
                 ).setScale(8, RoundingMode.HALF_UP)
         ).reduce(BigDecimal.ZERO, BigDecimal::add).setScale(2, RoundingMode.HALF_UP);
 
         portfolio.setValue(totalValue);
-        portfolio.setInvestments(investments);
         return portfolioRepository.save(portfolio);
     }
 
@@ -88,9 +93,7 @@ public class PortfolioService {
             return new ArrayList<>();
         }
 
-        Collection<Investment> investments = investmentRepository.findByPortfoliosId(portfolio.getId());
-
-        Map<InvestmentType, List<Investment>> investmentsByType = investments.stream().collect(
+        Map<InvestmentType, List<Investment>> investmentsByType = portfolio.getInvestments().stream().collect(
                 Collectors.groupingBy(Investment::getType));
 
         List<PortfolioDistributionDTO> distribution = investmentsByType.entrySet().stream().map(typeInvestments -> {
@@ -116,7 +119,7 @@ public class PortfolioService {
             return new ArrayList<>();
         }
 
-        Collection<Investment> investments = investmentRepository.findByTypeAndPortfoliosId(type, portfolio.getId());
+        Collection<Investment> investments = portfolio.getInvestments().stream().filter(investment -> investment.getType().equals(type)).toList();
 
         BigDecimal totalValue = investments.stream().map(investment ->
                 investment.getQuantity().multiply(investment.getAsset().getPrice())
@@ -159,11 +162,9 @@ public class PortfolioService {
 
             Portfolio portfolio = portfolioRepository.findFirstByUserIdAndDate(investment.getUser().getId(), date);
             if (portfolio != null) {
-                Collection<Investment> investments = investmentRepository.findByPortfoliosId(portfolio.getId());
-                if (investments.stream().filter(i -> i.getId().equals(investment.getId())).findAny().isEmpty()) {
-                    investments.add(investment);
-                }
-                portfolio.setInvestments(investments);
+                Collection<Investment> investments = portfolio.getInvestments();
+                investments = investments.stream().filter(i -> !i.getId().equals(investment.getId())).collect(Collectors.toList());
+                investments.add(investment);
 
                 portfolio.setValue(portfolio.getValue()
                         .add(investment.getQuantity().multiply(
@@ -172,10 +173,9 @@ public class PortfolioService {
             } else {
                 Portfolio lastDaysPortfolio = portfolioRepository.findFirstByUserIdAndDate(investment.getUser().getId(), date.minusDays(1));
                 if (lastDaysPortfolio != null) {
-                    Collection<Investment> investments = investmentRepository.findByPortfoliosId(lastDaysPortfolio.getId());
-                    if (investments.stream().filter(i -> i.getId().equals(investment.getId())).findAny().isEmpty()) {
-                        investments.add(investment);
-                    }
+                    Collection<Investment> investments = lastDaysPortfolio.getInvestments().stream().collect(Collectors.toList());
+                    investments = investments.stream().filter(i -> !i.getId().equals(investment.getId())).collect(Collectors.toList());
+                    investments.add(investment);
 
                     BigDecimal totalValue = investments.stream().map(previousDayInvestment ->
                             previousDayInvestment.getQuantity().multiply(
@@ -185,8 +185,8 @@ public class PortfolioService {
 
                     portfolio = Portfolio.builder()
                             .value(totalValue)
-                            .investments(investments)
                             .date(date)
+                            .investments(investments)
                             .user(investment.getUser()).build();
                 } else {
                     portfolio = Portfolio.builder()

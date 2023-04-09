@@ -4,6 +4,7 @@ import com.github.ignasbudreika.portfollow.api.dto.response.SpectroCoinConnectio
 import com.github.ignasbudreika.portfollow.enums.InvestmentType;
 import com.github.ignasbudreika.portfollow.enums.ConnectionStatus;
 import com.github.ignasbudreika.portfollow.exception.BusinessLogicException;
+import com.github.ignasbudreika.portfollow.exception.InvalidExternalRequestException;
 import com.github.ignasbudreika.portfollow.external.client.SpectroCoinClient;
 import com.github.ignasbudreika.portfollow.external.dto.response.AccountsDTO;
 import com.github.ignasbudreika.portfollow.model.Investment;
@@ -131,6 +132,12 @@ public class SpectroCoinService {
             spectroCoinConnectionRepository.save(connection);
         } catch (EntityNotFoundException e) {
             log.info("could not fetch cryptocurrencies for user: {} because no active SpectroCoin connection exists", user.getId());
+        } catch (InvalidExternalRequestException e) {
+            log.warn("failed to fetch cryptocurrencies from SpectroCoin for user: {}", user.getId(), e);
+
+            SpectroCoinConnection connection = getActiveConnectionOrThrowException(user.getId());
+            log.info("invalidating SpectroCoin connection: {} for user: {}", connection.getId(), user.getId());
+            invalidateConnection(connection.getId());
         } catch (Exception e) {
             log.error("error occurred while fetching cryptocurrencies for user: {} from SpectroCoin", user.getId(), e);
         }

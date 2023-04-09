@@ -120,7 +120,11 @@ public class InvestmentService {
 
             existing.setQuantity(investment.getQuantity());
 
-            return investmentRepository.save(existing);
+            existing = investmentRepository.save(existing);
+
+            portfolioService.createOrUpdatePortfolioHistory(existing);
+
+            return existing;
         }
 
         investment.setConnectionId(connectionId);

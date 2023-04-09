@@ -11,7 +11,7 @@ import java.math.BigDecimal;
 @NoArgsConstructor
 public class AccountsDTO {
     @JsonProperty("accounts")
-    private AccountDTO[] accounts;
+    private AccountDTO[] accounts = new AccountDTO[]{};
 
     @Getter
     @NoArgsConstructor

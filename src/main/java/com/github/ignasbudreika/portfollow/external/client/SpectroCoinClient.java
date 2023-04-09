@@ -1,5 +1,6 @@
 package com.github.ignasbudreika.portfollow.external.client;
 
+import com.github.ignasbudreika.portfollow.exception.InvalidExternalRequestException;
 import com.github.ignasbudreika.portfollow.external.dto.response.AccessTokenDTO;
 import com.github.ignasbudreika.portfollow.external.dto.request.AccessTokenRequestDTO;
 import com.github.ignasbudreika.portfollow.external.dto.response.AccountsDTO;
@@ -8,6 +9,7 @@ import org.codehaus.jackson.map.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -46,7 +48,7 @@ public class SpectroCoinClient {
     @Qualifier("unwrapped")
     private ObjectMapper unwrappedObjectMapper;
 
-    public AccountsDTO getAccountData(String clientId, String clientSecret) throws IOException, URISyntaxException, InterruptedException {
+    public AccountsDTO getAccountData(String clientId, String clientSecret) throws IOException, URISyntaxException, InterruptedException, InvalidExternalRequestException {
         String accessToken = getAccessToken(clientId, clientSecret);
         if (accessToken == null) {
             return new AccountsDTO();
@@ -55,6 +57,13 @@ public class SpectroCoinClient {
         HttpResponse<String> response = client.send(HttpRequest.newBuilder(new URI(walletUrl))
                 .header(HTTP_REQUEST_HEADER_AUTHORIZATION, String.format("Bearer %s", accessToken))
                 .GET().build(), HttpResponse.BodyHandlers.ofString());
+
+        if (HttpStatus.valueOf(response.statusCode()).is4xxClientError()) {
+            throw new InvalidExternalRequestException(String.format("account request for client: %s failed with status code: %s and response body: %s",
+                    clientId,
+                    response.statusCode(),
+                    response.body()));
+        }
 
         return wrappedObjectMapper.readValue(response.body(), AccountsDTO.class);
     }
