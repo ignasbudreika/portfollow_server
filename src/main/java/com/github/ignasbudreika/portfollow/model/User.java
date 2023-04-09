@@ -24,6 +24,9 @@ public class User {
     private String email;
     @Column(nullable = false)
     private String googleId;
+    @OneToOne
+    @JoinColumn(name="portfolio_id")
+    private Portfolio portfolio;
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "id")
     private Set<Investment> holdings = new HashSet<>();
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "id")

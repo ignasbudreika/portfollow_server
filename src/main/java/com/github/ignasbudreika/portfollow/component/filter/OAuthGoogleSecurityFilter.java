@@ -1,5 +1,6 @@
 package com.github.ignasbudreika.portfollow.component.filter;
 
+import com.github.ignasbudreika.portfollow.api.dto.response.ApiErrorDTO;
 import com.github.ignasbudreika.portfollow.model.User;
 import com.github.ignasbudreika.portfollow.service.UserService;
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
@@ -7,6 +8,7 @@ import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
 import com.github.ignasbudreika.portfollow.exception.UnauthorizedException;
 import jakarta.servlet.*;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -19,6 +21,7 @@ import org.springframework.security.web.authentication.WebAuthenticationDetailsS
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
+import java.net.http.HttpResponse;
 import java.security.GeneralSecurityException;
 import java.util.List;
 
@@ -45,7 +48,9 @@ public class OAuthGoogleSecurityFilter implements Filter {
         String authorizationHeader = request.getHeader("Authorization");
         if (authorizationHeader == null || !authorizationHeader.startsWith("Bearer ")) {
             log.info("missing or invalid authorization header");
-            throw new UnauthorizedException();
+
+            ((HttpServletResponse) servletResponse).sendError(HttpServletResponse.SC_UNAUTHORIZED);
+            return;
         }
 
         GoogleIdToken verified = null;
@@ -53,15 +58,19 @@ public class OAuthGoogleSecurityFilter implements Filter {
             verified = verifier.verify(authorizationHeader.replace("Bearer ", ""));
         } catch (GeneralSecurityException | IOException e) {
             log.error("failed id token verification", e.getMessage());
-            throw new UnauthorizedException();
+
+            ((HttpServletResponse) servletResponse).sendError(HttpServletResponse.SC_UNAUTHORIZED);
+            return;
         }
 
         if (verified == null) {
-            throw new UnauthorizedException();
+            ((HttpServletResponse) servletResponse).sendError(HttpServletResponse.SC_UNAUTHORIZED);
+            return;
         }
 
         if (!userService.existsByGoogleId(verified.getPayload().getSubject())) {
-            throw new UnauthorizedException();
+            ((HttpServletResponse) servletResponse).sendError(HttpServletResponse.SC_UNAUTHORIZED);
+            return;
         }
         User user = userService.getByGoogleId(verified.getPayload().getSubject());
 

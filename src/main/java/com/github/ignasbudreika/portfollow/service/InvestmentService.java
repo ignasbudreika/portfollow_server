@@ -9,7 +9,6 @@ import com.github.ignasbudreika.portfollow.model.Investment;
 import com.github.ignasbudreika.portfollow.model.User;
 import com.github.ignasbudreika.portfollow.repository.InvestmentRepository;
 import lombok.extern.slf4j.Slf4j;
-import net.bytebuddy.asm.Advice;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -26,7 +25,7 @@ public class InvestmentService {
 
     @Autowired private AssetService assetService;
     @Autowired
-    private PortfolioService portfolioService;
+    private PortfolioHistoryService portfolioHistoryService;
 
     @Autowired
     private InvestmentRepository investmentRepository;
@@ -99,7 +98,7 @@ public class InvestmentService {
         investment.setAsset(asset);
         investment = investmentRepository.save(investment);
 
-        portfolioService.createOrUpdatePortfolioHistory(investment);
+        portfolioHistoryService.createOrUpdatePortfolioHistory(investment);
 
         return investment;
     }
@@ -122,7 +121,7 @@ public class InvestmentService {
 
             existing = investmentRepository.save(existing);
 
-            portfolioService.createOrUpdatePortfolioHistory(existing);
+            portfolioHistoryService.createOrUpdatePortfolioHistory(existing);
 
             return existing;
         }
@@ -133,7 +132,7 @@ public class InvestmentService {
 
         investment = investmentRepository.save(investment);
 
-        portfolioService.createOrUpdatePortfolioHistory(investment);
+        portfolioHistoryService.createOrUpdatePortfolioHistory(investment);
 
         return investment;
     }

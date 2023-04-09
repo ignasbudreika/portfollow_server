@@ -38,7 +38,7 @@ public class SpectroCoinService {
     private SpectroCoinClient spectroCoinClient;
 
     public void addConnection(com.github.ignasbudreika.portfollow.api.dto.request.SpectroCoinConnectionDTO connectionDTO, User user) throws Exception {
-        if (spectroCoinConnectionRepository.findByUserId(user.getId()) != null) {
+        if (spectroCoinConnectionRepository.findByUserIdAndStatus(user.getId(), ConnectionStatus.ACTIVE) != null) {
             throw new EntityExistsException(String.format(
                     "SpectroCoin connection for user: %s already exists", user.getId()
             ));
@@ -62,7 +62,7 @@ public class SpectroCoinService {
     }
 
     public SpectroCoinConnectionDTO getConnection(String userId) {
-        SpectroCoinConnection connection = spectroCoinConnectionRepository.findByUserId(userId);
+        SpectroCoinConnection connection = spectroCoinConnectionRepository.findByUserIdAndStatus(userId, ConnectionStatus.ACTIVE);
         if (connection == null) {
             return SpectroCoinConnectionDTO.builder().status(ConnectionStatus.INACTIVE).build();
         }
@@ -75,7 +75,7 @@ public class SpectroCoinService {
     }
 
     private SpectroCoinConnection getActiveConnectionOrThrowException(String userId) {
-        SpectroCoinConnection connection = spectroCoinConnectionRepository.findByUserId(userId);
+        SpectroCoinConnection connection = spectroCoinConnectionRepository.findByUserIdAndStatus(userId, ConnectionStatus.ACTIVE);
         if (connection == null || !connection.getStatus().equals(ConnectionStatus.ACTIVE)) {
             throw new EntityNotFoundException(String.format("no active SpectroCoin connection found for user: %s", userId));
         }

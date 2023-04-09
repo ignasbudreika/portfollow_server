@@ -41,5 +41,5 @@ public class Investment {
     private Set<InvestmentTransaction> transactions = new HashSet<>();
     @ManyToMany(mappedBy = "investments")
     @Getter(AccessLevel.NONE)
-    private Set<Portfolio> portfolios;
+    private Set<PortfolioHistory> portfolioHistories;
 }

@@ -1,6 +1,5 @@
 package com.github.ignasbudreika.portfollow.command.scheduled;
 
-import com.github.ignasbudreika.portfollow.model.Investment;
 import com.github.ignasbudreika.portfollow.model.User;
 import com.github.ignasbudreika.portfollow.service.*;
 import lombok.extern.slf4j.Slf4j;
@@ -8,10 +7,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
-import java.util.Collection;
 
 @Slf4j
 @Component
@@ -21,7 +18,7 @@ public class PortfolioValueCollectorCommand {
     @Autowired
     private UserService userService;
     @Autowired
-    private PortfolioService portfolioService;
+    private PortfolioHistoryService portfolioHistoryService;
 
     @Scheduled(cron = "0 20 * * * *")
     public void retrievePortfolioValues() {
@@ -32,7 +29,7 @@ public class PortfolioValueCollectorCommand {
         users.forEach(user -> {
             try {
                 log.info("updating user: {} portfolio value", user.getId());
-                portfolioService.saveCurrentPortfolio(user.getId());
+                portfolioHistoryService.saveCurrentPortfolio(user.getId());
             } catch (Exception e) {
                 log.error("failed to update total portfolio value for user: {}", user.getId(), e);
             }

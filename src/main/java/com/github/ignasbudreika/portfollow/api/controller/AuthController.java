@@ -50,6 +50,7 @@ public class AuthController {
         GoogleIdToken verified = googleIdTokenVerifier.verify(tokenResponse.getIdToken());
 
         if (!userService.existsByGoogleId(verified.getPayload().getSubject())) {
+            log.info("creating new user with email: {}", verified.getPayload().getEmail());
             User user = User.builder().email(verified.getPayload().getEmail()).googleId(verified.getPayload().getSubject()).build();
 
             userService.createUser(user);
