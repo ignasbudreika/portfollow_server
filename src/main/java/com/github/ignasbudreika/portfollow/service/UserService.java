@@ -34,11 +34,11 @@ public class UserService {
 
     public Iterable<User> getAll() { return repo.findAll(); }
 
-    public void createUser(User user) {
+    public User createUser(User user) {
         if (repo.existsByEmail(user.getEmail()) || repo.existsByGoogleId(user.getGoogleId())) {
-            return;
+            return repo.getByEmail(user.getEmail());
         }
 
-        repo.save(user);
+        return repo.save(user);
     }
 }

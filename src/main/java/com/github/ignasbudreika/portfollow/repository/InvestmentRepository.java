@@ -11,6 +11,7 @@ import java.util.Collection;
 public interface InvestmentRepository extends CrudRepository<Investment, String> {
     Collection<Investment> findAllByUserIdAndType(String userId, InvestmentType type);
     Collection<Investment> findAllByUserId(String userId);
+    boolean existsByUserId(String userId);
     Investment findBySymbolAndConnectionId(String symbol, String connectionId);
     Collection<Investment> findByPortfolioHistoriesId(String portfolioId);
     Collection<Investment> findByTypeAndPortfolioHistoriesId(InvestmentType type, String portfolioId);

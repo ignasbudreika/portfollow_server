@@ -2,6 +2,7 @@ package com.github.ignasbudreika.portfollow.api.controller;
 
 import com.github.ignasbudreika.portfollow.api.dto.response.AccessTokenDTO;
 import com.github.ignasbudreika.portfollow.model.User;
+import com.github.ignasbudreika.portfollow.service.PortfolioService;
 import com.github.ignasbudreika.portfollow.service.UserService;
 import com.google.api.client.googleapis.auth.oauth2.*;
 import lombok.extern.slf4j.Slf4j;
@@ -29,6 +30,8 @@ public class AuthController {
     private GoogleAuthorizationCodeFlow authorizationCodeFlow;
     @Autowired
     private UserService userService;
+    @Autowired
+    private PortfolioService portfolioService;
 
     @PostMapping("/token")
     @ResponseStatus(HttpStatus.OK)
@@ -53,7 +56,9 @@ public class AuthController {
             log.info("creating new user with email: {}", verified.getPayload().getEmail());
             User user = User.builder().email(verified.getPayload().getEmail()).googleId(verified.getPayload().getSubject()).build();
 
-            userService.createUser(user);
+            user = userService.createUser(user);
+
+            portfolioService.createPortfolio(user);
         }
 
         return ResponseEntity.ok().body(AccessTokenDTO.builder()

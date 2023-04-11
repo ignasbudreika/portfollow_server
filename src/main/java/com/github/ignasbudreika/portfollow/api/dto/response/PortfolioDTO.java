@@ -13,5 +13,9 @@ import java.math.BigDecimal;
 public class PortfolioDTO {
     @JsonProperty("total_value")
     private BigDecimal totalValue;
+    @JsonProperty("total_change")
+    private BigDecimal totalChange;
     private BigDecimal change;
+    @JsonProperty("is_empty")
+    private boolean isEmpty;
 }

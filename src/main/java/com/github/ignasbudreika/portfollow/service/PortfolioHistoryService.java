@@ -8,6 +8,7 @@ import com.github.ignasbudreika.portfollow.enums.InvestmentType;
 import com.github.ignasbudreika.portfollow.model.Investment;
 import com.github.ignasbudreika.portfollow.model.PortfolioHistory;
 import com.github.ignasbudreika.portfollow.model.User;
+import com.github.ignasbudreika.portfollow.repository.InvestmentRepository;
 import com.github.ignasbudreika.portfollow.repository.PortfolioHistoryRepository;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
@@ -28,6 +29,8 @@ public class PortfolioHistoryService {
     private AssetService assetService;
     @Autowired
     private PortfolioHistoryRepository portfolioHistoryRepository;
+    @Autowired
+    private InvestmentRepository investmentRepository;
 
     @Transactional
     public PortfolioHistory saveCurrentPortfolio(String userId) {
@@ -71,14 +74,19 @@ public class PortfolioHistoryService {
     public PortfolioDTO getUserPortfolio(User user) {
         PortfolioHistory portfolioHistory = portfolioHistoryRepository.findFirstByUserIdAndDateBeforeOrderByDateDesc(user.getId(), LocalDate.now().plusDays(1));
         BigDecimal totalValue = portfolioHistory == null ? BigDecimal.ZERO : portfolioHistory.getValue();
+        boolean isEmpty = !investmentRepository.existsByUserId(user.getId());
 
         PortfolioHistory lastDaysPortfolioHistory = portfolioHistoryRepository.findFirstByUserIdAndDateBeforeOrderByDateDesc(user.getId(), LocalDateTime.now().toLocalDate());
 
         if (lastDaysPortfolioHistory == null || lastDaysPortfolioHistory.getValue().equals(BigDecimal.ZERO)) {
-            return PortfolioDTO.builder().totalValue(totalValue).change(BigDecimal.ZERO.setScale(2, RoundingMode.HALF_UP)).build();
+            return PortfolioDTO.builder()
+                    .isEmpty(isEmpty)
+                    .totalValue(totalValue)
+                    .change(BigDecimal.ZERO.setScale(2, RoundingMode.HALF_UP)).build();
         }
 
         return PortfolioDTO.builder()
+                .isEmpty(isEmpty)
                 .totalValue(totalValue)
                 .change(totalValue.subtract(lastDaysPortfolioHistory.getValue())
                         .divide(lastDaysPortfolioHistory.getValue(), 4, RoundingMode.HALF_UP)
