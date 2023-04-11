@@ -1,6 +1,7 @@
 package com.github.ignasbudreika.portfollow.api.controller;
 
 import com.github.ignasbudreika.portfollow.api.dto.response.AssetDTO;
+import com.github.ignasbudreika.portfollow.exception.BusinessLogicException;
 import com.github.ignasbudreika.portfollow.external.client.AlphaVantageClient;
 import com.github.ignasbudreika.portfollow.external.dto.response.CryptocurrencyDTO;
 import com.github.ignasbudreika.portfollow.external.dto.response.ForexDTO;
@@ -26,7 +27,7 @@ public class AlphaVantageController {
     private AlphaVantageClient client;
 
     @GetMapping("/asset/stock/{ticker}")
-    public ResponseEntity<AssetDTO> getStockData(@PathVariable("ticker") String ticker) throws URISyntaxException, IOException, InterruptedException, ExecutionException {
+    public ResponseEntity<AssetDTO> getStockData(@PathVariable("ticker") String ticker) throws URISyntaxException, IOException, InterruptedException, ExecutionException, BusinessLogicException {
         StockDTO stock = client.getStockData(ticker);
 
         return ResponseEntity.ok().body(
@@ -36,7 +37,7 @@ public class AlphaVantageController {
     }
 
     @GetMapping("/asset/crypto/{code}")
-    public ResponseEntity<AssetDTO> getCryptocurrencyData(@PathVariable("code") String code) throws URISyntaxException, IOException, InterruptedException {
+    public ResponseEntity<AssetDTO> getCryptocurrencyData(@PathVariable("code") String code) throws URISyntaxException, IOException, InterruptedException, BusinessLogicException {
         CryptocurrencyDTO crypto = client.getCryptocurrencyData(code);
 
         return ResponseEntity.ok().body(
@@ -46,7 +47,7 @@ public class AlphaVantageController {
     }
 
     @GetMapping("/asset/forex/{code}")
-    public ResponseEntity<AssetDTO> getCurrencyData(@PathVariable("code") String code) throws URISyntaxException, IOException, InterruptedException {
+    public ResponseEntity<AssetDTO> getCurrencyData(@PathVariable("code") String code) throws URISyntaxException, IOException, InterruptedException, BusinessLogicException {
         ForexDTO forex = client.getCurrencyData(code);
 
         return ResponseEntity.ok().body(

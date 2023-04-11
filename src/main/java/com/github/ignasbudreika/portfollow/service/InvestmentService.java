@@ -131,14 +131,34 @@ public class InvestmentService {
 
         Investment existing = investmentRepository.findBySymbolAndConnectionId(investment.getSymbol(), connectionId);
         if (existing != null) {
-            // todo create tx for quantity diff
-            log.info("investment: {} for connection: {} exists, updating quantity", investment.getSymbol(), connectionId);
+            if (existing.getQuantityAt(LocalDate.now()).compareTo(investment.getQuantity()) != 0) {
+                InvestmentTransaction transaction;
 
-            existing.setQuantity(investment.getQuantity());
+                BigDecimal quantityDiff = existing.getQuantityAt(LocalDate.now()).subtract(investment.getQuantity());
+                if (quantityDiff.compareTo(BigDecimal.ZERO) > 0) {
+                    log.info("investment: {} for connection: {} exists, quantity has decreased by: {}, creating SELL tx",
+                            investment.getSymbol(), connectionId, quantityDiff);
 
-            existing = investmentRepository.save(existing);
+                    transaction = transactionService.createTransaction(investment, quantityDiff.abs(), InvestmentTransactionType.SELL, investment.getDate());
+                } else {
+                    log.info("investment: {} for connection: {} exists, quantity has increased by: {}, creating BUY tx",
+                            investment.getSymbol(), connectionId, quantityDiff.abs());
 
-            portfolioHistoryService.createOrUpdatePortfolioHistory(existing);
+                    transaction = transactionService.createTransaction(investment, quantityDiff.abs(), InvestmentTransactionType.BUY, investment.getDate());
+                }
+
+                Set<InvestmentTransaction> transactions = new HashSet<>();
+                transactions.add(transaction);
+                investment.setTransactions(transactions);
+
+                existing.setQuantity(investment.getQuantity());
+
+                existing = investmentRepository.save(existing);
+
+                portfolioHistoryService.createOrUpdatePortfolioHistory(existing);
+            } else {
+                log.info("investment: {} for connection: {} exists, but quantity does not differ", investment.getSymbol(), connectionId);
+            }
 
             return existing;
         }

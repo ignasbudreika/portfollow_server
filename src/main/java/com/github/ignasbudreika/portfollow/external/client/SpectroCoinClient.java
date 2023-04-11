@@ -51,7 +51,7 @@ public class SpectroCoinClient {
     public AccountsDTO getAccountData(String clientId, String clientSecret) throws IOException, URISyntaxException, InterruptedException, InvalidExternalRequestException {
         String accessToken = getAccessToken(clientId, clientSecret);
         if (accessToken == null) {
-            return new AccountsDTO();
+            throw new InvalidExternalRequestException(String.format("could not retrieve access token for client: %s", clientId));
         }
 
         HttpResponse<String> response = client.send(HttpRequest.newBuilder(new URI(walletUrl))
