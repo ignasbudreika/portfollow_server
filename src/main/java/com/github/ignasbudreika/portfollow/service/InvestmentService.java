@@ -171,6 +171,11 @@ public class InvestmentService {
         transactions.add(created);
         investment.setTransactions(transactions);
 
+        if (transaction.getDate().isBefore(investment.getDate())) {
+            investment.setDate(transaction.getDate());
+        }
+        investment = investmentRepository.save(investment);
+
         portfolioHistoryService.createOrUpdatePortfolioHistory(investment);
 
         return investment;

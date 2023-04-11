@@ -28,6 +28,7 @@ public class PortfolioHistory {
     @JoinColumn(name="user_id", nullable=false)
     private User user;
     @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    @EqualsAndHashCode.Exclude
     @JoinTable(
             name = "portfolio_history_investment",
             joinColumns = @JoinColumn(name = "portfolio_history_id", referencedColumnName = "id"),
