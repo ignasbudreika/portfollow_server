@@ -1,13 +1,18 @@
 package com.github.ignasbudreika.portfollow.service;
 
+import com.github.ignasbudreika.portfollow.api.dto.request.TransactionDTO;
 import com.github.ignasbudreika.portfollow.api.dto.response.InvestmentDTO;
+import com.github.ignasbudreika.portfollow.enums.InvestmentTransactionType;
 import com.github.ignasbudreika.portfollow.enums.InvestmentType;
 import com.github.ignasbudreika.portfollow.exception.BusinessLogicException;
+import com.github.ignasbudreika.portfollow.exception.UnauthorizedException;
 import com.github.ignasbudreika.portfollow.external.client.AlphaVantageClient;
 import com.github.ignasbudreika.portfollow.model.Asset;
 import com.github.ignasbudreika.portfollow.model.Investment;
+import com.github.ignasbudreika.portfollow.model.InvestmentTransaction;
 import com.github.ignasbudreika.portfollow.model.User;
 import com.github.ignasbudreika.portfollow.repository.InvestmentRepository;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -16,6 +21,9 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -26,12 +34,14 @@ public class InvestmentService {
     @Autowired private AssetService assetService;
     @Autowired
     private PortfolioHistoryService portfolioHistoryService;
-
+    @Autowired
+    private InvestmentTransactionService transactionService;
     @Autowired
     private InvestmentRepository investmentRepository;
 
     public Collection<InvestmentDTO> getUserInvestments(User user) {
         Collection<Investment> investments = investmentRepository.findAllByUserId(user.getId());
+        LocalDate date = LocalDate.now();
 
         Collection<InvestmentDTO> result = investments.stream().map(investment -> {
             BigDecimal price;
@@ -44,7 +54,7 @@ public class InvestmentService {
             return InvestmentDTO.builder()
                     .id(investment.getId())
                     .symbol(investment.getSymbol())
-                    .value(investment.getQuantity().multiply(price).setScale(8, RoundingMode.HALF_UP))
+                    .value(investment.getQuantityAt(date).multiply(price).setScale(8, RoundingMode.HALF_UP))
                     .type(investment.getType()).build();
         }).toList();
 
@@ -57,6 +67,7 @@ public class InvestmentService {
 
     public Collection<InvestmentDTO> getUserInvestmentsByType(User user, InvestmentType type) {
         Collection<Investment> investments = investmentRepository.findAllByUserIdAndType(user.getId(), type);
+        LocalDate date = LocalDate.now();
 
         Collection<InvestmentDTO> result = investments.stream().map(investment -> {
             BigDecimal price;
@@ -69,7 +80,7 @@ public class InvestmentService {
             return InvestmentDTO.builder()
                     .id(investment.getId())
                     .symbol(investment.getSymbol())
-                    .value(investment.getQuantity().multiply(price).setScale(8, RoundingMode.HALF_UP))
+                    .value(investment.getQuantityAt(date).multiply(price).setScale(8, RoundingMode.HALF_UP))
                     .type(investment.getType()).build();
         }).toList();
 
@@ -98,6 +109,11 @@ public class InvestmentService {
         investment.setAsset(asset);
         investment = investmentRepository.save(investment);
 
+        InvestmentTransaction transaction = transactionService.createTransaction(investment, investment.getQuantity(), InvestmentTransactionType.BUY, investment.getDate());
+        Set<InvestmentTransaction> transactions = new HashSet<>();
+        transactions.add(transaction);
+        investment.setTransactions(transactions);
+
         portfolioHistoryService.createOrUpdatePortfolioHistory(investment);
 
         return investment;
@@ -115,6 +131,7 @@ public class InvestmentService {
 
         Investment existing = investmentRepository.findBySymbolAndConnectionId(investment.getSymbol(), connectionId);
         if (existing != null) {
+            // todo create tx for quantity diff
             log.info("investment: {} for connection: {} exists, updating quantity", investment.getSymbol(), connectionId);
 
             existing.setQuantity(investment.getQuantity());
@@ -132,18 +149,30 @@ public class InvestmentService {
 
         investment = investmentRepository.save(investment);
 
+        InvestmentTransaction transaction = transactionService.createTransaction(investment, investment.getQuantity(), InvestmentTransactionType.BUY, investment.getDate());
+        Set<InvestmentTransaction> transactions = new HashSet<>();
+        transactions.add(transaction);
+        investment.setTransactions(transactions);
+
         portfolioHistoryService.createOrUpdatePortfolioHistory(investment);
 
         return investment;
     }
 
-    public BigDecimal getTotalValueByUserId(String userId) {
-        Collection<Investment> investments = investmentRepository.findAllByUserId(userId);
+    public Investment addTransaction(String investmentId, TransactionDTO transaction, User user) throws UnauthorizedException, BusinessLogicException {
+        Investment investment = investmentRepository.findById(investmentId).orElseThrow(() -> new EntityNotFoundException());
 
-        return investments.stream().map(investment ->
-                investment.getQuantity().multiply(
-                        assetService.getRecentPrice(investment.getSymbol(), investment.getType())
-                ).setScale(8, RoundingMode.HALF_UP)
-        ).reduce(BigDecimal.ZERO, BigDecimal::add).setScale(2, RoundingMode.HALF_UP);
+        if (!investment.getUser().getId().equals(user.getId())) {
+            throw new UnauthorizedException();
+        }
+
+        InvestmentTransaction created = transactionService.createTransaction(investment, transaction.getQuantity(), transaction.getType(), transaction.getDate());
+        Set<InvestmentTransaction> transactions = investment.getTransactions().stream().collect(Collectors.toSet());
+        transactions.add(created);
+        investment.setTransactions(transactions);
+
+        portfolioHistoryService.createOrUpdatePortfolioHistory(investment);
+
+        return investment;
     }
 }

@@ -15,7 +15,7 @@ public class PortfolioDTO {
     private BigDecimal totalValue;
     @JsonProperty("total_change")
     private BigDecimal totalChange;
-    private BigDecimal change;
+    private BigDecimal trend;
     @JsonProperty("is_empty")
     private boolean isEmpty;
 }

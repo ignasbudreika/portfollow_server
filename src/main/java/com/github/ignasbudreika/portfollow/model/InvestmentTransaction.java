@@ -2,10 +2,7 @@ package com.github.ignasbudreika.portfollow.model;
 
 import com.github.ignasbudreika.portfollow.enums.InvestmentTransactionType;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.hibernate.annotations.GenericGenerator;
 
 import java.math.BigDecimal;
@@ -23,9 +20,11 @@ public class InvestmentTransaction {
     @GenericGenerator(name = "uuid", strategy = "uuid2")
     private String id;
     private InvestmentTransactionType type;
+    @Column(precision = 19, scale = 8, nullable = false)
     private BigDecimal quantity;
     @ManyToOne
     @JoinColumn(name="investment_id", nullable=false)
+    @EqualsAndHashCode.Exclude
     private Investment investment;
     private LocalDate date;
 }

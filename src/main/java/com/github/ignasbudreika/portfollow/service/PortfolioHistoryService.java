@@ -6,6 +6,7 @@ import com.github.ignasbudreika.portfollow.api.dto.response.PortfolioHistoryDTO;
 import com.github.ignasbudreika.portfollow.enums.HistoryType;
 import com.github.ignasbudreika.portfollow.enums.InvestmentType;
 import com.github.ignasbudreika.portfollow.model.Investment;
+import com.github.ignasbudreika.portfollow.model.Portfolio;
 import com.github.ignasbudreika.portfollow.model.PortfolioHistory;
 import com.github.ignasbudreika.portfollow.model.User;
 import com.github.ignasbudreika.portfollow.repository.InvestmentRepository;
@@ -48,7 +49,7 @@ public class PortfolioHistoryService {
 
             Collection<Investment> investments = lastDaysPortfolioHistory.getInvestments().stream().collect(Collectors.toList());
             BigDecimal totalValue = investments.stream().map(investment ->
-                    investment.getQuantity().multiply(
+                    investment.getQuantityAt(date).multiply(
                             assetService.getRecentPrice(investment.getSymbol(), investment.getType())
                     ).setScale(8, RoundingMode.HALF_UP)
             ).reduce(BigDecimal.ZERO, BigDecimal::add).setScale(2, RoundingMode.HALF_UP);
@@ -61,7 +62,7 @@ public class PortfolioHistoryService {
         }
 
         BigDecimal totalValue = portfolioHistory.getInvestments().stream().map(investment ->
-                investment.getQuantity().multiply(
+                investment.getQuantityAt(date).multiply(
                         assetService.getRecentPrice(investment.getSymbol(), investment.getType())
                 ).setScale(8, RoundingMode.HALF_UP)
         ).reduce(BigDecimal.ZERO, BigDecimal::add).setScale(2, RoundingMode.HALF_UP);
@@ -70,7 +71,16 @@ public class PortfolioHistoryService {
         return portfolioHistoryRepository.save(portfolioHistory);
     }
 
-    // todo fix so that it shows same value as in distribution
+    public void initPortfolio(Portfolio portfolio) {
+        for (LocalDate date = LocalDate.now(); date.isAfter(LocalDate.now().minusDays(7)); date = date.minusDays(1)) {
+            portfolioHistoryRepository.save(PortfolioHistory.builder()
+                    .date(date)
+                    .portfolio(portfolio)
+                    .user(portfolio.getUser())
+                    .value(BigDecimal.ZERO).build());
+        }
+    }
+
     public PortfolioDTO getUserPortfolio(User user) {
         PortfolioHistory portfolioHistory = portfolioHistoryRepository.findFirstByUserIdAndDateBeforeOrderByDateDesc(user.getId(), LocalDate.now().plusDays(1));
         BigDecimal totalValue = portfolioHistory == null ? BigDecimal.ZERO : portfolioHistory.getValue();
@@ -78,20 +88,28 @@ public class PortfolioHistoryService {
 
         PortfolioHistory lastDaysPortfolioHistory = portfolioHistoryRepository.findFirstByUserIdAndDateBeforeOrderByDateDesc(user.getId(), LocalDateTime.now().toLocalDate());
 
-        if (lastDaysPortfolioHistory == null || lastDaysPortfolioHistory.getValue().equals(BigDecimal.ZERO)) {
+        if (lastDaysPortfolioHistory == null || lastDaysPortfolioHistory.getValue().compareTo(BigDecimal.ZERO) == 0) {
             return PortfolioDTO.builder()
                     .isEmpty(isEmpty)
                     .totalValue(totalValue)
-                    .change(BigDecimal.ZERO.setScale(2, RoundingMode.HALF_UP)).build();
+                    .totalChange(BigDecimal.ZERO.setScale(2, RoundingMode.HALF_UP))
+                    .trend(BigDecimal.ZERO.setScale(2, RoundingMode.HALF_UP)).build();
         }
+
+
 
         return PortfolioDTO.builder()
                 .isEmpty(isEmpty)
                 .totalValue(totalValue)
-                .change(totalValue.subtract(lastDaysPortfolioHistory.getValue())
+                .trend(totalValue.subtract(lastDaysPortfolioHistory.getValue())
                         .divide(lastDaysPortfolioHistory.getValue(), 4, RoundingMode.HALF_UP)
                         .multiply(BigDecimal.valueOf(100L).setScale(2, RoundingMode.HALF_UP)))
                 .build();
+    }
+
+    // todo fix this
+    private BigDecimal calculateTrendBetweenDates(PortfolioHistory from, PortfolioHistory to) {
+        return BigDecimal.ZERO;
     }
 
     public List<PortfolioDistributionDTO> getUserPortfolioDistribution(User user) {
@@ -100,19 +118,27 @@ public class PortfolioHistoryService {
             return new ArrayList<>();
         }
 
+        BigDecimal portfolioValue = portfolioHistory.getInvestments().stream().map(investment ->
+                investment.getQuantityAt(LocalDate.now()).multiply(investment.getAsset().getPrice())
+        ).reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        if (portfolioValue.compareTo(BigDecimal.ZERO) == 0) {
+            return new ArrayList<>();
+        }
+
         Map<InvestmentType, List<Investment>> investmentsByType = portfolioHistory.getInvestments().stream().collect(
                 Collectors.groupingBy(Investment::getType));
 
         List<PortfolioDistributionDTO> distribution = investmentsByType.entrySet().stream().map(typeInvestments -> {
             BigDecimal value = typeInvestments.getValue().stream().map(investment ->
-                    investment.getQuantity().multiply(investment.getAsset().getPrice())
+                    investment.getQuantityAt(LocalDate.now()).multiply(investment.getAsset().getPrice())
             ).reduce(BigDecimal.ZERO, BigDecimal::add);
 
             return PortfolioDistributionDTO.builder()
                     .label(typeInvestments.getKey().toString())
                     .value(value)
                     .percentage(value
-                            .divide(portfolioHistory.getValue(), 4, RoundingMode.HALF_UP)
+                            .divide(portfolioValue, 4, RoundingMode.HALF_UP)
                             .multiply(BigDecimal.valueOf(100)).setScale(2, RoundingMode.HALF_UP))
                     .build();
         }).toList();
@@ -129,14 +155,14 @@ public class PortfolioHistoryService {
         Collection<Investment> investments = portfolioHistory.getInvestments().stream().filter(investment -> investment.getType().equals(type)).toList();
 
         BigDecimal totalValue = investments.stream().map(investment ->
-                investment.getQuantity().multiply(investment.getAsset().getPrice())
+                investment.getQuantityAt(LocalDate.now()).multiply(investment.getAsset().getPrice())
         ).reduce(BigDecimal.ZERO, BigDecimal::add);
 
         List<PortfolioDistributionDTO> distribution = investments.stream().map(investment ->
                 PortfolioDistributionDTO.builder()
                     .label(investment.getSymbol())
-                    .value(investment.getQuantity().multiply(investment.getAsset().getPrice()))
-                    .percentage(investment.getQuantity().multiply(investment.getAsset().getPrice())
+                    .value(investment.getQuantityAt(LocalDate.now()).multiply(investment.getAsset().getPrice()))
+                    .percentage(investment.getQuantityAt(LocalDate.now()).multiply(investment.getAsset().getPrice())
                             .divide(totalValue, 4, RoundingMode.HALF_UP)
                             .multiply(BigDecimal.valueOf(100)).setScale(2, RoundingMode.HALF_UP))
                     .build()
@@ -174,10 +200,13 @@ public class PortfolioHistoryService {
                 investments.add(investment);
                 portfolioHistory.setInvestments(investments);
 
-                portfolioHistory.setValue(portfolioHistory.getValue()
-                        .add(investment.getQuantity().multiply(
-                            assetService.getLatestAssetPriceForDate(investment.getAsset(), date)
-                        ).setScale(8, RoundingMode.HALF_UP)));
+                BigDecimal totalValue = investments.stream().map(previousDayInvestment ->
+                        previousDayInvestment.getQuantityAt(day).multiply(
+                                assetService.getLatestAssetPriceForDate(previousDayInvestment.getAsset(), day)
+                        ).setScale(8, RoundingMode.HALF_UP)
+                ).reduce(BigDecimal.ZERO, BigDecimal::add).setScale(2, RoundingMode.HALF_UP).setScale(8, RoundingMode.HALF_UP);
+
+                portfolioHistory.setValue(totalValue);
             } else {
                 PortfolioHistory lastDaysPortfolioHistory = portfolioHistoryRepository.findFirstByUserIdAndDate(investment.getUser().getId(), date.minusDays(1));
                 if (lastDaysPortfolioHistory != null) {
@@ -186,7 +215,7 @@ public class PortfolioHistoryService {
                     investments.add(investment);
 
                     BigDecimal totalValue = investments.stream().map(previousDayInvestment ->
-                            previousDayInvestment.getQuantity().multiply(
+                            previousDayInvestment.getQuantityAt(day).multiply(
                                     assetService.getLatestAssetPriceForDate(previousDayInvestment.getAsset(), day)
                             ).setScale(8, RoundingMode.HALF_UP)
                     ).reduce(BigDecimal.ZERO, BigDecimal::add).setScale(2, RoundingMode.HALF_UP).setScale(8, RoundingMode.HALF_UP);
@@ -198,7 +227,7 @@ public class PortfolioHistoryService {
                             .user(investment.getUser()).build();
                 } else {
                     portfolioHistory = PortfolioHistory.builder()
-                            .value(investment.getQuantity().multiply(
+                            .value(investment.getQuantityAt(day).multiply(
                                     assetService.getLatestAssetPriceForDate(investment.getAsset(), date)
                             ).setScale(8, RoundingMode.HALF_UP))
                             .investments(Set.of(investment))

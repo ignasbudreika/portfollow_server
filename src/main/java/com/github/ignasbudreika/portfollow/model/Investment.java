@@ -1,5 +1,6 @@
 package com.github.ignasbudreika.portfollow.model;
 
+import com.github.ignasbudreika.portfollow.enums.InvestmentTransactionType;
 import com.github.ignasbudreika.portfollow.enums.InvestmentType;
 import lombok.*;
 import org.hibernate.annotations.GenericGenerator;
@@ -8,8 +9,11 @@ import jakarta.persistence.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.Collection;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Data
 @Entity
@@ -37,9 +41,51 @@ public class Investment {
     @JoinColumn(name="asset_id")
     private Asset asset;
     private LocalDate date;
-    @OneToMany(mappedBy = "id")
+    @OneToMany(mappedBy = "investment")
     private Set<InvestmentTransaction> transactions = new HashSet<>();
     @ManyToMany(mappedBy = "investments")
     @Getter(AccessLevel.NONE)
     private Set<PortfolioHistory> portfolioHistories;
+
+    public BigDecimal getQuantityAt(LocalDate date) {
+        return getTransactions().stream().filter(transaction -> !transaction.getDate().isAfter(date)).map(transaction -> {
+            if (transaction.getType().equals(InvestmentTransactionType.BUY)) {
+                return transaction.getQuantity();
+            } else {
+                return transaction.getQuantity().negate();
+            }
+        }).reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
+
+    public BigDecimal getLowestQuantitySince(LocalDate date) {
+        BigDecimal quantity = getTransactions().stream().filter(transaction -> !transaction.getDate().isAfter(date)).map(transaction -> {
+            if (transaction.getType().equals(InvestmentTransactionType.BUY)) {
+                return transaction.getQuantity();
+            } else {
+                return transaction.getQuantity().negate();
+            }
+        }).reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        BigDecimal lowest = quantity;
+
+        Collection<BigDecimal> quantities = transactions.stream()
+                .filter(transaction -> transaction.getDate().isAfter(date))
+                .sorted(Comparator.comparing(InvestmentTransaction::getDate))
+                .map(transaction -> {
+                    if (transaction.getType().equals(InvestmentTransactionType.BUY)) {
+                        return transaction.getQuantity();
+                    } else {
+                        return transaction.getQuantity().negate();
+                    }
+                }).collect(Collectors.toList());
+
+        for(BigDecimal txQuantity: quantities) {
+            quantity = quantity.add(txQuantity);
+            if (txQuantity.compareTo(lowest) < 0) {
+                lowest = quantity;
+            }
+        }
+
+        return quantity;
+    }
 }
