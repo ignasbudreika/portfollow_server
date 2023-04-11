@@ -5,10 +5,7 @@ import com.github.ignasbudreika.portfollow.api.dto.response.PortfolioDistributio
 import com.github.ignasbudreika.portfollow.api.dto.response.PortfolioHistoryDTO;
 import com.github.ignasbudreika.portfollow.enums.HistoryType;
 import com.github.ignasbudreika.portfollow.enums.InvestmentType;
-import com.github.ignasbudreika.portfollow.model.Investment;
-import com.github.ignasbudreika.portfollow.model.Portfolio;
-import com.github.ignasbudreika.portfollow.model.PortfolioHistory;
-import com.github.ignasbudreika.portfollow.model.User;
+import com.github.ignasbudreika.portfollow.model.*;
 import com.github.ignasbudreika.portfollow.repository.InvestmentRepository;
 import com.github.ignasbudreika.portfollow.repository.PortfolioHistoryRepository;
 import jakarta.transaction.Transactional;
@@ -96,20 +93,34 @@ public class PortfolioHistoryService {
                     .trend(BigDecimal.ZERO.setScale(2, RoundingMode.HALF_UP)).build();
         }
 
-
-
         return PortfolioDTO.builder()
                 .isEmpty(isEmpty)
                 .totalValue(totalValue)
-                .trend(totalValue.subtract(lastDaysPortfolioHistory.getValue())
-                        .divide(lastDaysPortfolioHistory.getValue(), 4, RoundingMode.HALF_UP)
-                        .multiply(BigDecimal.valueOf(100L).setScale(2, RoundingMode.HALF_UP)))
+                .trend(calculateTrendBetweenDates(lastDaysPortfolioHistory, portfolioHistory))
                 .build();
     }
 
-    // todo fix this
     private BigDecimal calculateTrendBetweenDates(PortfolioHistory from, PortfolioHistory to) {
-        return BigDecimal.ZERO;
+        Collection<Investment> investments = from.getInvestments().stream().collect(Collectors.toList());
+        investments = investments.stream().filter(investment ->
+            !to.getInvestments().stream().filter(investment1 -> investment1.getId().equals(investment.getId())).findFirst().isEmpty()
+        ).collect(Collectors.toList());
+
+        BigDecimal totalValueAtFromDate = investments.stream().map(investment ->
+            investment.getQuantityAt(to.getDate()).multiply(assetService.getLatestAssetPriceForDate(investment.getAsset(), from.getDate()))
+        ).reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        BigDecimal totalValueAtToDate = investments.stream().map(investment ->
+                investment.getQuantityAt(to.getDate()).multiply(assetService.getLatestAssetPriceForDate(investment.getAsset(), to.getDate()))
+        ).reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        if (totalValueAtFromDate.compareTo(BigDecimal.ZERO) == 0) {
+            return BigDecimal.ZERO;
+        }
+
+        return totalValueAtToDate.subtract(totalValueAtFromDate)
+                .divide(totalValueAtFromDate, 4, RoundingMode.HALF_UP)
+                .multiply(BigDecimal.valueOf(100L).setScale(2, RoundingMode.HALF_UP));
     }
 
     public List<PortfolioDistributionDTO> getUserPortfolioDistribution(User user) {
