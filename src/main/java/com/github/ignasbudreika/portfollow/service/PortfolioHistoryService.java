@@ -5,7 +5,10 @@ import com.github.ignasbudreika.portfollow.api.dto.response.PortfolioDistributio
 import com.github.ignasbudreika.portfollow.api.dto.response.PortfolioHistoryDTO;
 import com.github.ignasbudreika.portfollow.enums.HistoryType;
 import com.github.ignasbudreika.portfollow.enums.InvestmentType;
-import com.github.ignasbudreika.portfollow.model.*;
+import com.github.ignasbudreika.portfollow.model.Investment;
+import com.github.ignasbudreika.portfollow.model.Portfolio;
+import com.github.ignasbudreika.portfollow.model.PortfolioHistory;
+import com.github.ignasbudreika.portfollow.model.User;
 import com.github.ignasbudreika.portfollow.repository.InvestmentRepository;
 import com.github.ignasbudreika.portfollow.repository.PortfolioHistoryRepository;
 import jakarta.transaction.Transactional;
@@ -251,6 +254,25 @@ public class PortfolioHistoryService {
                     investment.getUser().getId(), date, portfolioHistory.getValue());
 
             portfolioHistoryRepository.save(portfolioHistory);
+        }
+    }
+
+    public void updatePortfolioHistoryValue(User user, LocalDate from) {
+        for (; from.isBefore(LocalDate.now().plusDays(1)); from = from.plusDays(1)) {
+            final LocalDate day = from;
+
+            PortfolioHistory portfolioHistory = portfolioHistoryRepository.findFirstByUserIdAndDate(user.getId(), from);
+            if (portfolioHistory != null) {
+                BigDecimal totalValue = portfolioHistory.getInvestments().stream().map(previousDayInvestment ->
+                        previousDayInvestment.getQuantityAt(day).multiply(
+                                assetService.getLatestAssetPriceForDate(previousDayInvestment.getAsset(), day)
+                        ).setScale(8, RoundingMode.HALF_UP)
+                ).reduce(BigDecimal.ZERO, BigDecimal::add).setScale(2, RoundingMode.HALF_UP).setScale(8, RoundingMode.HALF_UP);
+
+                portfolioHistory.setValue(totalValue);
+
+                portfolioHistoryRepository.save(portfolioHistory);
+            }
         }
     }
 }

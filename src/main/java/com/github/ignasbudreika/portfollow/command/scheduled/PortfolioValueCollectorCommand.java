@@ -1,7 +1,9 @@
 package com.github.ignasbudreika.portfollow.command.scheduled;
 
 import com.github.ignasbudreika.portfollow.model.User;
-import com.github.ignasbudreika.portfollow.service.*;
+import com.github.ignasbudreika.portfollow.service.InvestmentService;
+import com.github.ignasbudreika.portfollow.service.PortfolioHistoryService;
+import com.github.ignasbudreika.portfollow.service.UserService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;

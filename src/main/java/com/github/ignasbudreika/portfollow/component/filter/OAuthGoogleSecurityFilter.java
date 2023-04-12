@@ -1,11 +1,9 @@
 package com.github.ignasbudreika.portfollow.component.filter;
 
-import com.github.ignasbudreika.portfollow.api.dto.response.ApiErrorDTO;
 import com.github.ignasbudreika.portfollow.model.User;
 import com.github.ignasbudreika.portfollow.service.UserService;
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
-import com.github.ignasbudreika.portfollow.exception.UnauthorizedException;
 import jakarta.servlet.*;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -21,7 +19,6 @@ import org.springframework.security.web.authentication.WebAuthenticationDetailsS
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
-import java.net.http.HttpResponse;
 import java.security.GeneralSecurityException;
 import java.util.List;
 

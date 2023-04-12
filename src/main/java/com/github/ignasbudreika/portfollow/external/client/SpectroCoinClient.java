@@ -1,8 +1,8 @@
 package com.github.ignasbudreika.portfollow.external.client;
 
 import com.github.ignasbudreika.portfollow.exception.InvalidExternalRequestException;
-import com.github.ignasbudreika.portfollow.external.dto.response.AccessTokenDTO;
 import com.github.ignasbudreika.portfollow.external.dto.request.AccessTokenRequestDTO;
+import com.github.ignasbudreika.portfollow.external.dto.response.AccessTokenDTO;
 import com.github.ignasbudreika.portfollow.external.dto.response.AccountsDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.codehaus.jackson.map.ObjectMapper;

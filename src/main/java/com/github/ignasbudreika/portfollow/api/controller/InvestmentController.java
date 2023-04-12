@@ -46,4 +46,13 @@ public class InvestmentController {
 
         return ResponseEntity.noContent().build();
     }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity deleteInvestment(@PathVariable(name = "id") String id) throws UnauthorizedException {
+        User user = userService.getByGoogleId(SecurityContextHolder.getContext().getAuthentication().getName());
+
+        investmentService.deleteInvestment(id, user);
+
+        return ResponseEntity.noContent().build();
+    }
 }

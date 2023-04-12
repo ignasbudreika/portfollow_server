@@ -6,8 +6,6 @@ import com.github.ignasbudreika.portfollow.enums.ConnectionStatus;
 import lombok.Builder;
 import lombok.Data;
 
-import java.time.LocalDateTime;
-
 @Data
 @Builder
 @JsonInclude(JsonInclude.Include.NON_NULL)

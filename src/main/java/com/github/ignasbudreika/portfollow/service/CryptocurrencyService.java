@@ -59,6 +59,7 @@ public class CryptocurrencyService {
                     .transactions(investment.getTransactions().stream()
                             .sorted(Comparator.comparing(InvestmentTransaction::getDate))
                             .map(transaction -> TransactionDTO.builder()
+                                    .id(transaction.getId())
                                     .quantity(transaction.getQuantity())
                                     .type(transaction.getType())
                                     .date(transaction.getDate()).build())

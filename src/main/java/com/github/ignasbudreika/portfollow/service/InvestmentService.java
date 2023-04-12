@@ -7,11 +7,9 @@ import com.github.ignasbudreika.portfollow.enums.InvestmentType;
 import com.github.ignasbudreika.portfollow.exception.BusinessLogicException;
 import com.github.ignasbudreika.portfollow.exception.UnauthorizedException;
 import com.github.ignasbudreika.portfollow.external.client.AlphaVantageClient;
-import com.github.ignasbudreika.portfollow.model.Asset;
-import com.github.ignasbudreika.portfollow.model.Investment;
-import com.github.ignasbudreika.portfollow.model.InvestmentTransaction;
-import com.github.ignasbudreika.portfollow.model.User;
+import com.github.ignasbudreika.portfollow.model.*;
 import com.github.ignasbudreika.portfollow.repository.InvestmentRepository;
+import com.github.ignasbudreika.portfollow.repository.PortfolioHistoryRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,6 +20,7 @@ import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -38,6 +37,8 @@ public class InvestmentService {
     private InvestmentTransactionService transactionService;
     @Autowired
     private InvestmentRepository investmentRepository;
+    @Autowired
+    private PortfolioHistoryRepository historyRepository;
 
     public Collection<InvestmentDTO> getUserInvestments(User user) {
         Collection<Investment> investments = investmentRepository.findAllByUserId(user.getId());
@@ -199,5 +200,33 @@ public class InvestmentService {
         portfolioHistoryService.createOrUpdatePortfolioHistory(investment);
 
         return investment;
+    }
+
+    public void deleteInvestment(String investmentId, User user) throws UnauthorizedException {
+        log.info("deleting investment: {}", investmentId);
+
+        Optional<Investment> investment = investmentRepository.findById(investmentId);
+        if (investment.isEmpty()) {
+            return;
+        }
+
+        Investment inv = investment.get();
+
+        if (!inv.getUser().getId().equals(user.getId())) {
+            throw new UnauthorizedException();
+        }
+
+        inv.setPortfolioHistories(new HashSet<>());
+        investmentRepository.save(inv);
+
+        Collection<PortfolioHistory> histories = historyRepository.findAllByInvestmentsId(investmentId);
+        histories.forEach(history -> {
+            history.setInvestments(history.getInvestments().stream().filter(investment1 -> !investment1.getId().equals(investmentId)).collect(Collectors.toList()));
+            historyRepository.save(history);
+        });
+
+        investmentRepository.delete(inv);
+
+        portfolioHistoryService.updatePortfolioHistoryValue(user, inv.getDate());
     }
 }

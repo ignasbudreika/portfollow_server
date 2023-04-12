@@ -12,6 +12,7 @@ import java.time.LocalDate;
 @Builder
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class TransactionDTO {
+    private String id;
     private BigDecimal quantity;
     private InvestmentTransactionType type;
     private LocalDate date;

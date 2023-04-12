@@ -3,12 +3,11 @@ package com.github.ignasbudreika.portfollow.component;
 import com.github.ignasbudreika.portfollow.api.dto.response.ApiErrorDTO;
 import com.github.ignasbudreika.portfollow.exception.BusinessLogicException;
 import com.github.ignasbudreika.portfollow.exception.UnauthorizedException;
+import jakarta.persistence.EntityExistsException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
-
-import jakarta.persistence.EntityExistsException;
 
 @Slf4j
 @ControllerAdvice
