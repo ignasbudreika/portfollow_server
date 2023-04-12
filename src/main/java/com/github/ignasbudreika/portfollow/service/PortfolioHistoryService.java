@@ -4,6 +4,7 @@ import com.github.ignasbudreika.portfollow.api.dto.response.PortfolioDTO;
 import com.github.ignasbudreika.portfollow.api.dto.response.PortfolioDistributionDTO;
 import com.github.ignasbudreika.portfollow.api.dto.response.PortfolioHistoryDTO;
 import com.github.ignasbudreika.portfollow.enums.HistoryType;
+import com.github.ignasbudreika.portfollow.enums.InvestmentTransactionType;
 import com.github.ignasbudreika.portfollow.enums.InvestmentType;
 import com.github.ignasbudreika.portfollow.model.Investment;
 import com.github.ignasbudreika.portfollow.model.Portfolio;
@@ -99,8 +100,28 @@ public class PortfolioHistoryService {
         return PortfolioDTO.builder()
                 .isEmpty(isEmpty)
                 .totalValue(totalValue)
+                .totalChange(calculateTotalChange(user))
                 .trend(calculateTrend(portfolioHistory.getInvestments()))
                 .build();
+    }
+
+    private BigDecimal calculateTotalChange(User user) {
+        return investmentRepository.findAllByUserId(user.getId()).stream().map(investment -> {
+            BigDecimal purchasePrice = investment.getTransactions().stream().filter(tx -> tx.getType().equals(InvestmentTransactionType.BUY))
+                    .map(tx -> tx.getQuantity()
+                            .multiply(assetService.getLatestAssetPriceForDate(investment.getAsset(), tx.getDate()))
+                            .setScale(8, RoundingMode.HALF_UP))
+                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+            BigDecimal sellPrice = investment.getTransactions().stream().filter(tx -> tx.getType().equals(InvestmentTransactionType.SELL))
+                    .map(tx -> tx.getQuantity()
+                            .multiply(assetService.getLatestAssetPriceForDate(investment.getAsset(), tx.getDate()))
+                            .setScale(8, RoundingMode.HALF_UP))
+                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+            BigDecimal currentValue = investment.getQuantityAt(LocalDate.now())
+                    .multiply(investment.getAsset().getPrice()).setScale(8, RoundingMode.HALF_UP);
+
+            return currentValue.add(sellPrice).subtract(purchasePrice);
+        }).reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
     private BigDecimal calculateTrend(Collection<Investment> investments) {
