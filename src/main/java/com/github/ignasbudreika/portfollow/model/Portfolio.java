@@ -21,12 +21,16 @@ public class Portfolio {
     @GenericGenerator(name = "uuid", strategy = "uuid2")
     private String id;
     private String description;
+    @Column(name = "published")
     private boolean published;
+    @Column(name = "hidden_value")
     private boolean hiddenValue;
+    @Column(name = "currency_eur")
     private boolean currencyEur;
+    @Column(name = "allowed_users")
     private String allowedUsers;
     @OneToOne
-    @JoinColumn(name="user_id", nullable=false)
+    @JoinColumn(name="user_id", nullable=false, unique = true)
     private User user;
     @OneToMany(mappedBy = "id")
     private Set<PortfolioHistory> history = new HashSet<>();
