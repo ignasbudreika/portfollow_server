@@ -2,15 +2,11 @@ package com.github.ignasbudreika.portfollow.service;
 
 import com.github.ignasbudreika.portfollow.api.dto.response.PortfolioDTO;
 import com.github.ignasbudreika.portfollow.api.dto.response.PortfolioDistributionDTO;
-import com.github.ignasbudreika.portfollow.api.dto.response.PortfolioHistoryDTO;
-import com.github.ignasbudreika.portfollow.api.dto.response.ProfitLossDTO;
+import com.github.ignasbudreika.portfollow.api.dto.response.DateValueDTO;
 import com.github.ignasbudreika.portfollow.enums.HistoryType;
 import com.github.ignasbudreika.portfollow.enums.InvestmentTransactionType;
 import com.github.ignasbudreika.portfollow.enums.InvestmentType;
-import com.github.ignasbudreika.portfollow.model.Investment;
-import com.github.ignasbudreika.portfollow.model.Portfolio;
-import com.github.ignasbudreika.portfollow.model.PortfolioHistory;
-import com.github.ignasbudreika.portfollow.model.User;
+import com.github.ignasbudreika.portfollow.model.*;
 import com.github.ignasbudreika.portfollow.repository.InvestmentRepository;
 import com.github.ignasbudreika.portfollow.repository.PortfolioHistoryRepository;
 import jakarta.transaction.Transactional;
@@ -148,10 +144,9 @@ public class PortfolioHistoryService {
         return currentValue.subtract(yesterdaysValue)
                 .divide(yesterdaysValue, 4, RoundingMode.HALF_UP)
                 .multiply(BigDecimal.valueOf(100L).setScale(2, RoundingMode.HALF_UP));
-
     }
 
-    public List<ProfitLossDTO> getUserProfitLossHistory(User user, HistoryType type) {
+    public List<DateValueDTO> getUserProfitLossHistory(User user, HistoryType type) {
         LocalDate from = LocalDate.now();
         switch (type) {
             case WEEKLY -> from = from.minusWeeks(1L);
@@ -162,7 +157,7 @@ public class PortfolioHistoryService {
 
         Collection<Investment> investments = investmentRepository.findAllByUserId(user.getId());
 
-        List<ProfitLossDTO> history = new ArrayList<>();
+        List<DateValueDTO> history = new ArrayList<>();
         for (LocalDate at = from; !at.isAfter(LocalDate.now()); at = at.plusDays(1)) {
             LocalDate finalAt = at;
 
@@ -186,7 +181,97 @@ public class PortfolioHistoryService {
                 return daysValue.add(sellPrice).subtract(purchasePrice);
             }).reduce(BigDecimal.ZERO, BigDecimal::add);
 
-            history.add(ProfitLossDTO.builder().date(at).value(daysProfitLoss).build());
+            history.add(DateValueDTO.builder().date(at).value(daysProfitLoss).build());
+        }
+
+        return history;
+    }
+
+    public List<DateValueDTO> getUserPerformanceHistory(User user, HistoryType type) {
+        LocalDate from = LocalDate.now();
+        switch (type) {
+            case WEEKLY -> from = from.minusWeeks(1L);
+            case MONTHLY -> from = from.minusMonths(1L);
+            case QUARTERLY -> from = from.minusMonths(3L);
+            case ALL -> from = LocalDate.of(2023, 1, 1);
+        }
+
+        Collection<Investment> investments = investmentRepository.findAllByUserId(user.getId());
+
+        List<DateValueDTO> history = new ArrayList<>();
+        BigDecimal initialPerformance = null;
+        for (LocalDate at = from; !at.isAfter(LocalDate.now()); at = at.plusDays(1)) {
+            LocalDate finalAt = at;
+
+            BigDecimal totalPurchasePrice = investments.stream().map(investment -> {
+                        return investment.getTransactions().stream().filter(tx ->
+                                        tx.getType().equals(InvestmentTransactionType.BUY) && !tx.getDate().isAfter(finalAt))
+                                .map(tx -> tx.getQuantity()
+                                        .multiply(assetService.getLatestAssetPriceForDate(investment.getAsset(), tx.getDate()))
+                                        .setScale(8, RoundingMode.HALF_UP))
+                                .reduce(BigDecimal.ZERO, BigDecimal::add);
+                    }).reduce(BigDecimal.ZERO, BigDecimal::add);
+
+            BigDecimal totalSellPrice = investments.stream().map(investment -> {
+                return investment.getTransactions().stream().filter(tx ->
+                                tx.getType().equals(InvestmentTransactionType.SELL) && !tx.getDate().isAfter(finalAt))
+                        .map(tx -> tx.getQuantity()
+                                .multiply(assetService.getLatestAssetPriceForDate(investment.getAsset(), tx.getDate()))
+                                .setScale(8, RoundingMode.HALF_UP))
+                        .reduce(BigDecimal.ZERO, BigDecimal::add);
+            }).reduce(BigDecimal.ZERO, BigDecimal::add);
+
+            BigDecimal totalDaysValue = investments.stream().map(investment -> {
+                return investment.getQuantityAt(finalAt)
+                        .multiply(assetService.getLatestAssetPriceForDate(investment.getAsset(), finalAt))
+                        .setScale(8, RoundingMode.HALF_UP);
+            }).reduce(BigDecimal.ZERO, BigDecimal::add);
+
+            if (totalDaysValue.compareTo(BigDecimal.ZERO) == 0) {
+                if (initialPerformance == null) {
+                    initialPerformance = BigDecimal.ZERO;
+                }
+
+                history.add(DateValueDTO.builder().date(at).value(initialPerformance).build());
+            } else {
+                BigDecimal performance = totalDaysValue.add(totalSellPrice).subtract(totalPurchasePrice)
+                        .divide(totalPurchasePrice, 4, RoundingMode.HALF_UP)
+                        .multiply(BigDecimal.valueOf(100L).setScale(2, RoundingMode.HALF_UP));
+
+                if (initialPerformance == null) {
+                    initialPerformance = performance;
+                }
+
+                performance = performance.subtract(initialPerformance);
+
+                history.add(DateValueDTO.builder().date(at).value(performance).build());
+            }
+        }
+
+        return history;
+    }
+
+    public List<DateValueDTO> getComparisonPerformanceHistory(HistoryType type) {
+        LocalDate from = LocalDate.now();
+        switch (type) {
+            case WEEKLY -> from = from.minusWeeks(1L);
+            case MONTHLY -> from = from.minusMonths(1L);
+            case QUARTERLY -> from = from.minusMonths(3L);
+            case ALL -> from = LocalDate.of(2023, 1, 1);
+        }
+
+        Asset asset = assetService.getAsset("SPY", InvestmentType.STOCK);
+        BigDecimal initialValue = assetService.getLatestAssetPriceForDate(asset, from);
+        List<DateValueDTO> history = new ArrayList<>();
+
+        for (; !from.isAfter(LocalDate.now()); from = from.plusDays(1)) {
+            BigDecimal daysValue = assetService.getLatestAssetPriceForDate(asset, from);
+
+            BigDecimal change = daysValue.subtract(initialValue)
+                    .divide(initialValue, 4, RoundingMode.HALF_UP)
+                    .multiply(BigDecimal.valueOf(100L).setScale(2, RoundingMode.HALF_UP));
+
+            history.add(DateValueDTO.builder().date(from).value(change).build());
         }
 
         return history;
@@ -251,7 +336,7 @@ public class PortfolioHistoryService {
         return distribution;
     }
 
-    public List<PortfolioHistoryDTO> getUserPortfolioHistory(User user, HistoryType type) {
+    public List<DateValueDTO> getUserPortfolioHistory(User user, HistoryType type) {
         LocalDate from = LocalDate.now();
         switch (type) {
             case WEEKLY -> from = from.minusWeeks(1L);
@@ -262,9 +347,9 @@ public class PortfolioHistoryService {
 
         Collection<PortfolioHistory> portfolioHistories = portfolioHistoryRepository.findAllByUserIdAndDateAfterOrderByDateAsc(user.getId(), from);
 
-        return portfolioHistories.stream().map(portfolioHistory -> PortfolioHistoryDTO.builder()
+        return portfolioHistories.stream().map(portfolioHistory -> DateValueDTO.builder()
                 .value(portfolioHistory.getValue().setScale(4, RoundingMode.HALF_UP))
-                .time(portfolioHistory.getDate()).build())
+                .date(portfolioHistory.getDate()).build())
                 .toList();
     }
 

@@ -10,7 +10,7 @@ import java.time.LocalDate;
 @Data
 @Builder
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class PortfolioHistoryDTO {
-    private LocalDate time;
+public class DateValueDTO {
+    private LocalDate date;
     private BigDecimal value;
 }

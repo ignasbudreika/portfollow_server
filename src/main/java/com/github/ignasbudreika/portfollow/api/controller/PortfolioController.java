@@ -2,8 +2,7 @@ package com.github.ignasbudreika.portfollow.api.controller;
 
 import com.github.ignasbudreika.portfollow.api.dto.response.PortfolioDTO;
 import com.github.ignasbudreika.portfollow.api.dto.response.PortfolioDistributionDTO;
-import com.github.ignasbudreika.portfollow.api.dto.response.PortfolioHistoryDTO;
-import com.github.ignasbudreika.portfollow.api.dto.response.ProfitLossDTO;
+import com.github.ignasbudreika.portfollow.api.dto.response.DateValueDTO;
 import com.github.ignasbudreika.portfollow.enums.HistoryType;
 import com.github.ignasbudreika.portfollow.enums.InvestmentType;
 import com.github.ignasbudreika.portfollow.model.User;
@@ -47,16 +46,28 @@ public class PortfolioController {
     }
 
     @GetMapping("/history")
-    public ResponseEntity<List<PortfolioHistoryDTO>> getPortfolioHistory(@RequestParam(value = "type", defaultValue = "WEEKLY") HistoryType type) {
+    public ResponseEntity<List<DateValueDTO>> getPortfolioHistory(@RequestParam(value = "type", defaultValue = "WEEKLY") HistoryType type) {
         User user = userService.getByGoogleId(SecurityContextHolder.getContext().getAuthentication().getName());
 
         return ResponseEntity.ok(portfolioHistoryService.getUserPortfolioHistory(user, type));
     }
 
     @GetMapping("/profit-loss")
-    public ResponseEntity<List<ProfitLossDTO>> getProfitLossHistory(@RequestParam(value = "type", defaultValue = "WEEKLY") HistoryType type) {
+    public ResponseEntity<List<DateValueDTO>> getProfitLossHistory(@RequestParam(value = "type", defaultValue = "WEEKLY") HistoryType type) {
         User user = userService.getByGoogleId(SecurityContextHolder.getContext().getAuthentication().getName());
 
         return ResponseEntity.ok(portfolioHistoryService.getUserProfitLossHistory(user, type));
+    }
+
+    @GetMapping("/performance")
+    public ResponseEntity<List<DateValueDTO>> getPerformanceHistory(@RequestParam(value = "type", defaultValue = "WEEKLY") HistoryType type) {
+        User user = userService.getByGoogleId(SecurityContextHolder.getContext().getAuthentication().getName());
+
+        return ResponseEntity.ok(portfolioHistoryService.getUserPerformanceHistory(user, type));
+    }
+
+    @GetMapping("/performance/compare")
+    public ResponseEntity<List<DateValueDTO>> getPerformanceComparison(@RequestParam(value = "type", defaultValue = "WEEKLY") HistoryType type) {
+        return ResponseEntity.ok(portfolioHistoryService.getComparisonPerformanceHistory(type));
     }
 }
