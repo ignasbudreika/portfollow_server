@@ -33,6 +33,10 @@ public class InvestmentTransactionService {
     public InvestmentTransaction createTransaction(Investment investment, BigDecimal quantity, InvestmentTransactionType type, LocalDate date) throws BusinessLogicException {
         log.info("creating: {} transaction for investment: {}", type, investment.getId());
 
+        if (date.isBefore(LocalDate.of(2023, 1, 1))) {
+            throw new BusinessLogicException("only investments made since 2023-01-01 are supported");
+        }
+
         if (type.equals(InvestmentTransactionType.SELL) && (investment.getLowestQuantitySince(date).compareTo(quantity) < 0)) {
             throw new BusinessLogicException(String.format("cannot create sell transaction for investment: %s because the quantity after: %s would drop below 0",
                     investment.getId(), date));

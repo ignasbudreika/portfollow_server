@@ -103,7 +103,7 @@ public class InvestmentService {
         }
 
         if (investment.getDate().isBefore(LocalDate.of(2023, 1, 1))) {
-            throw new BusinessLogicException("only investments made after 2023-01-01 are supported");
+            throw new BusinessLogicException("only investments made since 2023-01-01 are supported");
         }
 
         investment.setUser(user);
@@ -192,7 +192,7 @@ public class InvestmentService {
         transactions.add(created);
         investment.setTransactions(transactions);
 
-        if (transaction.getDate().isBefore(investment.getDate())) {
+        if (transaction.getDate().isBefore(investment.getDate()) || transactions.size() == 1) {
             investment.setDate(transaction.getDate());
         }
         investment = investmentRepository.save(investment);
