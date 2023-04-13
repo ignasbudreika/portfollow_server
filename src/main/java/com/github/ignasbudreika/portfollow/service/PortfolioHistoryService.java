@@ -227,7 +227,7 @@ public class PortfolioHistoryService {
                         .setScale(8, RoundingMode.HALF_UP);
             }).reduce(BigDecimal.ZERO, BigDecimal::add);
 
-            if (totalDaysValue.compareTo(BigDecimal.ZERO) == 0) {
+            if (totalPurchasePrice.compareTo(BigDecimal.ZERO) == 0) {
                 if (initialPerformance == null) {
                     initialPerformance = BigDecimal.ZERO;
                 }
