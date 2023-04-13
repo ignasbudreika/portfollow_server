@@ -18,6 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
@@ -98,6 +99,7 @@ public class EthereumWalletService {
                     .symbol(ETHEREUM)
                     .quantity(etherQuantity.setScale(8, RoundingMode.HALF_UP))
                     .type(InvestmentType.CRYPTOCURRENCY)
+                    .date(LocalDate.now())
                     .user(user).build(), connection.getId());
 
             log.info("imported Ethereum balance for user: {} from address: {}, balance: {}",

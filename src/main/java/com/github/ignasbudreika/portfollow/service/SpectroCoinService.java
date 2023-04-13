@@ -20,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
@@ -118,6 +119,7 @@ public class SpectroCoinService {
                                 .symbol(account.getCurrencyCode())
                                 .quantity(account.getBalance().setScale(8, RoundingMode.HALF_UP))
                                 .type(InvestmentType.CRYPTOCURRENCY)
+                                .date(LocalDate.now())
                                 .user(user).build(), connection.getId());
                     } catch (BusinessLogicException e) {
                         log.error("failed to import: {} symbol for user: {}", account.getCurrencyCode(), user.getId(), e);
