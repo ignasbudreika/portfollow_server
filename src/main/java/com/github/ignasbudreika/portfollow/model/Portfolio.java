@@ -20,8 +20,11 @@ public class Portfolio {
     @GeneratedValue(generator = "uuid")
     @GenericGenerator(name = "uuid", strategy = "uuid2")
     private String id;
+    private String description;
     private boolean published;
     private boolean hiddenValue;
+    private boolean currencyEur;
+    private String allowedUsers;
     @OneToOne
     @JoinColumn(name="user_id", nullable=false)
     private User user;

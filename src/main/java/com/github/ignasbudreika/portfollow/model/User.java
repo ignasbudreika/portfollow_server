@@ -21,12 +21,12 @@ public class User {
     @GeneratedValue(generator = "uuid")
     @GenericGenerator(name = "uuid", strategy = "uuid2")
     private String id;
+    @Column(nullable = false, unique = true)
     private String email;
     @Column(nullable = false)
+    private String username;
+    @Column(nullable = false)
     private String googleId;
-    @OneToOne
-    @JoinColumn(name="portfolio_id")
-    private Portfolio portfolio;
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "id")
     private Set<Investment> holdings = new HashSet<>();
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "id")
