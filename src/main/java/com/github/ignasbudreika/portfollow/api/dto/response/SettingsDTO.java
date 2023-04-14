@@ -9,8 +9,6 @@ import lombok.Data;
 @Builder
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class SettingsDTO {
-    @JsonProperty(value = "needs_setup")
-    private boolean setupNeeded;
     @JsonProperty("user_info")
     private UserInfoDTO userInfo;
     @JsonProperty("portfolio_info")

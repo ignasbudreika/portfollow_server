@@ -20,6 +20,7 @@ public class Portfolio {
     @GeneratedValue(generator = "uuid")
     @GenericGenerator(name = "uuid", strategy = "uuid2")
     private String id;
+    private String title;
     private String description;
     @Column(name = "published")
     private boolean published;
@@ -32,6 +33,6 @@ public class Portfolio {
     @OneToOne
     @JoinColumn(name="user_id", nullable=false, unique = true)
     private User user;
-    @OneToMany(mappedBy = "id")
+    @OneToMany(mappedBy = "portfolio")
     private Set<PortfolioHistory> history = new HashSet<>();
 }

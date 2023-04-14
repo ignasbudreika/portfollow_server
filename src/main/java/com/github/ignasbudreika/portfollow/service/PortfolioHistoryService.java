@@ -156,6 +156,7 @@ public class PortfolioHistoryService {
         }
 
         Collection<Investment> investments = investmentRepository.findAllByUserId(user.getId());
+        BigDecimal initialProfitLoss = null;
 
         List<DateValueDTO> history = new ArrayList<>();
         for (LocalDate at = from; !at.isAfter(LocalDate.now()); at = at.plusDays(1)) {
@@ -180,6 +181,12 @@ public class PortfolioHistoryService {
 
                 return daysValue.add(sellPrice).subtract(purchasePrice);
             }).reduce(BigDecimal.ZERO, BigDecimal::add);
+
+            if (initialProfitLoss == null) {
+                initialProfitLoss = daysProfitLoss;
+            }
+
+            daysProfitLoss = daysProfitLoss.subtract(initialProfitLoss);
 
             history.add(DateValueDTO.builder().date(at).value(daysProfitLoss).build());
         }
@@ -232,7 +239,7 @@ public class PortfolioHistoryService {
                     initialPerformance = BigDecimal.ZERO;
                 }
 
-                history.add(DateValueDTO.builder().date(at).value(initialPerformance).build());
+                history.add(DateValueDTO.builder().date(at).value(BigDecimal.ZERO.subtract(initialPerformance)).build());
             } else {
                 BigDecimal performance = totalDaysValue.add(totalSellPrice).subtract(totalPurchasePrice)
                         .divide(totalPurchasePrice, 4, RoundingMode.HALF_UP)

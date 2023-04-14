@@ -16,26 +16,17 @@ public class SettingsService {
     private PortfolioRepository portfolioRepository;
 
     public SettingsDTO getUserSettings(User user) {
-        if (!user.isSetup()) {
-            return SettingsDTO.builder()
-                    .setupNeeded(true)
-                    .userInfo(UserInfoDTO.builder()
-                            .email(user.getEmail())
-                            .username(user.getUsername()).build())
-                    .build();
-        }
-
         Portfolio portfolio = portfolioRepository.findByUserId(user.getId());
         if (portfolio == null) {
             throw new EntityNotFoundException();
         }
 
         return SettingsDTO.builder()
-                .setupNeeded(false)
                 .userInfo(UserInfoDTO.builder()
                         .email(user.getEmail())
                         .username(user.getUsername()).build())
                 .portfolioInfo(PortfolioInfoDTO.builder()
+                        .title(portfolio.getTitle())
                         .description(portfolio.getDescription())
                         .isPublic(portfolio.isPublished())
                         .revealValue(!portfolio.isHiddenValue())

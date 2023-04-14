@@ -22,6 +22,7 @@ public class PortfolioService {
 
         Portfolio portfolio = portfolioRepository.save(Portfolio.builder()
                 .user(user)
+                .title(String.format("%s's portfolio", user.getEmail()))
                 .hiddenValue(true)
                 .published(false).build());
 
