@@ -102,7 +102,7 @@ public class InvestmentService {
             }
         }
 
-        if (investment.getDate().isBefore(LocalDate.of(2023, 1, 1))) {
+        if (investment.getDate().isBefore(LocalDate.of(2023, 1, 1)) || investment.getDate().isAfter(LocalDate.now())) {
             throw new BusinessLogicException("only investments made since 2023-01-01 are supported");
         }
 
@@ -140,17 +140,17 @@ public class InvestmentService {
                     log.info("investment: {} for connection: {} exists, quantity has decreased by: {}, creating SELL tx",
                             investment.getSymbol(), connectionId, quantityDiff);
 
-                    transaction = transactionService.createTransaction(investment, quantityDiff.abs(), InvestmentTransactionType.SELL, investment.getDate());
+                    transaction = transactionService.createTransaction(existing, quantityDiff.abs(), InvestmentTransactionType.SELL, investment.getDate());
                 } else {
                     log.info("investment: {} for connection: {} exists, quantity has increased by: {}, creating BUY tx",
                             investment.getSymbol(), connectionId, quantityDiff.abs());
 
-                    transaction = transactionService.createTransaction(investment, quantityDiff.abs(), InvestmentTransactionType.BUY, investment.getDate());
+                    transaction = transactionService.createTransaction(existing, quantityDiff.abs(), InvestmentTransactionType.BUY, investment.getDate());
                 }
 
                 Set<InvestmentTransaction> transactions = new HashSet<>();
                 transactions.add(transaction);
-                investment.setTransactions(transactions);
+                existing.setTransactions(transactions);
 
                 existing.setQuantity(investment.getQuantity());
 
