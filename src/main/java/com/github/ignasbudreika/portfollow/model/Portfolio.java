@@ -7,9 +7,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.GenericGenerator;
 
-import java.util.HashSet;
-import java.util.Set;
-
 @Data
 @Entity
 @Builder
@@ -33,6 +30,4 @@ public class Portfolio {
     @OneToOne
     @JoinColumn(name="user_id", nullable=false, unique = true)
     private User user;
-    @OneToMany(mappedBy = "portfolio")
-    private Set<PortfolioHistory> history = new HashSet<>();
 }

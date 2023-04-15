@@ -73,7 +73,6 @@ public class PortfolioHistoryService {
         for (LocalDate date = LocalDate.now(); date.isAfter(LocalDate.now().minusDays(7)); date = date.minusDays(1)) {
             portfolioHistoryRepository.save(PortfolioHistory.builder()
                     .date(date)
-                    .portfolio(portfolio)
                     .user(portfolio.getUser())
                     .value(BigDecimal.ZERO).build());
         }

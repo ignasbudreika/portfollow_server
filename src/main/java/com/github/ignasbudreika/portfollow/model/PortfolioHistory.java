@@ -34,7 +34,4 @@ public class PortfolioHistory {
             joinColumns = @JoinColumn(name = "portfolio_history_id", referencedColumnName = "id"),
             inverseJoinColumns = @JoinColumn(name = "investment_id", referencedColumnName = "id"))
     private Collection<Investment> investments = new ArrayList<>();
-    @ManyToOne
-    @JoinColumn(name="portfolio_id")
-    private Portfolio portfolio;
 }
