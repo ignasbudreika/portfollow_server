@@ -1,5 +1,6 @@
 package com.github.ignasbudreika.portfollow.api.controller;
 
+import com.github.ignasbudreika.portfollow.api.dto.response.PublicPortfolioDistributionDTO;
 import com.github.ignasbudreika.portfollow.api.dto.response.PublicPortfolioListDTO;
 import com.github.ignasbudreika.portfollow.api.dto.response.PublicPortfolioStatisticsDTO;
 import com.github.ignasbudreika.portfollow.service.PublicPortfolioService;
@@ -21,5 +22,12 @@ public class PublicPortfolioController {
     @GetMapping("/{id}")
     public ResponseEntity<PublicPortfolioStatisticsDTO> getPublicPortfolioStats(@PathVariable(value = "id") String id) {
         return ResponseEntity.ok(portfolioService.getPublicPortfolioStats(id));
+    }
+
+    @GetMapping("/{id}/distribution")
+    public ResponseEntity<PublicPortfolioDistributionDTO> getPublicPortfolioDistribution(
+            @PathVariable(value = "id") String id,
+            @RequestParam(value = "type", required = false) String type) {
+        return ResponseEntity.ok(portfolioService.getPublicPortfolioDistribution(id, type));
     }
 }

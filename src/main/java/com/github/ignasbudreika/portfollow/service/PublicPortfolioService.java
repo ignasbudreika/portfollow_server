@@ -2,11 +2,13 @@ package com.github.ignasbudreika.portfollow.service;
 
 import com.github.ignasbudreika.portfollow.api.dto.response.*;
 import com.github.ignasbudreika.portfollow.enums.HistoryType;
+import com.github.ignasbudreika.portfollow.enums.InvestmentType;
 import com.github.ignasbudreika.portfollow.model.Investment;
 import com.github.ignasbudreika.portfollow.model.Portfolio;
 import com.github.ignasbudreika.portfollow.repository.InvestmentRepository;
 import com.github.ignasbudreika.portfollow.repository.PortfolioRepository;
 import jakarta.persistence.EntityNotFoundException;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -71,6 +73,26 @@ public class PublicPortfolioService {
                 .hiddenValue(portfolio.isHiddenValue())
                 .trend(trend)
                 .totalChange(change)
+                .distribution(distribution.toArray(PortfolioDistributionDTO[]::new)).build();
+    }
+
+    public PublicPortfolioDistributionDTO getPublicPortfolioDistribution(String id, String type) {
+        Portfolio portfolio = portfolioRepository.findById(id).orElseThrow(EntityNotFoundException::new);
+        if (!portfolio.isPublished()) {
+            throw new EntityNotFoundException();
+        }
+
+        List<PortfolioDistributionDTO> distribution = StringUtils.isNotBlank(type) ?
+                portfolioHistoryService.getUserPortfolioDistributionByType(portfolio.getUser(), InvestmentType.valueOf(type)) :
+                portfolioHistoryService.getUserPortfolioDistribution(portfolio.getUser());
+        if (portfolio.isHiddenValue()) {
+            distribution = distribution.stream().map(entry -> PortfolioDistributionDTO.builder()
+                    .label(entry.getLabel())
+                    .percentage(entry.getPercentage()).build()).toList();
+        }
+
+        return PublicPortfolioDistributionDTO.builder()
+                .hiddenValue(portfolio.isHiddenValue())
                 .distribution(distribution.toArray(PortfolioDistributionDTO[]::new)).build();
     }
 }
