@@ -101,11 +101,11 @@ public class PortfolioHistoryService {
                 .isEmpty(isEmpty)
                 .totalValue(totalValue)
                 .totalChange(calculateTotalChange(user))
-                .trend(calculateTrend(portfolioHistory.getInvestments()))
+                .trend(calculateTrend(portfolioHistory.getUser()))
                 .build();
     }
 
-    private BigDecimal calculateTotalChange(User user) {
+    public BigDecimal calculateTotalChange(User user) {
         return investmentRepository.findAllByUserId(user.getId()).stream().map(investment -> {
             BigDecimal purchasePrice = investment.getTransactions().stream().filter(tx -> tx.getType().equals(InvestmentTransactionType.BUY))
                     .map(tx -> tx.getQuantity()
@@ -124,7 +124,9 @@ public class PortfolioHistoryService {
         }).reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
-    private BigDecimal calculateTrend(Collection<Investment> investments) {
+    public BigDecimal calculateTrend(User user) {
+        Collection<Investment> investments = investmentRepository.findAllByUserId(user.getId());
+
         LocalDate now = LocalDate.now();
         LocalDate yesterday = now.minusDays(1);
 
@@ -255,6 +257,42 @@ public class PortfolioHistoryService {
         }
 
         return history;
+    }
+
+    public BigDecimal calculateTotalPerformance(User user) {
+        Collection<Investment> investments = investmentRepository.findAllByUserId(user.getId());
+
+        BigDecimal totalPurchasePrice = investments.stream().map(investment -> {
+            return investment.getTransactions().stream().filter(tx ->
+                            tx.getType().equals(InvestmentTransactionType.BUY))
+                    .map(tx -> tx.getQuantity()
+                            .multiply(assetService.getLatestAssetPriceForDate(investment.getAsset(), tx.getDate()))
+                            .setScale(8, RoundingMode.HALF_UP))
+                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+        }).reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        BigDecimal totalSellPrice = investments.stream().map(investment -> {
+            return investment.getTransactions().stream().filter(tx ->
+                            tx.getType().equals(InvestmentTransactionType.SELL))
+                    .map(tx -> tx.getQuantity()
+                            .multiply(assetService.getLatestAssetPriceForDate(investment.getAsset(), tx.getDate()))
+                            .setScale(8, RoundingMode.HALF_UP))
+                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+        }).reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        BigDecimal totalDaysValue = investments.stream().map(investment -> {
+            return investment.getQuantityAt(LocalDate.now())
+                    .multiply(investment.getAsset().getPrice())
+                    .setScale(8, RoundingMode.HALF_UP);
+        }).reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        if (totalPurchasePrice.compareTo(BigDecimal.ZERO) == 0) {
+            return BigDecimal.ZERO;
+        }
+
+        return totalDaysValue.add(totalSellPrice).subtract(totalPurchasePrice)
+                .divide(totalPurchasePrice, 4, RoundingMode.HALF_UP)
+                .multiply(BigDecimal.valueOf(100L).setScale(2, RoundingMode.HALF_UP));
     }
 
     public List<DateValueDTO> getComparisonPerformanceHistory(HistoryType type) {

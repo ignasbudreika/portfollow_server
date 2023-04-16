@@ -1,15 +1,17 @@
 package com.github.ignasbudreika.portfollow.service;
 
-import com.github.ignasbudreika.portfollow.api.dto.response.DateValueDTO;
-import com.github.ignasbudreika.portfollow.api.dto.response.PublicPortfolioDTO;
-import com.github.ignasbudreika.portfollow.api.dto.response.PublicPortfolioListDTO;
+import com.github.ignasbudreika.portfollow.api.dto.response.*;
 import com.github.ignasbudreika.portfollow.enums.HistoryType;
 import com.github.ignasbudreika.portfollow.model.Portfolio;
 import com.github.ignasbudreika.portfollow.repository.PortfolioRepository;
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
+
+import java.math.BigDecimal;
+import java.util.List;
 
 @Service
 public class PublicPortfolioService {
@@ -27,7 +29,9 @@ public class PublicPortfolioService {
                     .id(portfolio.getId())
                     .title(portfolio.getTitle())
                     .description(portfolio.getDescription())
-                    .history(portfolioHistoryService.getUserPortfolioHistory(portfolio.getUser(), HistoryType.MONTHLY).toArray(DateValueDTO[]::new)).build();
+                    .history(portfolio.isHiddenValue() ?
+                            portfolioHistoryService.getUserProfitLossHistory(portfolio.getUser(), HistoryType.MONTHLY).toArray(DateValueDTO[]::new) :
+                            portfolioHistoryService.getUserPerformanceHistory(portfolio.getUser(), HistoryType.MONTHLY).toArray(DateValueDTO[]::new)).build();
         }).toArray(PublicPortfolioDTO[]::new);
 
         return PublicPortfolioListDTO.builder()
@@ -36,5 +40,30 @@ public class PublicPortfolioService {
                 .portfolios(portfolioDTOs).build();
     }
 
+    public PublicPortfolioStatisticsDTO getPublicPortfolioStats(String id) {
+        Portfolio portfolio = portfolioRepository.findById(id).orElseThrow(EntityNotFoundException::new);
+        if (!portfolio.isPublished()) {
+            throw new EntityNotFoundException();
+        }
 
+        BigDecimal trend = portfolioHistoryService.calculateTrend(portfolio.getUser());
+        BigDecimal change;
+        if (portfolio.isHiddenValue()) {
+            change = portfolioHistoryService.calculateTotalPerformance(portfolio.getUser());
+        } else {
+            change = portfolioHistoryService.calculateTotalChange(portfolio.getUser());
+        }
+        List<PortfolioDistributionDTO> distribution = portfolioHistoryService.getUserPortfolioDistribution(portfolio.getUser());
+        if (portfolio.isHiddenValue()) {
+            distribution = distribution.stream().map(entry -> PortfolioDistributionDTO.builder()
+                    .label(entry.getLabel())
+                    .percentage(entry.getPercentage()).build()).toList();
+        }
+
+        return PublicPortfolioStatisticsDTO.builder()
+                .hiddenValue(portfolio.isHiddenValue())
+                .trend(trend)
+                .totalChange(change)
+                .distribution(distribution.toArray(PortfolioDistributionDTO[]::new)).build();
+    }
 }

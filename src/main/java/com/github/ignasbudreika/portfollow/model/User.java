@@ -27,8 +27,8 @@ public class User {
     private String username;
     @Column(nullable = false)
     private String googleId;
-    @OneToMany(fetch = FetchType.LAZY, mappedBy = "id")
-    private Set<Investment> holdings = new HashSet<>();
+    @OneToMany(mappedBy = "user")
+    private Set<Investment> investments = new HashSet<>();
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "id")
     private Set<SpectroCoinConnection> spectroCoinConnections = new HashSet<>();
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "id")
