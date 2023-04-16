@@ -1,7 +1,7 @@
 package com.github.ignasbudreika.portfollow.service;
 
-import com.github.ignasbudreika.portfollow.api.dto.request.CryptocurrencyDTO;
-import com.github.ignasbudreika.portfollow.api.dto.response.CryptocurrencyInvestmentDTO;
+import com.github.ignasbudreika.portfollow.api.dto.request.CurrencyDTO;
+import com.github.ignasbudreika.portfollow.api.dto.response.CurrencyInvestmentDTO;
 import com.github.ignasbudreika.portfollow.api.dto.response.InvestmentStatsDTO;
 import com.github.ignasbudreika.portfollow.api.dto.response.TransactionDTO;
 import com.github.ignasbudreika.portfollow.enums.InvestmentType;
@@ -21,7 +21,7 @@ import java.util.Comparator;
 
 @Slf4j
 @Service
-public class CryptocurrencyService {
+public class CurrencyService {
     @Autowired
     private AssetService assetService;
 
@@ -30,35 +30,36 @@ public class CryptocurrencyService {
     @Autowired
     private PortfolioHistoryService portfolioHistoryService;
 
-    public CryptocurrencyInvestmentDTO createCryptocurrencyInvestment(CryptocurrencyDTO crypto, User user) throws BusinessLogicException {
+    public CurrencyInvestmentDTO createCurrencyInvestment(CurrencyDTO currency, User user) throws BusinessLogicException {
         Investment investment = Investment.builder()
-                .symbol(crypto.getSymbol())
-                .quantity(crypto.getQuantity())
-                .type(InvestmentType.CRYPTOCURRENCY)
-                .date(crypto.getDate()).build();
+                .symbol(currency.getSymbol())
+                .quantity(currency.getQuantity())
+                .type(currency.isCrypto() ? InvestmentType.CRYPTOCURRENCY : InvestmentType.FOREX)
+                .date(currency.getDate()).build();
 
         investment = investmentService.createInvestment(investment, user);
 
-        CryptocurrencyInvestmentDTO cryptoInvestment = CryptocurrencyInvestmentDTO.builder()
+        return CurrencyInvestmentDTO.builder()
                 .id(investment.getId())
                 .symbol(investment.getSymbol()).build();
-
-        return cryptoInvestment;
     }
 
-    public Collection<CryptocurrencyInvestmentDTO> getUserCryptocurrencyInvestments(String userId) {
-        Collection<Investment> cryptoInvestments = investmentService.getInvestmentsByUserIdAndType(userId, InvestmentType.CRYPTOCURRENCY);
+    public Collection<CurrencyInvestmentDTO> getUserCurrencyInvestments(String userId) {
+        Collection<Investment> investments = investmentService.getInvestmentsByUserIdAndType(userId, InvestmentType.CRYPTOCURRENCY);
+        Collection<Investment> forexInvestments = investmentService.getInvestmentsByUserIdAndType(userId, InvestmentType.FOREX);
+        investments.addAll(forexInvestments);
         LocalDate date = LocalDate.now();
 
-        return cryptoInvestments.stream().map(investment -> {
-            BigDecimal price = assetService.getRecentPrice(investment.getSymbol(), InvestmentType.CRYPTOCURRENCY);
+        return investments.stream().map(investment -> {
+            BigDecimal price = assetService.getRecentPrice(investment.getSymbol(), investment.getType());
 
-            return CryptocurrencyInvestmentDTO.builder()
+            return CurrencyInvestmentDTO.builder()
                     .id(investment.getId())
                     .symbol(investment.getSymbol())
                     .quantity(investment.getQuantityAt(date).setScale(4, RoundingMode.HALF_UP))
                     .price(price.setScale(8, RoundingMode.HALF_UP))
                     .value(investment.getQuantityAt(date).multiply(price).setScale(2, RoundingMode.HALF_UP))
+                    .crypto(investment.getType().equals(InvestmentType.CRYPTOCURRENCY))
                     .transactions(investment.getTransactions().stream()
                             .sorted(Comparator.comparing(InvestmentTransaction::getDate))
                             .map(transaction -> TransactionDTO.builder()
@@ -71,13 +72,15 @@ public class CryptocurrencyService {
     }
 
     public InvestmentStatsDTO getUserCryptoInvestmentsStats(String userId) {
-        Collection<Investment> cryptoInvestments = investmentService.getInvestmentsByUserIdAndType(userId, InvestmentType.CRYPTOCURRENCY);
+        Collection<Investment> investments = investmentService.getInvestmentsByUserIdAndType(userId, InvestmentType.CRYPTOCURRENCY);
+        Collection<Investment> forexInvestments = investmentService.getInvestmentsByUserIdAndType(userId, InvestmentType.FOREX);
+        investments.addAll(forexInvestments);
 
-        BigDecimal totalValue = cryptoInvestments.stream().map(investment ->
+        BigDecimal totalValue = investments.stream().map(investment ->
                 investment.getQuantityAt(LocalDate.now()).multiply(investment.getAsset().getPrice())
         ).reduce(BigDecimal.ZERO, BigDecimal::add);
-        BigDecimal trend = portfolioHistoryService.calculateTrend(cryptoInvestments);
-        BigDecimal totalChange = portfolioHistoryService.calculateTotalChange(cryptoInvestments);
+        BigDecimal trend = portfolioHistoryService.calculateTrend(investments);
+        BigDecimal totalChange = portfolioHistoryService.calculateTotalChange(investments);
 
         return InvestmentStatsDTO.builder()
                 .totalValue(totalValue)

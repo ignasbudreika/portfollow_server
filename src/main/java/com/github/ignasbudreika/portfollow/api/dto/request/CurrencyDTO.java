@@ -6,8 +6,9 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 
 @Data
-public class CryptocurrencyDTO {
+public class CurrencyDTO {
     private String symbol;
     private BigDecimal quantity;
     private LocalDate date;
+    private boolean crypto;
 }
