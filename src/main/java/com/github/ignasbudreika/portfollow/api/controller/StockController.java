@@ -2,6 +2,7 @@ package com.github.ignasbudreika.portfollow.api.controller;
 
 import com.github.ignasbudreika.portfollow.api.dto.request.StockDTO;
 import com.github.ignasbudreika.portfollow.api.dto.response.StockInvestmentDTO;
+import com.github.ignasbudreika.portfollow.api.dto.response.InvestmentStatsDTO;
 import com.github.ignasbudreika.portfollow.exception.BusinessLogicException;
 import com.github.ignasbudreika.portfollow.model.User;
 import com.github.ignasbudreika.portfollow.service.StockService;
@@ -28,6 +29,13 @@ public class StockController {
         User user = userService.getByGoogleId(SecurityContextHolder.getContext().getAuthentication().getName());
 
         return ResponseEntity.ok(stockService.getUserStockInvestments(user.getId()));
+    }
+
+    @GetMapping("/stats")
+    public ResponseEntity<InvestmentStatsDTO> getUserStockInvestmentsStats() {
+        User user = userService.getByGoogleId(SecurityContextHolder.getContext().getAuthentication().getName());
+
+        return ResponseEntity.ok(stockService.getUserStockInvestmentsStats(user.getId()));
     }
 
     @PostMapping

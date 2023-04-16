@@ -2,6 +2,7 @@ package com.github.ignasbudreika.portfollow.service;
 
 import com.github.ignasbudreika.portfollow.api.dto.request.CryptocurrencyDTO;
 import com.github.ignasbudreika.portfollow.api.dto.response.CryptocurrencyInvestmentDTO;
+import com.github.ignasbudreika.portfollow.api.dto.response.InvestmentStatsDTO;
 import com.github.ignasbudreika.portfollow.api.dto.response.TransactionDTO;
 import com.github.ignasbudreika.portfollow.enums.InvestmentType;
 import com.github.ignasbudreika.portfollow.exception.BusinessLogicException;
@@ -26,6 +27,8 @@ public class CryptocurrencyService {
 
     @Autowired
     private InvestmentService investmentService;
+    @Autowired
+    private PortfolioHistoryService portfolioHistoryService;
 
     public CryptocurrencyInvestmentDTO createCryptocurrencyInvestment(CryptocurrencyDTO crypto, User user) throws BusinessLogicException {
         Investment investment = Investment.builder()
@@ -65,5 +68,20 @@ public class CryptocurrencyService {
                                     .date(transaction.getDate()).build())
                             .toArray(TransactionDTO[]::new)).build();
         }).toList();
+    }
+
+    public InvestmentStatsDTO getUserCryptoInvestmentsStats(String userId) {
+        Collection<Investment> cryptoInvestments = investmentService.getInvestmentsByUserIdAndType(userId, InvestmentType.CRYPTOCURRENCY);
+
+        BigDecimal totalValue = cryptoInvestments.stream().map(investment ->
+                investment.getQuantityAt(LocalDate.now()).multiply(investment.getAsset().getPrice())
+        ).reduce(BigDecimal.ZERO, BigDecimal::add);
+        BigDecimal trend = portfolioHistoryService.calculateTrend(cryptoInvestments);
+        BigDecimal totalChange = portfolioHistoryService.calculateTotalChange(cryptoInvestments);
+
+        return InvestmentStatsDTO.builder()
+                .totalValue(totalValue)
+                .trend(trend)
+                .totalChange(totalChange).build();
     }
 }

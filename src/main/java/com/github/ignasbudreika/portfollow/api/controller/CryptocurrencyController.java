@@ -2,6 +2,7 @@ package com.github.ignasbudreika.portfollow.api.controller;
 
 import com.github.ignasbudreika.portfollow.api.dto.request.CryptocurrencyDTO;
 import com.github.ignasbudreika.portfollow.api.dto.response.CryptocurrencyInvestmentDTO;
+import com.github.ignasbudreika.portfollow.api.dto.response.InvestmentStatsDTO;
 import com.github.ignasbudreika.portfollow.exception.BusinessLogicException;
 import com.github.ignasbudreika.portfollow.model.User;
 import com.github.ignasbudreika.portfollow.service.CryptocurrencyService;
@@ -33,5 +34,12 @@ public class CryptocurrencyController {
         User user = userService.getByGoogleId(SecurityContextHolder.getContext().getAuthentication().getName());
 
         return ResponseEntity.ok(cryptocurrencyService.getUserCryptocurrencyInvestments(user.getId()));
+    }
+
+    @GetMapping("/stats")
+    public ResponseEntity<InvestmentStatsDTO> getUserCryptoInvestmentsStats() {
+        User user = userService.getByGoogleId(SecurityContextHolder.getContext().getAuthentication().getName());
+
+        return ResponseEntity.ok(cryptocurrencyService.getUserCryptoInvestmentsStats(user.getId()));
     }
 }

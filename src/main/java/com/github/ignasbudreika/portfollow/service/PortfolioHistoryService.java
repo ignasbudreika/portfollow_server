@@ -97,16 +97,18 @@ public class PortfolioHistoryService {
                     .trend(BigDecimal.ZERO.setScale(2, RoundingMode.HALF_UP)).build();
         }
 
+        Collection<Investment> investments = investmentRepository.findAllByUserId(user.getId());
+
         return PortfolioDTO.builder()
                 .isEmpty(isEmpty)
                 .totalValue(totalValue)
-                .totalChange(calculateTotalChange(user))
-                .trend(calculateTrend(portfolioHistory.getUser()))
+                .totalChange(calculateTotalChange(investments))
+                .trend(calculateTrend(investments))
                 .build();
     }
 
-    public BigDecimal calculateTotalChange(User user) {
-        return investmentRepository.findAllByUserId(user.getId()).stream().map(investment -> {
+    public BigDecimal calculateTotalChange(Collection<Investment> investments) {
+        return investments.stream().map(investment -> {
             BigDecimal purchasePrice = investment.getTransactions().stream().filter(tx -> tx.getType().equals(InvestmentTransactionType.BUY))
                     .map(tx -> tx.getQuantity()
                             .multiply(assetService.getLatestAssetPriceForDate(investment.getAsset(), tx.getDate()))
@@ -124,9 +126,7 @@ public class PortfolioHistoryService {
         }).reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
-    public BigDecimal calculateTrend(User user) {
-        Collection<Investment> investments = investmentRepository.findAllByUserId(user.getId());
-
+    public BigDecimal calculateTrend(Collection<Investment> investments) {
         LocalDate now = LocalDate.now();
         LocalDate yesterday = now.minusDays(1);
 
@@ -259,9 +259,7 @@ public class PortfolioHistoryService {
         return history;
     }
 
-    public BigDecimal calculateTotalPerformance(User user) {
-        Collection<Investment> investments = investmentRepository.findAllByUserId(user.getId());
-
+    public BigDecimal calculateTotalPerformance(Collection<Investment> investments) {
         BigDecimal totalPurchasePrice = investments.stream().map(investment -> {
             return investment.getTransactions().stream().filter(tx ->
                             tx.getType().equals(InvestmentTransactionType.BUY))

@@ -2,6 +2,7 @@ package com.github.ignasbudreika.portfollow.service;
 
 import com.github.ignasbudreika.portfollow.api.dto.request.StockDTO;
 import com.github.ignasbudreika.portfollow.api.dto.response.StockInvestmentDTO;
+import com.github.ignasbudreika.portfollow.api.dto.response.InvestmentStatsDTO;
 import com.github.ignasbudreika.portfollow.api.dto.response.TransactionDTO;
 import com.github.ignasbudreika.portfollow.enums.InvestmentType;
 import com.github.ignasbudreika.portfollow.exception.BusinessLogicException;
@@ -26,6 +27,8 @@ public class StockService {
 
     @Autowired
     private InvestmentService investmentService;
+    @Autowired
+    private PortfolioHistoryService portfolioHistoryService;
 
     public Collection<StockInvestmentDTO> getUserStockInvestments(String userId) {
         Collection<Investment> stockInvestments = investmentService.getInvestmentsByUserIdAndType(userId, InvestmentType.STOCK);
@@ -49,6 +52,21 @@ public class StockService {
                                     .date(transaction.getDate()).build())
                             .toArray(TransactionDTO[]::new)).build();
         }).toList();
+    }
+
+    public InvestmentStatsDTO getUserStockInvestmentsStats(String userId) {
+        Collection<Investment> stockInvestments = investmentService.getInvestmentsByUserIdAndType(userId, InvestmentType.STOCK);
+
+        BigDecimal totalValue = stockInvestments.stream().map(investment ->
+                investment.getQuantityAt(LocalDate.now()).multiply(investment.getAsset().getPrice())
+        ).reduce(BigDecimal.ZERO, BigDecimal::add);
+        BigDecimal trend = portfolioHistoryService.calculateTrend(stockInvestments);
+        BigDecimal totalChange = portfolioHistoryService.calculateTotalChange(stockInvestments);
+
+        return InvestmentStatsDTO.builder()
+                .totalValue(totalValue)
+                .trend(trend)
+                .totalChange(totalChange).build();
     }
 
     public StockInvestmentDTO createStockInvestment(StockDTO stock, User user) throws BusinessLogicException {

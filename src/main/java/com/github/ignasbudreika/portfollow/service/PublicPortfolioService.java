@@ -2,7 +2,9 @@ package com.github.ignasbudreika.portfollow.service;
 
 import com.github.ignasbudreika.portfollow.api.dto.response.*;
 import com.github.ignasbudreika.portfollow.enums.HistoryType;
+import com.github.ignasbudreika.portfollow.model.Investment;
 import com.github.ignasbudreika.portfollow.model.Portfolio;
+import com.github.ignasbudreika.portfollow.repository.InvestmentRepository;
 import com.github.ignasbudreika.portfollow.repository.PortfolioRepository;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,6 +13,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.util.Collection;
 import java.util.List;
 
 @Service
@@ -19,6 +22,8 @@ public class PublicPortfolioService {
 
     @Autowired
     private PortfolioRepository portfolioRepository;
+    @Autowired
+    private InvestmentRepository investmentRepository;
     @Autowired PortfolioHistoryService portfolioHistoryService;
 
     public PublicPortfolioListDTO getPublicPortfolios(int index) {
@@ -46,12 +51,14 @@ public class PublicPortfolioService {
             throw new EntityNotFoundException();
         }
 
-        BigDecimal trend = portfolioHistoryService.calculateTrend(portfolio.getUser());
+        Collection<Investment> investments = investmentRepository.findAllByUserId(portfolio.getUser().getId());
+
+        BigDecimal trend = portfolioHistoryService.calculateTrend(investments);
         BigDecimal change;
         if (portfolio.isHiddenValue()) {
-            change = portfolioHistoryService.calculateTotalPerformance(portfolio.getUser());
+            change = portfolioHistoryService.calculateTotalPerformance(investments);
         } else {
-            change = portfolioHistoryService.calculateTotalChange(portfolio.getUser());
+            change = portfolioHistoryService.calculateTotalChange(investments);
         }
         List<PortfolioDistributionDTO> distribution = portfolioHistoryService.getUserPortfolioDistribution(portfolio.getUser());
         if (portfolio.isHiddenValue()) {
