@@ -52,6 +52,15 @@ public class ConnectionController {
         return ResponseEntity.noContent().build();
     }
 
+    @DeleteMapping("/spectrocoin")
+    public ResponseEntity removeSpectrocoinConnection() {
+        User user = userService.getByGoogleId(SecurityContextHolder.getContext().getAuthentication().getName());
+
+        spectroCoinService.removeConnection(user);
+
+        return ResponseEntity.noContent().build();
+    }
+
     @PostMapping("/ethereum")
     public ResponseEntity connectEthereumWallet(@RequestBody com.github.ignasbudreika.portfollow.api.dto.request.EthereumWalletConnectionDTO walletConnectionDTO) throws Exception {
         User user = userService.getByGoogleId(SecurityContextHolder.getContext().getAuthentication().getName());
@@ -66,6 +75,15 @@ public class ConnectionController {
         User user = userService.getByGoogleId(SecurityContextHolder.getContext().getAuthentication().getName());
 
         walletService.fetchBalances(user);
+
+        return ResponseEntity.noContent().build();
+    }
+
+    @DeleteMapping("/ethereum")
+    public ResponseEntity removeEthereumWalletConnection() {
+        User user = userService.getByGoogleId(SecurityContextHolder.getContext().getAuthentication().getName());
+
+        walletService.removeConnection(user);
 
         return ResponseEntity.noContent().build();
     }

@@ -35,9 +35,9 @@ public class EthereumWalletService {
     private EthereumWalletHelper walletHelper;
 
     public void addConnection(EthereumWalletConnectionDTO connectionDTO, User user) throws Exception {
-        if (connectionRepository.findByUserIdAndAddress(user.getId(), connectionDTO.getAddress()) != null) {
+        if (connectionRepository.findByUserIdAndStatus(user.getId(), ConnectionStatus.ACTIVE) != null) {
             throw new EntityExistsException(String.format(
-                    "Ethereum wallet connection of address: %s for user: %s already exists", connectionDTO.getAddress(), user.getId()
+                    "Ethereum wallet connection for user: %s already exists", user.getId()
             ));
         }
 
@@ -54,7 +54,7 @@ public class EthereumWalletService {
     }
 
     public com.github.ignasbudreika.portfollow.api.dto.response.EthereumWalletConnectionDTO getConnectionByUserId(String userId) {
-        EthereumWalletConnection connection = connectionRepository.findByUserId(userId);
+        EthereumWalletConnection connection = connectionRepository.findByUserIdAndStatus(userId, ConnectionStatus.ACTIVE);
         if (connection == null) {
             return com.github.ignasbudreika.portfollow.api.dto.response.EthereumWalletConnectionDTO.builder()
                     .status(ConnectionStatus.INACTIVE).build();
@@ -67,8 +67,11 @@ public class EthereumWalletService {
     }
 
     @Transactional
-    public void removeConnection(String id) {
-        EthereumWalletConnection connection = connectionRepository.findById(id).orElseThrow();
+    public void removeConnection(User user) {
+        EthereumWalletConnection connection = connectionRepository.findByUserIdAndStatus(user.getId(), ConnectionStatus.ACTIVE);
+        if (connection == null) {
+            return;
+        }
 
         connection.setStatus(ConnectionStatus.INACTIVE);
 

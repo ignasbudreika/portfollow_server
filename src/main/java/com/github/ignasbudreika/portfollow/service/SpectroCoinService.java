@@ -85,8 +85,11 @@ public class SpectroCoinService {
     }
 
     @Transactional
-    public void removeConnection(String id) {
-        SpectroCoinConnection connection = spectroCoinConnectionRepository.findById(id).orElseThrow();
+    public void removeConnection(User user) {
+        SpectroCoinConnection connection = spectroCoinConnectionRepository.findByUserIdAndStatus(user.getId(), ConnectionStatus.ACTIVE);
+        if (connection == null) {
+            return;
+        }
 
         connection.setStatus(ConnectionStatus.INACTIVE);
         connection.setClientSecret(null);
