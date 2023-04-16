@@ -1,10 +1,15 @@
 package com.github.ignasbudreika.portfollow.service;
 
+import com.github.ignasbudreika.portfollow.api.dto.request.CommentDTO;
 import com.github.ignasbudreika.portfollow.api.dto.response.*;
 import com.github.ignasbudreika.portfollow.enums.HistoryType;
 import com.github.ignasbudreika.portfollow.enums.InvestmentType;
+import com.github.ignasbudreika.portfollow.exception.BusinessLogicException;
+import com.github.ignasbudreika.portfollow.model.Comment;
 import com.github.ignasbudreika.portfollow.model.Investment;
 import com.github.ignasbudreika.portfollow.model.Portfolio;
+import com.github.ignasbudreika.portfollow.model.User;
+import com.github.ignasbudreika.portfollow.repository.CommentRepository;
 import com.github.ignasbudreika.portfollow.repository.InvestmentRepository;
 import com.github.ignasbudreika.portfollow.repository.PortfolioRepository;
 import jakarta.persistence.EntityNotFoundException;
@@ -15,6 +20,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
@@ -25,10 +31,12 @@ public class PublicPortfolioService {
     @Autowired
     private PortfolioRepository portfolioRepository;
     @Autowired
+    private CommentRepository commentRepository;
+    @Autowired
     private InvestmentRepository investmentRepository;
     @Autowired PortfolioHistoryService portfolioHistoryService;
 
-    public PublicPortfolioListDTO getPublicPortfolios(int index) {
+    public PublicPortfolioListDTO getPublicPortfolios(User user, int index) {
         Page<Portfolio> portfolios = portfolioRepository.findAllByPublished(true, PageRequest.of(index, LIMIT));
 
         PublicPortfolioDTO[] portfolioDTOs = portfolios.stream().map(portfolio -> {
@@ -38,7 +46,8 @@ public class PublicPortfolioService {
                     .description(portfolio.getDescription())
                     .history(portfolio.isHiddenValue() ?
                             portfolioHistoryService.getUserProfitLossHistory(portfolio.getUser(), HistoryType.MONTHLY).toArray(DateValueDTO[]::new) :
-                            portfolioHistoryService.getUserPerformanceHistory(portfolio.getUser(), HistoryType.MONTHLY).toArray(DateValueDTO[]::new)).build();
+                            portfolioHistoryService.getUserPerformanceHistory(portfolio.getUser(), HistoryType.MONTHLY).toArray(DateValueDTO[]::new))
+                    .comments(getPortfolioComments(user, portfolio.getId())).build();
         }).toArray(PublicPortfolioDTO[]::new);
 
         return PublicPortfolioListDTO.builder()
@@ -94,5 +103,47 @@ public class PublicPortfolioService {
         return PublicPortfolioDistributionDTO.builder()
                 .hiddenValue(portfolio.isHiddenValue())
                 .distribution(distribution.toArray(PortfolioDistributionDTO[]::new)).build();
+    }
+
+    public void comment(User user, String id, CommentDTO comment) throws BusinessLogicException {
+        Portfolio portfolio = portfolioRepository.findById(id).orElseThrow(EntityNotFoundException::new);
+        if (!portfolio.isPublished()) {
+            throw new EntityNotFoundException();
+        }
+
+        if (StringUtils.isNotBlank(portfolio.getAllowedUsers())
+                && Arrays.stream(portfolio.getAllowedUsers().split(",")).filter(allowed -> allowed.equals(user.getEmail())).findFirst().isEmpty()) {
+            throw new BusinessLogicException(String.format("user: %s is not in allowed users list for portfolio: %s", user.getId(), portfolio.getId()));
+        }
+
+        commentRepository.save(Comment.builder()
+                .comment(comment.getComment())
+                .portfolio(portfolio)
+                .user(user).build());
+    }
+
+    public AuthorCommentDTO[] getPortfolioComments(User user, String id) {
+        Portfolio portfolio = portfolioRepository.findById(id).orElseThrow(EntityNotFoundException::new);
+        if (!portfolio.isPublished()) {
+            throw new EntityNotFoundException();
+        }
+
+        return commentRepository.findAllByPortfolioId(portfolio.getId()).stream().map(comment -> {
+            return AuthorCommentDTO.builder()
+                    .id(comment.getId())
+                    .author(comment.getUser().getUsername())
+                    .comment(comment.getComment())
+                    .deletable(user.getId().equals(comment.getUser().getId())).build();
+        }).toArray(AuthorCommentDTO[]::new);
+    }
+
+    public void deleteComment(User user, String id) throws BusinessLogicException {
+        Comment comment = commentRepository.findById(id).orElseThrow(() -> new EntityNotFoundException());
+
+        if (!comment.getUser().getId().equals(user.getId()) && !comment.getPortfolio().getUser().getId().equals(user.getId())) {
+            throw new BusinessLogicException(String.format("user: %s cannot delete comment: %s", user.getId(), comment.getId()));
+        }
+
+        commentRepository.delete(comment);
     }
 }
