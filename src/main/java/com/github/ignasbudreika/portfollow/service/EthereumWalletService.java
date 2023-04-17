@@ -107,11 +107,9 @@ public class EthereumWalletService {
 
             log.info("imported Ethereum balance for user: {} from address: {}, balance: {}",
                     user.getId(), connection.getAddress(), etherQuantity);
-        } catch (IOException e) {
+        } catch (Exception e) {
             log.error("error occurred while fetching balance for user: {} from Ethereum address: {}",
                     user.getId(), connection.getAddress(), e);
-        } catch (BusinessLogicException e) {
-            log.error("something went wrong while fetching ETH balance from wallet");
         }
 
         connection.setLastFetched(LocalDateTime.now());

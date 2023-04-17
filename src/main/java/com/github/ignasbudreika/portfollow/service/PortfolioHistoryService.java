@@ -47,9 +47,7 @@ public class PortfolioHistoryService {
 
             Collection<Investment> investments = lastDaysPortfolioHistory.getInvestments().stream().collect(Collectors.toList());
             BigDecimal totalValue = investments.stream().map(investment ->
-                    investment.getQuantityAt(date).multiply(
-                            assetService.getRecentPrice(investment.getSymbol(), investment.getType())
-                    ).setScale(8, RoundingMode.HALF_UP)
+                    investment.getQuantityAt(date).multiply(investment.getAsset().getPrice()).setScale(8, RoundingMode.HALF_UP)
             ).reduce(BigDecimal.ZERO, BigDecimal::add).setScale(2, RoundingMode.HALF_UP);
 
             return portfolioHistoryRepository.save(PortfolioHistory.builder()
@@ -60,9 +58,7 @@ public class PortfolioHistoryService {
         }
 
         BigDecimal totalValue = portfolioHistory.getInvestments().stream().map(investment ->
-                investment.getQuantityAt(date).multiply(
-                        assetService.getRecentPrice(investment.getSymbol(), investment.getType())
-                ).setScale(8, RoundingMode.HALF_UP)
+                investment.getQuantityAt(date).multiply(investment.getAsset().getPrice()).setScale(8, RoundingMode.HALF_UP)
         ).reduce(BigDecimal.ZERO, BigDecimal::add).setScale(2, RoundingMode.HALF_UP);
 
         portfolioHistory.setValue(totalValue);

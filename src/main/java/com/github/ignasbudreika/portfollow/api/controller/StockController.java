@@ -13,6 +13,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
+import java.net.URISyntaxException;
 import java.util.Collection;
 
 @Slf4j
@@ -39,7 +41,7 @@ public class StockController {
     }
 
     @PostMapping
-    public ResponseEntity<StockInvestmentDTO> createStockInvestment(@RequestBody StockDTO stock) throws BusinessLogicException {
+    public ResponseEntity<StockInvestmentDTO> createStockInvestment(@RequestBody StockDTO stock) throws BusinessLogicException, URISyntaxException, IOException, InterruptedException {
         User user = userService.getByGoogleId(SecurityContextHolder.getContext().getAuthentication().getName());
 
         return ResponseEntity.ok(stockService.createStockInvestment(stock, user));

@@ -124,12 +124,12 @@ public class SpectroCoinService {
                                 .type(InvestmentType.CRYPTOCURRENCY)
                                 .date(LocalDate.now())
                                 .user(user).build(), connection.getId());
-                    } catch (BusinessLogicException e) {
+
+                        log.info("imported {} cryptocurrency for user: {} from SpectroCoin, balance: {}",
+                                account.getCurrencyCode(), user.getId(), account.getBalance());
+                    } catch (Exception e) {
                         log.error("failed to import: {} symbol for user: {}", account.getCurrencyCode(), user.getId(), e);
                     }
-
-                    log.info("imported {} cryptocurrency for user: {} from SpectroCoin, balance: {}",
-                            account.getCurrencyCode(), user.getId(), account.getBalance());
                 }
             });
 

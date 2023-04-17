@@ -145,7 +145,7 @@ public class AlphaVantageClient {
 
     private void validateResponseBody(String body) throws IOException, BusinessLogicException {
         try {
-            ErrorDTO error = objectMapper.readValue(body, ErrorDTO.class);
+            ErrorDTO error = wrappedObjectMapper.readValue(body, ErrorDTO.class);
             if (StringUtils.isNotBlank(error.getMessage())) {
                 throw new BusinessLogicException(String.format("failed to get symbol data with error: %s", error.getMessage()));
             }

@@ -12,6 +12,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
+import java.net.URISyntaxException;
 import java.util.Collection;
 
 @RestController
@@ -23,7 +25,7 @@ public class CurrencyController {
     private CurrencyService currencyService;
 
     @PostMapping
-    public CurrencyInvestmentDTO createCurrencyInvestment(@RequestBody CurrencyDTO currencyDTO) throws BusinessLogicException {
+    public CurrencyInvestmentDTO createCurrencyInvestment(@RequestBody CurrencyDTO currencyDTO) throws BusinessLogicException, URISyntaxException, IOException, InterruptedException {
         User user = userService.getByGoogleId(SecurityContextHolder.getContext().getAuthentication().getName());
 
         return currencyService.createCurrencyInvestment(currencyDTO, user);

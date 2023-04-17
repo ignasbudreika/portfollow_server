@@ -1,6 +1,7 @@
 package com.github.ignasbudreika.portfollow.service;
 
 import com.github.ignasbudreika.portfollow.enums.InvestmentType;
+import com.github.ignasbudreika.portfollow.exception.BusinessLogicException;
 import com.github.ignasbudreika.portfollow.external.client.AlphaVantageClient;
 import com.github.ignasbudreika.portfollow.external.dto.response.*;
 import com.github.ignasbudreika.portfollow.model.Asset;
@@ -12,8 +13,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.net.URISyntaxException;
 import java.sql.Date;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -39,7 +42,7 @@ public class AssetService {
     }
 
     @Transactional
-    public Asset createAsset(String symbol, InvestmentType type) {
+    public Asset createAsset(String symbol, InvestmentType type) throws URISyntaxException, IOException, BusinessLogicException, InterruptedException {
         getRecentPrice(symbol, type);
 
         Asset asset = assetRepository.getBySymbolAndType(symbol, type);
@@ -51,7 +54,7 @@ public class AssetService {
         return asset;
     }
 
-    public BigDecimal getRecentPrice(String symbol, InvestmentType type) {
+    public BigDecimal getRecentPrice(String symbol, InvestmentType type) throws IOException, URISyntaxException, BusinessLogicException, InterruptedException {
         Asset asset = assetRepository.getBySymbolAndType(symbol, type);
         if (asset != null && asset.getUpdatedAt().isAfter(LocalDateTime.now().minusHours(PRICE_UPDATE_INTERVAL_IN_HOURS))) {
             log.debug("asset: {} was updated at: {}, returning last fetched price: {}",
@@ -75,14 +78,17 @@ public class AssetService {
         return price;
     }
 
-    public BigDecimal fetchPrice(String symbol, InvestmentType type) {
+    public BigDecimal fetchPrice(String symbol, InvestmentType type) throws IOException, URISyntaxException, BusinessLogicException, InterruptedException {
         switch (type) {
             case STOCK -> {
                 StockDTO stock = new StockDTO();
                 try {
                     stock = alphaVantageClient.getStockData(symbol);
+                } catch (BusinessLogicException e) {
+                    throw e;
                 } catch (Exception e) {
                     log.error("exception occured while fetching stock: {} data", symbol, e);
+                    throw e;
                 }
 
 //                BigDecimal usdEur = getRecentPrice(USD, InvestmentType.FOREX);
@@ -94,8 +100,11 @@ public class AssetService {
                 CryptocurrencyDTO cryptocurrency = new CryptocurrencyDTO();
                 try {
                     cryptocurrency = alphaVantageClient.getCryptocurrencyData(symbol);
+                } catch (BusinessLogicException e) {
+                    throw e;
                 } catch (Exception e) {
-                    log.error("exception occured while fetching crypto: {} data", symbol, e);
+                    log.error("exception occured while fetching stock: {} data", symbol, e);
+                    throw e;
                 }
 
                 return cryptocurrency.getExchangeRate() == null ?
@@ -105,8 +114,11 @@ public class AssetService {
                 ForexDTO forex = new ForexDTO();
                 try {
                     forex = alphaVantageClient.getCurrencyData(symbol);
+                } catch (BusinessLogicException e) {
+                    throw e;
                 } catch (Exception e) {
-                    log.error("exception occured while fetching forex: {} data", symbol, e);
+                    log.error("exception occured while fetching stock: {} data", symbol, e);
+                    throw e;
                 }
 
                 return forex.getExchangeRate() == null ?
@@ -118,7 +130,7 @@ public class AssetService {
         }
     }
 
-    public void fetchPriceHistory(Asset asset, InvestmentType type) {
+    public void fetchPriceHistory(Asset asset, InvestmentType type) throws URISyntaxException, IOException, InterruptedException, BusinessLogicException {
         switch (type) {
             case STOCK -> {
                 try {
@@ -135,8 +147,11 @@ public class AssetService {
                             ).toList();
 
                     assetHistoryRepository.saveAll(assetHistory);
+                } catch (BusinessLogicException e) {
+                    throw e;
                 } catch (Exception e) {
-                    log.warn("exception occured while fetching stocks historical data", e);
+                    log.error("exception occured while fetching stock: {} data", asset.getSymbol(), e);
+                    throw e;
                 }
             }
             case FOREX -> {
@@ -154,8 +169,11 @@ public class AssetService {
                             ).toList();
 
                     assetHistoryRepository.saveAll(assetHistory);
+                } catch (BusinessLogicException e) {
+                    throw e;
                 } catch (Exception e) {
-                    log.warn("exception occured while fetching forex historical data", e);
+                    log.error("exception occured while fetching stock: {} data", asset.getSymbol(), e);
+                    throw e;
                 }
             }
             case CRYPTOCURRENCY -> {
@@ -273,6 +291,10 @@ public class AssetService {
     }
 
     public BigDecimal getLatestAssetPriceForDate(Asset asset, LocalDate date) {
+        if (date.equals(LocalDate.now())) {
+            return asset.getPrice();
+        }
+
         AssetHistory history = assetHistoryRepository.findFirstByAssetIdAndDateBeforeOrderByDateDesc(asset.getId(), date);
         if (history == null) {
             return BigDecimal.ZERO;
