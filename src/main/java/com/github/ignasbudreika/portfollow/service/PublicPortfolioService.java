@@ -47,7 +47,7 @@ public class PublicPortfolioService {
                     .history(portfolio.isHiddenValue() ?
                             portfolioHistoryService.getUserProfitLossHistory(portfolio.getUser(), HistoryType.MONTHLY).toArray(DateValueDTO[]::new) :
                             portfolioHistoryService.getUserPerformanceHistory(portfolio.getUser(), HistoryType.MONTHLY).toArray(DateValueDTO[]::new))
-                    .comments(getPortfolioComments(user, portfolio.getId())).build();
+                    .build();
         }).toArray(PublicPortfolioDTO[]::new);
 
         return PublicPortfolioListDTO.builder()

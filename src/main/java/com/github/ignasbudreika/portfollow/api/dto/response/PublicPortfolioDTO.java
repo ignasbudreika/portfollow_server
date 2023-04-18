@@ -12,5 +12,4 @@ public class PublicPortfolioDTO {
     private String title;
     private String description;
     private DateValueDTO[] history;
-    private AuthorCommentDTO[] comments;
 }
