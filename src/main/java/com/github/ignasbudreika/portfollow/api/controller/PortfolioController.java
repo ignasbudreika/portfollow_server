@@ -7,6 +7,7 @@ import com.github.ignasbudreika.portfollow.enums.HistoryType;
 import com.github.ignasbudreika.portfollow.enums.InvestmentType;
 import com.github.ignasbudreika.portfollow.model.User;
 import com.github.ignasbudreika.portfollow.service.PortfolioHistoryService;
+import com.github.ignasbudreika.portfollow.service.StatisticsService;
 import com.github.ignasbudreika.portfollow.service.UserService;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,6 +27,8 @@ public class PortfolioController {
     private UserService userService;
     @Autowired
     private PortfolioHistoryService portfolioHistoryService;
+    @Autowired
+    private StatisticsService statisticsService;
 
     @GetMapping
     public ResponseEntity<PortfolioDTO> getPortfolio() {
@@ -39,10 +42,10 @@ public class PortfolioController {
         User user = userService.getByGoogleId(SecurityContextHolder.getContext().getAuthentication().getName());
 
         if (StringUtils.isBlank(type)) {
-            return ResponseEntity.ok(portfolioHistoryService.getUserPortfolioDistribution(user));
+            return ResponseEntity.ok(statisticsService.getUserPortfolioDistribution(user));
         }
 
-        return ResponseEntity.ok(portfolioHistoryService.getUserPortfolioDistributionByType(user, InvestmentType.valueOf(type)));
+        return ResponseEntity.ok(statisticsService.getUserPortfolioDistributionByType(user, InvestmentType.valueOf(type)));
     }
 
     @GetMapping("/history")
@@ -68,6 +71,6 @@ public class PortfolioController {
 
     @GetMapping("/performance/compare")
     public ResponseEntity<List<DateValueDTO>> getPerformanceComparison(@RequestParam(value = "type", defaultValue = "WEEKLY") HistoryType type) {
-        return ResponseEntity.ok(portfolioHistoryService.getComparisonPerformanceHistory(type));
+        return ResponseEntity.ok(statisticsService.getComparisonPerformanceHistory(type));
     }
 }

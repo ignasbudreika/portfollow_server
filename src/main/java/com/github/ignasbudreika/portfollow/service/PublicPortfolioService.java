@@ -31,6 +31,8 @@ public class PublicPortfolioService {
     @Autowired
     private PortfolioRepository portfolioRepository;
     @Autowired
+    private StatisticsService statisticsService;
+    @Autowired
     private CommentRepository commentRepository;
     @Autowired
     private InvestmentRepository investmentRepository;
@@ -64,14 +66,14 @@ public class PublicPortfolioService {
 
         Collection<Investment> investments = investmentRepository.findAllByUserId(portfolio.getUser().getId());
 
-        BigDecimal trend = portfolioHistoryService.calculateTrend(investments);
+        BigDecimal trend = statisticsService.calculateTrend(investments);
         BigDecimal change;
         if (portfolio.isHiddenValue()) {
-            change = portfolioHistoryService.calculateTotalPerformance(investments);
+            change = statisticsService.calculateTotalPerformance(investments);
         } else {
-            change = portfolioHistoryService.calculateTotalChange(investments);
+            change = statisticsService.calculateTotalChange(investments);
         }
-        List<PortfolioDistributionDTO> distribution = portfolioHistoryService.getUserPortfolioDistribution(portfolio.getUser());
+        List<PortfolioDistributionDTO> distribution = statisticsService.getUserPortfolioDistribution(portfolio.getUser());
         if (portfolio.isHiddenValue()) {
             distribution = distribution.stream().map(entry -> PortfolioDistributionDTO.builder()
                     .label(entry.getLabel())
@@ -92,8 +94,8 @@ public class PublicPortfolioService {
         }
 
         List<PortfolioDistributionDTO> distribution = StringUtils.isNotBlank(type) ?
-                portfolioHistoryService.getUserPortfolioDistributionByType(portfolio.getUser(), InvestmentType.valueOf(type)) :
-                portfolioHistoryService.getUserPortfolioDistribution(portfolio.getUser());
+                statisticsService.getUserPortfolioDistributionByType(portfolio.getUser(), InvestmentType.valueOf(type)) :
+                statisticsService.getUserPortfolioDistribution(portfolio.getUser());
         if (portfolio.isHiddenValue()) {
             distribution = distribution.stream().map(entry -> PortfolioDistributionDTO.builder()
                     .label(entry.getLabel())

@@ -26,7 +26,8 @@ import java.util.Comparator;
 public class CurrencyService {
     @Autowired
     private AssetService assetService;
-
+    @Autowired
+    private StatisticsService statisticsService;
     @Autowired
     private InvestmentService investmentService;
     @Autowired
@@ -79,8 +80,8 @@ public class CurrencyService {
         BigDecimal totalValue = investments.stream().map(investment ->
                 investment.getQuantityAt(LocalDate.now()).multiply(investment.getAsset().getPrice())
         ).reduce(BigDecimal.ZERO, BigDecimal::add);
-        BigDecimal trend = portfolioHistoryService.calculateTrend(investments);
-        BigDecimal totalChange = portfolioHistoryService.calculateTotalChange(investments);
+        BigDecimal trend = statisticsService.calculateTrend(investments);
+        BigDecimal totalChange = statisticsService.calculateTotalChange(investments);
 
         return InvestmentStatsDTO.builder()
                 .totalValue(totalValue)
