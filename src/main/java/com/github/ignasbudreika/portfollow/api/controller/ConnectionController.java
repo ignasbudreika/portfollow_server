@@ -74,7 +74,7 @@ public class ConnectionController {
     public ResponseEntity fetchWallets() {
         User user = userService.getByGoogleId(SecurityContextHolder.getContext().getAuthentication().getName());
 
-        walletService.fetchBalances(user);
+        walletService.fetchBalance(user);
 
         return ResponseEntity.noContent().build();
     }

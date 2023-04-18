@@ -28,7 +28,7 @@ public class EthereumWalletConnectionFetchCommand {
         users.forEach(user -> {
             try {
                 log.info("fetching user: {} Ethereum wallet connections", user.getId());
-                walletService.fetchBalances(user);
+                walletService.fetchBalance(user);
             } catch (Exception e) {
                 log.error("failed to fetch Ethereum wallet connections for user: {}", user.getId(), e);
             }

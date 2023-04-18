@@ -50,7 +50,7 @@ public class EthereumWalletService {
 
         log.info("successfully added Ethereum wallet connection for user: {}, fetching balance", user.getId());
 
-        fetchBalance(connection, user);
+        fetchBalance(user);
     }
 
     public com.github.ignasbudreika.portfollow.api.dto.response.EthereumWalletConnectionDTO getConnectionByUserId(String userId) {
@@ -66,7 +66,6 @@ public class EthereumWalletService {
                 .status(connection.getStatus()).build();
     }
 
-    @Transactional
     public void removeConnection(User user) {
         EthereumWalletConnection connection = connectionRepository.findByUserIdAndStatus(user.getId(), ConnectionStatus.ACTIVE);
         if (connection == null) {
@@ -78,7 +77,6 @@ public class EthereumWalletService {
         connectionRepository.save(connection);
     }
 
-    @Transactional
     public void invalidateConnection(String id) {
         EthereumWalletConnection connection = connectionRepository.findById(id).orElseThrow();
 
@@ -87,14 +85,9 @@ public class EthereumWalletService {
         connectionRepository.save(connection);
     }
 
-    @Transactional
-    public void fetchBalances(User user) {
-        connectionRepository.findAllByUserId(user.getId()).forEach(connection -> {
-            fetchBalance(connection, user);
-        });
-    }
+    public void fetchBalance(User user) {
+        EthereumWalletConnection connection = connectionRepository.findByUserIdAndStatus(user.getId(), ConnectionStatus.ACTIVE);
 
-    public void fetchBalance(EthereumWalletConnection connection, User user) {
         try {
             BigDecimal etherQuantity = walletHelper.getWalletBalanceInEther(connection.getAddress());
 
