@@ -87,6 +87,9 @@ public class EthereumWalletService {
 
     public void fetchBalance(User user) {
         EthereumWalletConnection connection = connectionRepository.findByUserIdAndStatus(user.getId(), ConnectionStatus.ACTIVE);
+        if (connection == null) {
+            return;
+        }
 
         try {
             BigDecimal etherQuantity = walletHelper.getWalletBalanceInEther(connection.getAddress());

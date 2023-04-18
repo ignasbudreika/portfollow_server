@@ -133,7 +133,7 @@ public class PublicPortfolioService {
                     .id(comment.getId())
                     .author(comment.getUser().getUsername())
                     .comment(comment.getComment())
-                    .deletable(user.getId().equals(comment.getUser().getId())).build();
+                    .deletable(user.getId().equals(comment.getUser().getId()) || user.getId().equals(portfolio.getUser().getId())).build();
         }).toArray(AuthorCommentDTO[]::new);
     }
 

@@ -1,6 +1,7 @@
 package com.github.ignasbudreika.portfollow.api.controller;
 
 import com.github.ignasbudreika.portfollow.api.dto.request.CommentDTO;
+import com.github.ignasbudreika.portfollow.api.dto.response.AuthorCommentDTO;
 import com.github.ignasbudreika.portfollow.api.dto.response.PublicPortfolioDistributionDTO;
 import com.github.ignasbudreika.portfollow.api.dto.response.PublicPortfolioListDTO;
 import com.github.ignasbudreika.portfollow.api.dto.response.PublicPortfolioStatisticsDTO;
@@ -56,5 +57,12 @@ public class PublicPortfolioController {
         portfolioService.deleteComment(user, id);
 
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/{id}/comment")
+    public ResponseEntity<AuthorCommentDTO[]> getComments(@PathVariable(value = "id") String id) {
+        User user = userService.getByGoogleId(SecurityContextHolder.getContext().getAuthentication().getName());
+
+        return ResponseEntity.ok(portfolioService.getPortfolioComments(user, id));
     }
 }
