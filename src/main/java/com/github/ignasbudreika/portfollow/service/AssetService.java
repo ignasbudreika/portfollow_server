@@ -142,7 +142,7 @@ public class AssetService {
                                     AssetHistory.builder()
                                             .asset(asset)
                                             .date(Date.valueOf(entry.getKey()))
-                                            .price(new BigDecimal(entry.getValue().getPrice()).setScale(2, RoundingMode.HALF_UP))
+                                            .price(new BigDecimal(entry.getValue().getPrice()).setScale(8, RoundingMode.HALF_UP))
                                             .build()
                             ).toList();
 
@@ -164,7 +164,7 @@ public class AssetService {
                                     AssetHistory.builder()
                                             .asset(asset)
                                             .date(Date.valueOf(entry.getKey()))
-                                            .price(new BigDecimal(entry.getValue().getPrice()).setScale(2, RoundingMode.HALF_UP))
+                                            .price(new BigDecimal(entry.getValue().getPrice()).setScale(8, RoundingMode.HALF_UP))
                                             .build()
                             ).toList();
 
