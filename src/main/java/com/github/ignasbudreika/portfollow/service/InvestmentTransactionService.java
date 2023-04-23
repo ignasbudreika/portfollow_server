@@ -72,6 +72,12 @@ public class InvestmentTransactionService {
         Investment investment = tx.getInvestment();
         investment.setTransactions(investment.getTransactions().stream().filter(transaction1 -> !transaction1.getId().equals(tx.getId())).collect(Collectors.toSet()));
 
+        if (tx.getType().equals(InvestmentTransactionType.BUY)) {
+            investment.setQuantity(investment.getQuantity().subtract(tx.getQuantity()));
+        } else {
+            investment.setQuantity(investment.getQuantity().add(tx.getQuantity()));
+        }
+
         transactionRepository.deleteById(txId);
         investmentRepository.save(investment);
 

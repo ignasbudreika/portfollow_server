@@ -66,6 +66,7 @@ public class Investment {
         }).reduce(BigDecimal.ZERO, BigDecimal::add);
 
         BigDecimal lowest = quantityAtProvidedDate;
+        BigDecimal temporaryQuantity = quantityAtProvidedDate;
 
         Collection<BigDecimal> quantities = transactions.stream()
                 .filter(transaction -> transaction.getDate().isAfter(date))
@@ -76,12 +77,12 @@ public class Investment {
                     } else {
                         return transaction.getQuantity().negate();
                     }
-                }).collect(Collectors.toList());
+                }).toList();
 
         for(BigDecimal txQuantity: quantities) {
-            quantity = quantity.add(txQuantity);
+            temporaryQuantity = temporaryQuantity.add(txQuantity);
             if (txQuantity.compareTo(lowest) < 0) {
-                lowest = quantity;
+                lowest = temporaryQuantity;
             }
         }
 

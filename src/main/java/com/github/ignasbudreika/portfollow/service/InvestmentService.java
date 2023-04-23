@@ -184,6 +184,12 @@ public class InvestmentService {
         transactions.add(created);
         investment.setTransactions(transactions);
 
+        if (transaction.getType().equals(InvestmentTransactionType.BUY)) {
+            investment.setQuantity(investment.getQuantity().add(transaction.getQuantity()));
+        } else {
+            investment.setQuantity(investment.getQuantity().subtract(transaction.getQuantity()));
+        }
+
         if (transaction.getDate().isBefore(investment.getDate()) || transactions.size() == 1) {
             investment.setDate(transaction.getDate());
         }

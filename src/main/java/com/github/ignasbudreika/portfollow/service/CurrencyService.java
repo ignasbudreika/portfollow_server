@@ -61,6 +61,8 @@ public class CurrencyService {
                     .price(investment.getAsset().getPrice().setScale(8, RoundingMode.HALF_UP))
                     .value(investment.getQuantityAt(date).multiply(investment.getAsset().getPrice()).setScale(2, RoundingMode.HALF_UP))
                     .crypto(investment.getType().equals(InvestmentType.CRYPTOCURRENCY))
+                    .dayTrend(statisticsService.getAssetDayTrend(investment.getAsset()))
+                    .totalChange(statisticsService.getInvestmentTotalChange(investment))
                     .transactions(investment.getTransactions().stream()
                             .sorted(Comparator.comparing(InvestmentTransaction::getDate))
                             .map(transaction -> TransactionDTO.builder()

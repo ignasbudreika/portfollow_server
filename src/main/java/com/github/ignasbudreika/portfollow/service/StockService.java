@@ -44,6 +44,8 @@ public class StockService {
                     .quantity(investment.getQuantityAt(date).setScale(2, RoundingMode.HALF_UP))
                     .price(investment.getAsset().getPrice().setScale(2, RoundingMode.HALF_UP))
                     .value(investment.getQuantityAt(date).multiply(investment.getAsset().getPrice()).setScale(2, RoundingMode.HALF_UP))
+                    .dayTrend(statisticsService.getAssetDayTrend(investment.getAsset()))
+                    .totalChange(statisticsService.getInvestmentTotalChange(investment))
                     .transactions(investment.getTransactions().stream()
                             .sorted(Comparator.comparing(InvestmentTransaction::getDate))
                             .map(transaction -> TransactionDTO.builder()

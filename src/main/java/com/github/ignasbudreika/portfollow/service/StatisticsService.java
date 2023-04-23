@@ -29,6 +29,36 @@ public class StatisticsService {
     @Autowired
     private PortfolioHistoryRepository portfolioHistoryRepository;
 
+    public BigDecimal getAssetDayTrend(Asset asset) {
+        BigDecimal yesterdaysPrice = assetService.getLatestAssetPriceForDate(asset, LocalDate.now().minusDays(1));
+        if (yesterdaysPrice == null || yesterdaysPrice.compareTo(BigDecimal.ZERO) == 0) {
+            return BigDecimal.ZERO;
+        }
+
+        return asset.getPrice()
+                .subtract(yesterdaysPrice)
+                .divide(yesterdaysPrice, 4, RoundingMode.HALF_UP)
+                .multiply(BigDecimal.valueOf(100));
+    }
+
+    public BigDecimal getInvestmentTotalChange(Investment investment) {
+        BigDecimal purchasePrice = investment.getTransactions().stream().filter(transaction -> transaction.getType().equals(InvestmentTransactionType.BUY))
+                .map(tx -> tx.getQuantity()
+                        .multiply(assetService.getLatestAssetPriceForDate(investment.getAsset(), tx.getDate()))
+                        .setScale(8, RoundingMode.HALF_UP))
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        BigDecimal sellPrice = investment.getTransactions().stream().filter(transaction -> transaction.getType().equals(InvestmentTransactionType.SELL))
+                .map(tx -> tx.getQuantity()
+                        .multiply(assetService.getLatestAssetPriceForDate(investment.getAsset(), tx.getDate()))
+                        .setScale(8, RoundingMode.HALF_UP))
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        BigDecimal daysValue = investment.getQuantity()
+                .multiply(investment.getAsset().getPrice())
+                .setScale(8, RoundingMode.HALF_UP);
+
+        return daysValue.add(sellPrice).subtract(purchasePrice);
+    }
+
     public BigDecimal calculateTotalChange(Collection<Investment> investments) {
         return investments.stream().map(investment -> {
             BigDecimal purchasePrice = investment.getTransactions().stream().filter(tx -> tx.getType().equals(InvestmentTransactionType.BUY))
