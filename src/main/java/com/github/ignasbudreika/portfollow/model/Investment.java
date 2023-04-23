@@ -85,6 +85,6 @@ public class Investment {
             }
         }
 
-        return quantity;
+        return lowest;
     }
 }
