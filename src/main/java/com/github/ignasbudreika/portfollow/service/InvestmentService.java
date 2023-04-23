@@ -140,7 +140,7 @@ public class InvestmentService {
                     transaction = transactionService.createTransaction(existing, quantityDiff.abs(), InvestmentTransactionType.BUY, investment.getDate());
                 }
 
-                Set<InvestmentTransaction> transactions = new HashSet<>();
+                Set<InvestmentTransaction> transactions = existing.getTransactions().stream().collect(Collectors.toSet());
                 transactions.add(transaction);
                 existing.setTransactions(transactions);
 

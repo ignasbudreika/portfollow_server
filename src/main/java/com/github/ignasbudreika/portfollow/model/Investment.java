@@ -77,7 +77,7 @@ public class Investment {
                     } else {
                         return transaction.getQuantity().negate();
                     }
-                }).toList();
+                }).collect(Collectors.toList());
 
         for(BigDecimal txQuantity: quantities) {
             temporaryQuantity = temporaryQuantity.add(txQuantity);

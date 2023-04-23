@@ -250,7 +250,7 @@ public class PortfolioHistoryService {
                         previousDayInvestment.getQuantityAt(day).multiply(
                                 assetService.getLatestAssetPriceForDate(previousDayInvestment.getAsset(), day)
                         ).setScale(8, RoundingMode.HALF_UP)
-                ).reduce(BigDecimal.ZERO, BigDecimal::add).setScale(2, RoundingMode.HALF_UP).setScale(8, RoundingMode.HALF_UP);
+                ).reduce(BigDecimal.ZERO, BigDecimal::add).setScale(8, RoundingMode.HALF_UP);
 
                 portfolioHistory.setValue(totalValue);
             } else {
