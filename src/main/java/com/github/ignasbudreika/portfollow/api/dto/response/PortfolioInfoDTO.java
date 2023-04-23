@@ -9,6 +9,7 @@ import lombok.Data;
 @Builder
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class PortfolioInfoDTO {
+    private String id;
     private String title;
     private String description;
     @JsonProperty(value = "public")

@@ -1,10 +1,7 @@
 package com.github.ignasbudreika.portfollow.api.controller;
 
 import com.github.ignasbudreika.portfollow.api.dto.request.CommentDTO;
-import com.github.ignasbudreika.portfollow.api.dto.response.AuthorCommentDTO;
-import com.github.ignasbudreika.portfollow.api.dto.response.PublicPortfolioDistributionDTO;
-import com.github.ignasbudreika.portfollow.api.dto.response.PublicPortfolioListDTO;
-import com.github.ignasbudreika.portfollow.api.dto.response.PublicPortfolioStatisticsDTO;
+import com.github.ignasbudreika.portfollow.api.dto.response.*;
 import com.github.ignasbudreika.portfollow.exception.BusinessLogicException;
 import com.github.ignasbudreika.portfollow.model.User;
 import com.github.ignasbudreika.portfollow.service.PublicPortfolioService;
@@ -28,6 +25,11 @@ public class PublicPortfolioController {
     }
 
     @GetMapping("/{id}")
+    public ResponseEntity<PublicPortfolioDTO> getPublicPortfolioById(@PathVariable(value = "id") String id) {
+        return ResponseEntity.ok(portfolioService.getPublicPortfolio(id));
+    }
+
+    @GetMapping("/{id}/stats")
     public ResponseEntity<PublicPortfolioStatisticsDTO> getPublicPortfolioStats(@PathVariable(value = "id") String id) {
         return ResponseEntity.ok(portfolioService.getPublicPortfolioStats(id));
     }

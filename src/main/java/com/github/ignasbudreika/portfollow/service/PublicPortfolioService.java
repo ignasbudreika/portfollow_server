@@ -58,6 +58,19 @@ public class PublicPortfolioService {
                 .portfolios(portfolioDTOs).build();
     }
 
+    public PublicPortfolioDTO getPublicPortfolio(String id) {
+        Portfolio portfolio = portfolioRepository.findById(id).orElseThrow(EntityNotFoundException::new);
+
+        return PublicPortfolioDTO.builder()
+                .id(portfolio.getId())
+                .title(portfolio.getTitle())
+                .description(portfolio.getDescription())
+                .history(portfolio.isHiddenValue() ?
+                        portfolioHistoryService.getUserProfitLossHistory(portfolio.getUser(), HistoryType.MONTHLY).toArray(DateValueDTO[]::new) :
+                        portfolioHistoryService.getUserPerformanceHistory(portfolio.getUser(), HistoryType.MONTHLY).toArray(DateValueDTO[]::new))
+                .build();
+    }
+
     public PublicPortfolioStatisticsDTO getPublicPortfolioStats(String id) {
         Portfolio portfolio = portfolioRepository.findById(id).orElseThrow(EntityNotFoundException::new);
         if (!portfolio.isPublished()) {
