@@ -37,8 +37,8 @@ public class StockService {
         Collection<Investment> stockInvestments = investmentService.getInvestmentsByUserIdAndType(userId, InvestmentType.STOCK);
         LocalDate date = LocalDate.now();
 
-        return stockInvestments.stream().map(investment -> {
-            return StockInvestmentDTO.builder()
+        return stockInvestments.stream().map(investment ->
+            StockInvestmentDTO.builder()
                     .id(investment.getId())
                     .ticker(investment.getSymbol())
                     .quantity(investment.getQuantityAt(date).setScale(2, RoundingMode.HALF_UP))
@@ -51,8 +51,8 @@ public class StockService {
                                     .quantity(transaction.getQuantity())
                                     .type(transaction.getType())
                                     .date(transaction.getDate()).build())
-                            .toArray(TransactionDTO[]::new)).build();
-        }).toList();
+                            .toArray(TransactionDTO[]::new)).build()
+        ).toList();
     }
 
     public InvestmentStatsDTO getUserStockInvestmentsStats(String userId) {

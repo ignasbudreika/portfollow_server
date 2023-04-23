@@ -26,7 +26,6 @@ import java.util.Collection;
 @Slf4j
 @Service
 public class AssetService {
-    private static final String USD = "USD";
     private static final long PRICE_UPDATE_INTERVAL_IN_HOURS = 3L;
     private static final LocalDate PRICE_HISTORY_FETCH_SINCE = LocalDate.of(2022, 12, 1);
 
@@ -228,8 +227,6 @@ public class AssetService {
                 if (stock.getPreviousClose() != null) {
                     priceForHistory = new BigDecimal(stock.getPreviousClose());
                 }
-
-                break;
             }
             case CRYPTOCURRENCY -> {
                 CryptocurrencyDTO cryptocurrency = new CryptocurrencyDTO();
@@ -243,8 +240,6 @@ public class AssetService {
                     price = new BigDecimal(cryptocurrency.getExchangeRate());
                     priceForHistory = new BigDecimal(cryptocurrency.getExchangeRate());
                 }
-
-                break;
             }
             case FOREX -> {
                 ForexDTO forex = new ForexDTO();
@@ -263,8 +258,6 @@ public class AssetService {
                     price = new BigDecimal(forex.getExchangeRate());
                     priceForHistory = new BigDecimal(forex.getExchangeRate());
                 }
-
-                break;
             }
             default -> {
             }

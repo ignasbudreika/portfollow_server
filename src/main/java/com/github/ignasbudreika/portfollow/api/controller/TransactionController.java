@@ -1,6 +1,5 @@
 package com.github.ignasbudreika.portfollow.api.controller;
 
-import com.github.ignasbudreika.portfollow.api.dto.request.TransactionDTO;
 import com.github.ignasbudreika.portfollow.exception.BusinessLogicException;
 import com.github.ignasbudreika.portfollow.exception.UnauthorizedException;
 import com.github.ignasbudreika.portfollow.model.User;
@@ -18,11 +17,6 @@ public class TransactionController {
     private UserService userService;
     @Autowired
     private InvestmentTransactionService transactionService;
-
-    @PatchMapping("/{id}")
-    public ResponseEntity editTransaction(@PathVariable(name = "id") String id, @RequestBody TransactionDTO tx) {
-        return ResponseEntity.noContent().build();
-    }
 
     @DeleteMapping("/{id}")
     public ResponseEntity deleteTransaction(@PathVariable(name = "id") String id) throws UnauthorizedException, BusinessLogicException {

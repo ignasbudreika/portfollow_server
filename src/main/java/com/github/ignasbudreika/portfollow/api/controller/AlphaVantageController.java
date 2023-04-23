@@ -27,7 +27,7 @@ public class AlphaVantageController {
     private AlphaVantageClient client;
 
     @GetMapping("/asset/stock/{ticker}")
-    public ResponseEntity<AssetDTO> getStockData(@PathVariable("ticker") String ticker) throws URISyntaxException, IOException, InterruptedException, ExecutionException, BusinessLogicException {
+    public ResponseEntity<AssetDTO> getStockData(@PathVariable("ticker") String ticker) throws URISyntaxException, IOException, InterruptedException, BusinessLogicException {
         StockDTO stock = client.getStockData(ticker);
 
         return ResponseEntity.ok().body(

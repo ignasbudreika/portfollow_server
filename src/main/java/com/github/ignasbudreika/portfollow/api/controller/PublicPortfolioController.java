@@ -24,9 +24,7 @@ public class PublicPortfolioController {
 
     @GetMapping
     public ResponseEntity<PublicPortfolioListDTO> getPublicPortfolios(@RequestParam(value = "index", defaultValue = "0") int index) {
-        User user = userService.getByGoogleId(SecurityContextHolder.getContext().getAuthentication().getName());
-
-        return ResponseEntity.ok(portfolioService.getPublicPortfolios(user, index));
+        return ResponseEntity.ok(portfolioService.getPublicPortfolios(index));
     }
 
     @GetMapping("/{id}")

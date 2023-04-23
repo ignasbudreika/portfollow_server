@@ -173,7 +173,7 @@ public class InvestmentService {
     }
 
     public Investment addTransaction(String investmentId, TransactionDTO transaction, User user) throws UnauthorizedException, BusinessLogicException {
-        Investment investment = investmentRepository.findById(investmentId).orElseThrow(() -> new EntityNotFoundException());
+        Investment investment = investmentRepository.findById(investmentId).orElseThrow(EntityNotFoundException::new);
 
         if (!investment.getUser().getId().equals(user.getId())) {
             throw new UnauthorizedException();

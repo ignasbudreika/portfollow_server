@@ -169,29 +169,29 @@ public class PortfolioHistoryService {
         for (LocalDate at = from; !at.isAfter(LocalDate.now()); at = at.plusDays(1)) {
             LocalDate finalAt = at;
 
-            BigDecimal totalPurchasePrice = investments.stream().map(investment -> {
-                        return investment.getTransactions().stream().filter(tx ->
+            BigDecimal totalPurchasePrice = investments.stream().map(investment ->
+                        investment.getTransactions().stream().filter(tx ->
                                         tx.getType().equals(InvestmentTransactionType.BUY) && !tx.getDate().isAfter(finalAt))
                                 .map(tx -> tx.getQuantity()
                                         .multiply(assetService.getLatestAssetPriceForDate(investment.getAsset(), tx.getDate()))
                                         .setScale(8, RoundingMode.HALF_UP))
-                                .reduce(BigDecimal.ZERO, BigDecimal::add);
-                    }).reduce(BigDecimal.ZERO, BigDecimal::add);
+                                .reduce(BigDecimal.ZERO, BigDecimal::add)
+                    ).reduce(BigDecimal.ZERO, BigDecimal::add);
 
-            BigDecimal totalSellPrice = investments.stream().map(investment -> {
-                return investment.getTransactions().stream().filter(tx ->
+            BigDecimal totalSellPrice = investments.stream().map(investment ->
+                investment.getTransactions().stream().filter(tx ->
                                 tx.getType().equals(InvestmentTransactionType.SELL) && !tx.getDate().isAfter(finalAt))
                         .map(tx -> tx.getQuantity()
                                 .multiply(assetService.getLatestAssetPriceForDate(investment.getAsset(), tx.getDate()))
                                 .setScale(8, RoundingMode.HALF_UP))
-                        .reduce(BigDecimal.ZERO, BigDecimal::add);
-            }).reduce(BigDecimal.ZERO, BigDecimal::add);
+                        .reduce(BigDecimal.ZERO, BigDecimal::add)
+            ).reduce(BigDecimal.ZERO, BigDecimal::add);
 
-            BigDecimal totalDaysValue = investments.stream().map(investment -> {
-                return investment.getQuantityAt(finalAt)
+            BigDecimal totalDaysValue = investments.stream().map(investment ->
+                investment.getQuantityAt(finalAt)
                         .multiply(assetService.getLatestAssetPriceForDate(investment.getAsset(), finalAt))
-                        .setScale(8, RoundingMode.HALF_UP);
-            }).reduce(BigDecimal.ZERO, BigDecimal::add);
+                        .setScale(8, RoundingMode.HALF_UP)
+            ).reduce(BigDecimal.ZERO, BigDecimal::add);
 
             if (totalPurchasePrice.compareTo(BigDecimal.ZERO) == 0) {
                 if (initialPerformance == null) {

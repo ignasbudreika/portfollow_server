@@ -57,7 +57,7 @@ public class Investment {
     }
 
     public BigDecimal getLowestQuantitySince(LocalDate date) {
-        BigDecimal quantity = getTransactions().stream().filter(transaction -> !transaction.getDate().isAfter(date)).map(transaction -> {
+        BigDecimal quantityAtProvidedDate = getTransactions().stream().filter(transaction -> !transaction.getDate().isAfter(date)).map(transaction -> {
             if (transaction.getType().equals(InvestmentTransactionType.BUY)) {
                 return transaction.getQuantity();
             } else {
@@ -65,7 +65,7 @@ public class Investment {
             }
         }).reduce(BigDecimal.ZERO, BigDecimal::add);
 
-        BigDecimal lowest = quantity;
+        BigDecimal lowest = quantityAtProvidedDate;
 
         Collection<BigDecimal> quantities = transactions.stream()
                 .filter(transaction -> transaction.getDate().isAfter(date))

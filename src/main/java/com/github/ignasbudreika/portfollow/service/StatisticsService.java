@@ -70,29 +70,29 @@ public class StatisticsService {
     }
 
     public BigDecimal calculateTotalPerformance(Collection<Investment> investments) {
-        BigDecimal totalPurchasePrice = investments.stream().map(investment -> {
-            return investment.getTransactions().stream().filter(tx ->
+        BigDecimal totalPurchasePrice = investments.stream().map(investment ->
+            investment.getTransactions().stream().filter(tx ->
                             tx.getType().equals(InvestmentTransactionType.BUY))
                     .map(tx -> tx.getQuantity()
                             .multiply(assetService.getLatestAssetPriceForDate(investment.getAsset(), tx.getDate()))
                             .setScale(8, RoundingMode.HALF_UP))
-                    .reduce(BigDecimal.ZERO, BigDecimal::add);
-        }).reduce(BigDecimal.ZERO, BigDecimal::add);
+                    .reduce(BigDecimal.ZERO, BigDecimal::add)
+        ).reduce(BigDecimal.ZERO, BigDecimal::add);
 
-        BigDecimal totalSellPrice = investments.stream().map(investment -> {
-            return investment.getTransactions().stream().filter(tx ->
+        BigDecimal totalSellPrice = investments.stream().map(investment ->
+            investment.getTransactions().stream().filter(tx ->
                             tx.getType().equals(InvestmentTransactionType.SELL))
                     .map(tx -> tx.getQuantity()
                             .multiply(assetService.getLatestAssetPriceForDate(investment.getAsset(), tx.getDate()))
                             .setScale(8, RoundingMode.HALF_UP))
-                    .reduce(BigDecimal.ZERO, BigDecimal::add);
-        }).reduce(BigDecimal.ZERO, BigDecimal::add);
+                    .reduce(BigDecimal.ZERO, BigDecimal::add)
+        ).reduce(BigDecimal.ZERO, BigDecimal::add);
 
-        BigDecimal totalDaysValue = investments.stream().map(investment -> {
-            return investment.getQuantityAt(LocalDate.now())
+        BigDecimal totalDaysValue = investments.stream().map(investment ->
+            investment.getQuantityAt(LocalDate.now())
                     .multiply(investment.getAsset().getPrice())
-                    .setScale(8, RoundingMode.HALF_UP);
-        }).reduce(BigDecimal.ZERO, BigDecimal::add);
+                    .setScale(8, RoundingMode.HALF_UP)
+        ).reduce(BigDecimal.ZERO, BigDecimal::add);
 
         if (totalPurchasePrice.compareTo(BigDecimal.ZERO) == 0) {
             return BigDecimal.ZERO;

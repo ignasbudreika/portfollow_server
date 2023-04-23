@@ -84,7 +84,6 @@ public class SpectroCoinService {
         return connection;
     }
 
-    @Transactional
     public void removeConnection(User user) {
         SpectroCoinConnection connection = spectroCoinConnectionRepository.findByUserIdAndStatus(user.getId(), ConnectionStatus.ACTIVE);
         if (connection == null) {
@@ -107,7 +106,6 @@ public class SpectroCoinService {
         spectroCoinConnectionRepository.save(connection);
     }
 
-    @Transactional
     public void fetchCryptocurrencies(User user) {
         try {
             SpectroCoinConnection connection = getActiveConnectionOrThrowException(user.getId());

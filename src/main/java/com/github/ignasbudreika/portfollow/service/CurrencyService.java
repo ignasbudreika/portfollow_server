@@ -53,8 +53,8 @@ public class CurrencyService {
         investments.addAll(forexInvestments);
         LocalDate date = LocalDate.now();
 
-        return investments.stream().map(investment -> {
-            return CurrencyInvestmentDTO.builder()
+        return investments.stream().map(investment ->
+            CurrencyInvestmentDTO.builder()
                     .id(investment.getId())
                     .symbol(investment.getSymbol())
                     .quantity(investment.getQuantityAt(date).setScale(4, RoundingMode.HALF_UP))
@@ -68,8 +68,8 @@ public class CurrencyService {
                                     .quantity(transaction.getQuantity())
                                     .type(transaction.getType())
                                     .date(transaction.getDate()).build())
-                            .toArray(TransactionDTO[]::new)).build();
-        }).toList();
+                            .toArray(TransactionDTO[]::new)).build()
+        ).toList();
     }
 
     public InvestmentStatsDTO getUserCryptoInvestmentsStats(String userId) {
