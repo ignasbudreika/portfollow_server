@@ -95,7 +95,7 @@ public class AssetService {
                 return stock.getPrice() == null ?
                         BigDecimal.ZERO : new BigDecimal(stock.getPrice());
             }
-            case CRYPTOCURRENCY -> {
+            case CRYPTO -> {
                 CryptocurrencyDTO cryptocurrency = new CryptocurrencyDTO();
                 try {
                     cryptocurrency = alphaVantageClient.getCryptocurrencyData(symbol);
@@ -109,7 +109,7 @@ public class AssetService {
                 return cryptocurrency.getExchangeRate() == null ?
                         BigDecimal.ZERO : new BigDecimal(cryptocurrency.getExchangeRate());
             }
-            case FOREX -> {
+            case FIAT -> {
                 ForexDTO forex = new ForexDTO();
                 try {
                     forex = alphaVantageClient.getCurrencyData(symbol);
@@ -153,7 +153,7 @@ public class AssetService {
                     throw e;
                 }
             }
-            case FOREX -> {
+            case FIAT -> {
                 try {
                     ForexHistoryDailyDTO history = alphaVantageClient.getForexHistoryDaily(asset.getSymbol());
 
@@ -175,7 +175,7 @@ public class AssetService {
                     throw e;
                 }
             }
-            case CRYPTOCURRENCY -> {
+            case CRYPTO -> {
                 try {
                     CryptocurrencyHistoryDailyDTO history = alphaVantageClient.getCryptoHistoryDaily(asset.getSymbol());
 
@@ -228,7 +228,7 @@ public class AssetService {
                     priceForHistory = new BigDecimal(stock.getPreviousClose());
                 }
             }
-            case CRYPTOCURRENCY -> {
+            case CRYPTO -> {
                 CryptocurrencyDTO cryptocurrency = new CryptocurrencyDTO();
                 try {
                     cryptocurrency = alphaVantageClient.getCryptocurrencyData(symbol);
@@ -241,7 +241,7 @@ public class AssetService {
                     priceForHistory = new BigDecimal(cryptocurrency.getExchangeRate());
                 }
             }
-            case FOREX -> {
+            case FIAT -> {
                 ForexDTO forex = new ForexDTO();
                 try {
                     forex = alphaVantageClient.getCurrencyData(symbol);

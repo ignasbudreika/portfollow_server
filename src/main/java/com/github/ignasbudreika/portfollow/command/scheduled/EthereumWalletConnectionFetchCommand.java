@@ -20,7 +20,7 @@ public class EthereumWalletConnectionFetchCommand {
     private EthereumWalletService walletService;
 
     @Scheduled(cron = "0 10 * * * *")
-    public void fetchSpectroCoinConnections() {
+    public void fetchEthereumWalletConnections() {
         log.info("fetching Ethereum wallet connections. Current time: {}", LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS));
 
         Iterable<User> users = userService.getAll();

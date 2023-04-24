@@ -97,7 +97,7 @@ public class EthereumWalletService {
             investmentService.saveInvestmentFetchedFromConnection(Investment.builder()
                     .symbol(ETHEREUM)
                     .quantity(etherQuantity.setScale(8, RoundingMode.HALF_UP))
-                    .type(InvestmentType.CRYPTOCURRENCY)
+                    .type(InvestmentType.CRYPTO)
                     .date(LocalDate.now())
                     .user(user).build(), connection.getId());
 

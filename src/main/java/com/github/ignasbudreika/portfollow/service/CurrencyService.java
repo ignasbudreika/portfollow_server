@@ -37,7 +37,7 @@ public class CurrencyService {
         Investment investment = Investment.builder()
                 .symbol(currency.getSymbol())
                 .quantity(currency.getQuantity())
-                .type(currency.isCrypto() ? InvestmentType.CRYPTOCURRENCY : InvestmentType.FOREX)
+                .type(currency.isCrypto() ? InvestmentType.CRYPTO : InvestmentType.FIAT)
                 .date(currency.getDate()).build();
 
         investment = investmentService.createInvestment(investment, user);
@@ -48,8 +48,8 @@ public class CurrencyService {
     }
 
     public Collection<CurrencyInvestmentDTO> getUserCurrencyInvestments(String userId) {
-        Collection<Investment> investments = investmentService.getInvestmentsByUserIdAndType(userId, InvestmentType.CRYPTOCURRENCY);
-        Collection<Investment> forexInvestments = investmentService.getInvestmentsByUserIdAndType(userId, InvestmentType.FOREX);
+        Collection<Investment> investments = investmentService.getInvestmentsByUserIdAndType(userId, InvestmentType.CRYPTO);
+        Collection<Investment> forexInvestments = investmentService.getInvestmentsByUserIdAndType(userId, InvestmentType.FIAT);
         investments.addAll(forexInvestments);
         LocalDate date = LocalDate.now();
 
@@ -60,7 +60,7 @@ public class CurrencyService {
                     .quantity(investment.getQuantityAt(date).setScale(4, RoundingMode.HALF_UP))
                     .price(investment.getAsset().getPrice().setScale(8, RoundingMode.HALF_UP))
                     .value(investment.getQuantityAt(date).multiply(investment.getAsset().getPrice()).setScale(2, RoundingMode.HALF_UP))
-                    .crypto(investment.getType().equals(InvestmentType.CRYPTOCURRENCY))
+                    .crypto(investment.getType().equals(InvestmentType.CRYPTO))
                     .dayTrend(statisticsService.getAssetDayTrend(investment.getAsset()))
                     .totalChange(statisticsService.getInvestmentTotalChange(investment))
                     .transactions(investment.getTransactions().stream()
@@ -75,8 +75,8 @@ public class CurrencyService {
     }
 
     public InvestmentStatsDTO getUserCryptoInvestmentsStats(String userId) {
-        Collection<Investment> investments = investmentService.getInvestmentsByUserIdAndType(userId, InvestmentType.CRYPTOCURRENCY);
-        Collection<Investment> forexInvestments = investmentService.getInvestmentsByUserIdAndType(userId, InvestmentType.FOREX);
+        Collection<Investment> investments = investmentService.getInvestmentsByUserIdAndType(userId, InvestmentType.CRYPTO);
+        Collection<Investment> forexInvestments = investmentService.getInvestmentsByUserIdAndType(userId, InvestmentType.FIAT);
         investments.addAll(forexInvestments);
 
         BigDecimal totalValue = investments.stream().map(investment ->

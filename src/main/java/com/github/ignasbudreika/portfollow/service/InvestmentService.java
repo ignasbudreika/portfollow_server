@@ -11,6 +11,7 @@ import com.github.ignasbudreika.portfollow.model.*;
 import com.github.ignasbudreika.portfollow.repository.InvestmentRepository;
 import com.github.ignasbudreika.portfollow.repository.PortfolioHistoryRepository;
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -112,6 +113,7 @@ public class InvestmentService {
         return investment;
     }
 
+    @Transactional
     public Investment saveInvestmentFetchedFromConnection(Investment investment, String connectionId) throws BusinessLogicException, URISyntaxException, IOException, InterruptedException {
         Asset asset = assetService.getAsset(investment.getSymbol(), investment.getType());
         if (asset == null) {

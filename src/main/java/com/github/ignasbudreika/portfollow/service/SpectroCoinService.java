@@ -96,7 +96,6 @@ public class SpectroCoinService {
         spectroCoinConnectionRepository.save(connection);
     }
 
-    @Transactional
     public void invalidateConnection(String id) {
         SpectroCoinConnection connection = spectroCoinConnectionRepository.findById(id).orElseThrow();
 
@@ -119,7 +118,7 @@ public class SpectroCoinService {
                         investmentService.saveInvestmentFetchedFromConnection(Investment.builder()
                                 .symbol(account.getCurrencyCode())
                                 .quantity(account.getBalance().setScale(8, RoundingMode.HALF_UP))
-                                .type(InvestmentType.CRYPTOCURRENCY)
+                                .type(InvestmentType.CRYPTO)
                                 .date(LocalDate.now())
                                 .user(user).build(), connection.getId());
 
