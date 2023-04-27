@@ -14,8 +14,8 @@ import com.github.ignasbudreika.portfollow.model.User;
 import com.github.ignasbudreika.portfollow.repository.SpectroCoinConnectionRepository;
 import jakarta.persistence.EntityExistsException;
 import jakarta.persistence.EntityNotFoundException;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -28,14 +28,12 @@ import java.util.Set;
 
 @Slf4j
 @Service
+@AllArgsConstructor
 public class SpectroCoinService {
     private static final Set<String> SUPPORTED_CRYPTOCURRENCIES = Set.of("BTC", "ETH", "SHIB", "USDT");
 
-    @Autowired
     private SpectroCoinConnectionRepository spectroCoinConnectionRepository;
-    @Autowired
     private InvestmentService investmentService;
-    @Autowired
     private SpectroCoinClient spectroCoinClient;
 
     public void addConnection(com.github.ignasbudreika.portfollow.api.dto.request.SpectroCoinConnectionDTO connectionDTO, User user) throws Exception {
@@ -99,7 +97,7 @@ public class SpectroCoinService {
     }
 
     public void invalidateConnection(String id) {
-        SpectroCoinConnection connection = spectroCoinConnectionRepository.findById(id).orElseThrow();
+        SpectroCoinConnection connection = spectroCoinConnectionRepository.findById(id).orElseThrow(EntityNotFoundException::new);
 
         investmentService.deleteConnection(connection.getId());
 
@@ -113,40 +111,41 @@ public class SpectroCoinService {
         try {
             SpectroCoinConnection connection = getActiveConnectionOrThrowException(user.getId());
 
-            AccountsDTO accounts = spectroCoinClient.getAccountData(connection.getClientId(), connection.getClientSecret());
+            try {
+                AccountsDTO accounts = spectroCoinClient.getAccountData(connection.getClientId(), connection.getClientSecret());
 
-            Arrays.stream(accounts.getAccounts()).forEach(account -> {
-                if (SUPPORTED_CRYPTOCURRENCIES.contains(account.getCurrencyCode())
-                        && account.getBalance().compareTo(BigDecimal.ZERO) > 0) {
-                    try {
-                        investmentService.saveInvestmentFetchedFromConnection(Investment.builder()
-                                .symbol(account.getCurrencyCode())
-                                .quantity(account.getBalance().setScale(8, RoundingMode.HALF_UP))
-                                .type(InvestmentType.CRYPTO)
-                                .updateType(InvestmentUpdateType.SPECTROCOIN)
-                                .date(LocalDate.now())
-                                .user(user).build(), connection.getId());
+                Arrays.stream(accounts.getAccounts()).forEach(account -> {
+                    if (SUPPORTED_CRYPTOCURRENCIES.contains(account.getCurrencyCode())
+                            && account.getBalance().compareTo(BigDecimal.ZERO) > 0) {
+                        try {
+                            investmentService.saveInvestmentFetchedFromConnection(Investment.builder()
+                                    .symbol(account.getCurrencyCode())
+                                    .quantity(account.getBalance().setScale(8, RoundingMode.HALF_UP))
+                                    .type(InvestmentType.CRYPTO)
+                                    .updateType(InvestmentUpdateType.SPECTROCOIN)
+                                    .date(LocalDate.now())
+                                    .user(user).build(), connection.getId());
 
-                        log.info("imported {} cryptocurrency for user: {} from SpectroCoin, balance: {}",
-                                account.getCurrencyCode(), user.getId(), account.getBalance());
-                    } catch (Exception e) {
-                        log.error("failed to import: {} symbol for user: {}", account.getCurrencyCode(), user.getId(), e);
+                            log.info("imported {} cryptocurrency for user: {} from SpectroCoin, balance: {}",
+                                    account.getCurrencyCode(), user.getId(), account.getBalance());
+                        } catch (Exception e) {
+                            log.error("failed to import: {} symbol for user: {}", account.getCurrencyCode(), user.getId(), e);
+                        }
                     }
-                }
-            });
+                });
 
-            connection.setLastFetched(LocalDateTime.now());
-            spectroCoinConnectionRepository.save(connection);
+                connection.setLastFetched(LocalDateTime.now());
+                spectroCoinConnectionRepository.save(connection);
+            } catch (InvalidExternalRequestException e) {
+                log.warn("failed to fetch cryptocurrencies from SpectroCoin for user: {}", user.getId(), e);
+
+                log.info("invalidating SpectroCoin connection: {} for user: {}", connection.getId(), user.getId());
+                invalidateConnection(connection.getId());
+            } catch (Exception e) {
+                log.error("error occurred while fetching cryptocurrencies for user: {} from SpectroCoin", user.getId(), e);
+            }
         } catch (EntityNotFoundException e) {
             log.info("could not fetch cryptocurrencies for user: {} because no active SpectroCoin connection exists", user.getId());
-        } catch (InvalidExternalRequestException e) {
-            log.warn("failed to fetch cryptocurrencies from SpectroCoin for user: {}", user.getId(), e);
-
-            SpectroCoinConnection connection = getActiveConnectionOrThrowException(user.getId());
-            log.info("invalidating SpectroCoin connection: {} for user: {}", connection.getId(), user.getId());
-            invalidateConnection(connection.getId());
-        } catch (Exception e) {
-            log.error("error occurred while fetching cryptocurrencies for user: {} from SpectroCoin", user.getId(), e);
         }
     }
 }

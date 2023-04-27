@@ -8,23 +8,18 @@ import com.github.ignasbudreika.portfollow.model.Portfolio;
 import com.github.ignasbudreika.portfollow.model.User;
 import com.github.ignasbudreika.portfollow.repository.PortfolioRepository;
 import com.github.ignasbudreika.portfollow.repository.UserRepository;
-import jakarta.persistence.EntityNotFoundException;
+import lombok.AllArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Service
+@AllArgsConstructor
 public class SettingsService {
-    @Autowired
     private PortfolioRepository portfolioRepository;
-    @Autowired
     private UserRepository userRepository;
 
     public SettingsDTO getUserSettings(User user) {
         Portfolio portfolio = portfolioRepository.findByUserId(user.getId());
-        if (portfolio == null) {
-            throw new EntityNotFoundException();
-        }
 
         return SettingsDTO.builder()
                 .userInfo(UserInfoDTO.builder()
@@ -45,15 +40,11 @@ public class SettingsService {
 
     public SettingsDTO updateUserSettings(SettingsUpdateDTO settings, User user) {
         Portfolio portfolio = portfolioRepository.findByUserId(user.getId());
-        if (portfolio == null) {
-            throw new EntityNotFoundException();
-        }
 
         if (StringUtils.isNotBlank(settings.getUsername())) {
             user.setUsername(settings.getUsername());
             userRepository.save(user);
         }
-
         if (StringUtils.isNotBlank(settings.getTitle())) {
             portfolio.setTitle(settings.getTitle());
         }
