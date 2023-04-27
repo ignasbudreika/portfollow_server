@@ -33,7 +33,7 @@ public class InvestmentTransactionService {
     public InvestmentTransaction createTransaction(Investment investment, BigDecimal quantity, InvestmentTransactionType type, LocalDate date) throws BusinessLogicException {
         log.info("creating: {} transaction for investment: {}", type, investment.getId());
 
-        if (date.isBefore(LocalDate.of(2023, 1, 1)) || date.isAfter(LocalDate.now())) {
+        if (date.isBefore(LocalDate.of(2023, 1, 1))) {
             throw new BusinessLogicException("only investments made since 2023-01-01 are supported");
         }
 

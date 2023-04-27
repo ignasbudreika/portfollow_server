@@ -3,6 +3,7 @@ package com.github.ignasbudreika.portfollow.service;
 import com.github.ignasbudreika.portfollow.api.dto.request.EthereumWalletConnectionDTO;
 import com.github.ignasbudreika.portfollow.enums.ConnectionStatus;
 import com.github.ignasbudreika.portfollow.enums.InvestmentType;
+import com.github.ignasbudreika.portfollow.enums.InvestmentUpdateType;
 import com.github.ignasbudreika.portfollow.exception.BusinessLogicException;
 import com.github.ignasbudreika.portfollow.external.helper.EthereumWalletHelper;
 import com.github.ignasbudreika.portfollow.model.EthereumWalletConnection;
@@ -72,6 +73,8 @@ public class EthereumWalletService {
             return;
         }
 
+        investmentService.deleteConnection(connection.getId());
+
         connection.setStatus(ConnectionStatus.INACTIVE);
 
         connectionRepository.save(connection);
@@ -79,6 +82,8 @@ public class EthereumWalletService {
 
     public void invalidateConnection(String id) {
         EthereumWalletConnection connection = connectionRepository.findById(id).orElseThrow();
+
+        investmentService.deleteConnection(connection.getId());
 
         connection.setStatus(ConnectionStatus.INVALID);
 
@@ -98,6 +103,7 @@ public class EthereumWalletService {
                     .symbol(ETHEREUM)
                     .quantity(etherQuantity.setScale(8, RoundingMode.HALF_UP))
                     .type(InvestmentType.CRYPTO)
+                    .updateType(InvestmentUpdateType.ETHEREUM_WALLET)
                     .date(LocalDate.now())
                     .user(user).build(), connection.getId());
 

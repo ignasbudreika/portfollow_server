@@ -2,6 +2,7 @@ package com.github.ignasbudreika.portfollow.api.dto.response;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.github.ignasbudreika.portfollow.enums.InvestmentUpdateType;
 import lombok.Builder;
 import lombok.Data;
 
@@ -20,5 +21,7 @@ public class StockInvestmentDTO {
     private BigDecimal dayTrend;
     @JsonProperty(value = "total_change")
     private BigDecimal totalChange;
+    @JsonProperty(value = "update_type")
+    private String updateType;
     private TransactionDTO[] transactions;
 }

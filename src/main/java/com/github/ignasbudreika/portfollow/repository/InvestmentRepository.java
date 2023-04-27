@@ -13,6 +13,7 @@ public interface InvestmentRepository extends JpaRepository<Investment, String> 
     Collection<Investment> findAllByUserId(String userId);
     boolean existsByUserId(String userId);
     Investment findBySymbolAndConnectionId(String symbol, String connectionId);
+    Collection<Investment> findAllByConnectionId(String connectionId);
     Collection<Investment> findByPortfolioHistoriesId(String portfolioId);
     Collection<Investment> findByTypeAndPortfolioHistoriesId(InvestmentType type, String portfolioId);
 }

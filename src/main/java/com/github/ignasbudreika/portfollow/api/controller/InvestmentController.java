@@ -55,4 +55,13 @@ public class InvestmentController {
 
         return ResponseEntity.noContent().build();
     }
+
+    @PostMapping("/{id}/stop")
+    public ResponseEntity stopPeriodicInvestments(@PathVariable(name = "id") String id) throws UnauthorizedException {
+        User user = userService.getByGoogleId(SecurityContextHolder.getContext().getAuthentication().getName());
+
+        investmentService.stopPeriodicInvestments(id, user);
+
+        return ResponseEntity.noContent().build();
+    }
 }

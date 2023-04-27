@@ -32,16 +32,16 @@ public class CurrencyController {
     }
 
     @GetMapping
-    public ResponseEntity<Collection<CurrencyInvestmentDTO>> getUserCryptocurrencyInvestments() {
+    public ResponseEntity<Collection<CurrencyInvestmentDTO>> getUserCurrencyInvestments() {
         User user = userService.getByGoogleId(SecurityContextHolder.getContext().getAuthentication().getName());
 
         return ResponseEntity.ok(currencyService.getUserCurrencyInvestments(user.getId()));
     }
 
     @GetMapping("/stats")
-    public ResponseEntity<InvestmentStatsDTO> getUserCryptoInvestmentsStats() {
+    public ResponseEntity<InvestmentStatsDTO> getUserCurrencyInvestmentsStats() {
         User user = userService.getByGoogleId(SecurityContextHolder.getContext().getAuthentication().getName());
 
-        return ResponseEntity.ok(currencyService.getUserCryptoInvestmentsStats(user.getId()));
+        return ResponseEntity.ok(currencyService.getUserCurrencyInvestmentsStats(user.getId()));
     }
 }

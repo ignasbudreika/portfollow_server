@@ -2,6 +2,7 @@ package com.github.ignasbudreika.portfollow.model;
 
 import com.github.ignasbudreika.portfollow.enums.InvestmentTransactionType;
 import com.github.ignasbudreika.portfollow.enums.InvestmentType;
+import com.github.ignasbudreika.portfollow.enums.InvestmentUpdateType;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.GenericGenerator;
@@ -40,6 +41,8 @@ public class Investment {
     @JoinColumn(name="asset_id")
     private Asset asset;
     private LocalDate date;
+    @Column(name = "update_type", nullable = false)
+    private InvestmentUpdateType updateType;
     @OneToMany(mappedBy = "investment", cascade = CascadeType.REMOVE)
     private Set<InvestmentTransaction> transactions = new HashSet<>();
     @ManyToMany(mappedBy = "investments")

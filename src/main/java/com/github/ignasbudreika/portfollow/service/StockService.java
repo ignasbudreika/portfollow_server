@@ -5,6 +5,7 @@ import com.github.ignasbudreika.portfollow.api.dto.response.StockInvestmentDTO;
 import com.github.ignasbudreika.portfollow.api.dto.response.InvestmentStatsDTO;
 import com.github.ignasbudreika.portfollow.api.dto.response.TransactionDTO;
 import com.github.ignasbudreika.portfollow.enums.InvestmentType;
+import com.github.ignasbudreika.portfollow.enums.InvestmentUpdateType;
 import com.github.ignasbudreika.portfollow.exception.BusinessLogicException;
 import com.github.ignasbudreika.portfollow.model.Investment;
 import com.github.ignasbudreika.portfollow.model.InvestmentTransaction;
@@ -25,8 +26,6 @@ import java.util.Comparator;
 @Service
 public class StockService {
     @Autowired
-    private AssetService assetService;
-    @Autowired
     private StatisticsService statisticsService;
     @Autowired
     private InvestmentService investmentService;
@@ -46,6 +45,7 @@ public class StockService {
                     .value(investment.getQuantityAt(date).multiply(investment.getAsset().getPrice()).setScale(2, RoundingMode.HALF_UP))
                     .dayTrend(statisticsService.getAssetDayTrend(investment.getAsset()))
                     .totalChange(statisticsService.getInvestmentTotalChange(investment))
+                    .updateType(investment.getUpdateType().toString())
                     .transactions(investment.getTransactions().stream()
                             .sorted(Comparator.comparing(InvestmentTransaction::getDate))
                             .map(transaction -> TransactionDTO.builder()
@@ -77,6 +77,7 @@ public class StockService {
                 .symbol(stock.getTicker())
                 .quantity(stock.getQuantity())
                 .type(InvestmentType.STOCK)
+                .updateType(InvestmentUpdateType.getUpdateType(stock.getPeriod()))
                 .date(stock.getDate()).build();
 
         investment = investmentService.createInvestment(investment, user);

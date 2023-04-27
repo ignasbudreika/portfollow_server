@@ -5,6 +5,7 @@ import com.github.ignasbudreika.portfollow.api.dto.response.CurrencyInvestmentDT
 import com.github.ignasbudreika.portfollow.api.dto.response.InvestmentStatsDTO;
 import com.github.ignasbudreika.portfollow.api.dto.response.TransactionDTO;
 import com.github.ignasbudreika.portfollow.enums.InvestmentType;
+import com.github.ignasbudreika.portfollow.enums.InvestmentUpdateType;
 import com.github.ignasbudreika.portfollow.exception.BusinessLogicException;
 import com.github.ignasbudreika.portfollow.model.Investment;
 import com.github.ignasbudreika.portfollow.model.InvestmentTransaction;
@@ -25,8 +26,6 @@ import java.util.Comparator;
 @Service
 public class CurrencyService {
     @Autowired
-    private AssetService assetService;
-    @Autowired
     private StatisticsService statisticsService;
     @Autowired
     private InvestmentService investmentService;
@@ -38,6 +37,7 @@ public class CurrencyService {
                 .symbol(currency.getSymbol())
                 .quantity(currency.getQuantity())
                 .type(currency.isCrypto() ? InvestmentType.CRYPTO : InvestmentType.FIAT)
+                .updateType(InvestmentUpdateType.getUpdateType(currency.getPeriod()))
                 .date(currency.getDate()).build();
 
         investment = investmentService.createInvestment(investment, user);
@@ -63,6 +63,7 @@ public class CurrencyService {
                     .crypto(investment.getType().equals(InvestmentType.CRYPTO))
                     .dayTrend(statisticsService.getAssetDayTrend(investment.getAsset()))
                     .totalChange(statisticsService.getInvestmentTotalChange(investment))
+                    .updateType(investment.getUpdateType().toString())
                     .transactions(investment.getTransactions().stream()
                             .sorted(Comparator.comparing(InvestmentTransaction::getDate))
                             .map(transaction -> TransactionDTO.builder()
@@ -74,7 +75,7 @@ public class CurrencyService {
         ).toList();
     }
 
-    public InvestmentStatsDTO getUserCryptoInvestmentsStats(String userId) {
+    public InvestmentStatsDTO getUserCurrencyInvestmentsStats(String userId) {
         Collection<Investment> investments = investmentService.getInvestmentsByUserIdAndType(userId, InvestmentType.CRYPTO);
         Collection<Investment> forexInvestments = investmentService.getInvestmentsByUserIdAndType(userId, InvestmentType.FIAT);
         investments.addAll(forexInvestments);

@@ -3,6 +3,7 @@ package com.github.ignasbudreika.portfollow.service;
 import com.github.ignasbudreika.portfollow.api.dto.response.SpectroCoinConnectionDTO;
 import com.github.ignasbudreika.portfollow.enums.ConnectionStatus;
 import com.github.ignasbudreika.portfollow.enums.InvestmentType;
+import com.github.ignasbudreika.portfollow.enums.InvestmentUpdateType;
 import com.github.ignasbudreika.portfollow.exception.BusinessLogicException;
 import com.github.ignasbudreika.portfollow.exception.InvalidExternalRequestException;
 import com.github.ignasbudreika.portfollow.external.client.SpectroCoinClient;
@@ -16,7 +17,6 @@ import jakarta.persistence.EntityNotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -90,6 +90,8 @@ public class SpectroCoinService {
             return;
         }
 
+        investmentService.deleteConnection(connection.getId());
+
         connection.setStatus(ConnectionStatus.INACTIVE);
         connection.setClientSecret(null);
 
@@ -98,6 +100,8 @@ public class SpectroCoinService {
 
     public void invalidateConnection(String id) {
         SpectroCoinConnection connection = spectroCoinConnectionRepository.findById(id).orElseThrow();
+
+        investmentService.deleteConnection(connection.getId());
 
         connection.setStatus(ConnectionStatus.INVALID);
         connection.setClientSecret(null);
@@ -119,6 +123,7 @@ public class SpectroCoinService {
                                 .symbol(account.getCurrencyCode())
                                 .quantity(account.getBalance().setScale(8, RoundingMode.HALF_UP))
                                 .type(InvestmentType.CRYPTO)
+                                .updateType(InvestmentUpdateType.SPECTROCOIN)
                                 .date(LocalDate.now())
                                 .user(user).build(), connection.getId());
 

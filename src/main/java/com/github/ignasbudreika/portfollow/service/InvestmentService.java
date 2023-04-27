@@ -4,6 +4,7 @@ import com.github.ignasbudreika.portfollow.api.dto.request.TransactionDTO;
 import com.github.ignasbudreika.portfollow.api.dto.response.InvestmentDTO;
 import com.github.ignasbudreika.portfollow.enums.InvestmentTransactionType;
 import com.github.ignasbudreika.portfollow.enums.InvestmentType;
+import com.github.ignasbudreika.portfollow.enums.InvestmentUpdateType;
 import com.github.ignasbudreika.portfollow.exception.BusinessLogicException;
 import com.github.ignasbudreika.portfollow.exception.UnauthorizedException;
 import com.github.ignasbudreika.portfollow.external.client.AlphaVantageClient;
@@ -21,10 +22,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.net.URISyntaxException;
 import java.time.LocalDate;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -32,8 +30,8 @@ import java.util.stream.Collectors;
 public class InvestmentService {
     @Autowired
     private AlphaVantageClient alphaVantageClient;
-
-    @Autowired private AssetService assetService;
+    @Autowired
+    private AssetService assetService;
     @Autowired
     private PortfolioHistoryService portfolioHistoryService;
     @Autowired
@@ -95,7 +93,7 @@ public class InvestmentService {
             }
         }
 
-        if (investment.getDate().isBefore(LocalDate.of(2023, 1, 1)) || investment.getDate().isAfter(LocalDate.now())) {
+        if (investment.getDate().isBefore(LocalDate.of(2023, 1, 1))) {
             throw new BusinessLogicException("only investments made since 2023-01-01 are supported");
         }
 
@@ -228,5 +226,95 @@ public class InvestmentService {
         investmentRepository.delete(inv);
 
         portfolioHistoryService.updatePortfolioHistoryValue(user, inv.getDate());
+    }
+
+    public void stopPeriodicInvestments(String id, User user) throws UnauthorizedException {
+        Optional<Investment> investment = investmentRepository.findById(id);
+        if (investment.isEmpty()) {
+            return;
+        }
+
+        Investment inv = investment.get();
+        if (!inv.getUser().getId().equals(user.getId())) {
+            throw new UnauthorizedException();
+        }
+
+        if (inv.getUpdateType().equals(InvestmentUpdateType.MANUAL)
+                || inv.getUpdateType().equals(InvestmentUpdateType.SPECTROCOIN)
+                || inv.getUpdateType().equals(InvestmentUpdateType.ETHEREUM_WALLET)) {
+            return;
+        }
+
+        inv.setUpdateType(InvestmentUpdateType.MANUAL);
+
+        investmentRepository.save(inv);
+    }
+
+    public void deleteConnection(String connectionId) {
+        investmentRepository.findAllByConnectionId(connectionId)
+                .stream().forEach(investment -> {
+                    investment.setConnectionId(null);
+                    investment.setUpdateType(InvestmentUpdateType.MANUAL);
+                    investmentRepository.save(investment);
+                });
+    }
+
+    @Transactional
+    public void fetchPeriodicInvestments(User user, LocalDate date) {
+        investmentRepository.findAllByUserId(user.getId()).stream().filter(investment ->
+                investment.getUpdateType() != InvestmentUpdateType.MANUAL
+                        && investment.getUpdateType() != InvestmentUpdateType.SPECTROCOIN
+                        && investment.getUpdateType() != InvestmentUpdateType.ETHEREUM_WALLET).forEach(investment -> {
+                            InvestmentTransaction lastTx = investment.getTransactions().stream()
+                                    .sorted(Comparator.comparing(InvestmentTransaction::getDate).reversed())
+                                    .findFirst().get();
+                            try {
+                                switch (investment.getUpdateType()) {
+                                    case DAILY -> {
+                                        if (lastTx.getDate().plusDays(1).isBefore(date)) {
+                                            createPeriodicTransaction(investment, lastTx.getQuantity(), date);
+                                        }
+                                    }
+                                    case WEEKLY -> {
+                                        if (lastTx.getDate().plusWeeks(1).isBefore(date)) {
+                                            createPeriodicTransaction(investment, lastTx.getQuantity(), date);
+                                        }
+                                    }
+                                    case MONTHLY -> {
+                                        if (lastTx.getDate().plusMonths(1).isBefore(date)) {
+                                            createPeriodicTransaction(investment, lastTx.getQuantity(), date);
+                                        }
+                                    }
+                                    case QUARTERLY -> {
+                                        if (lastTx.getDate().plusMonths(3).isBefore(date)) {
+                                            createPeriodicTransaction(investment, lastTx.getQuantity(), date);
+                                        }
+                                    }
+                                    case YEARLY -> {
+                                        if (lastTx.getDate().plusYears(1).isBefore(date)) {
+                                            createPeriodicTransaction(investment, lastTx.getQuantity(), date);
+                                        }
+                                    }
+                                    default -> {
+                                        log.info("not a periodic investment: {}, skipping transaction creation", investment.getId());
+                                    }
+                                }
+                            } catch (BusinessLogicException e) {
+                                log.error("failed to create periodic transaction for investment: {}", investment.getId(), e);
+                            }
+        });
+    }
+
+    private void createPeriodicTransaction(Investment investment, BigDecimal quantity, LocalDate date) throws BusinessLogicException {
+        InvestmentTransaction created = transactionService.createTransaction(investment, quantity, InvestmentTransactionType.BUY, date);
+        Set<InvestmentTransaction> transactions = investment.getTransactions().stream().collect(Collectors.toSet());
+        transactions.add(created);
+        investment.setTransactions(transactions);
+
+        investment.setQuantity(investment.getQuantity().add(quantity));
+
+        investment = investmentRepository.save(investment);
+
+        portfolioHistoryService.createOrUpdatePortfolioHistory(investment);
     }
 }
