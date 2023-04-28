@@ -1,10 +1,9 @@
 package com.github.ignasbudreika.portfollow.service;
 
-import com.github.ignasbudreika.portfollow.api.dto.request.EthereumWalletConnectionDTO;
+import com.github.ignasbudreika.portfollow.api.dto.request.CreateEthereumWalletConnectionDTO;
 import com.github.ignasbudreika.portfollow.enums.ConnectionStatus;
 import com.github.ignasbudreika.portfollow.enums.InvestmentType;
 import com.github.ignasbudreika.portfollow.enums.InvestmentUpdateType;
-import com.github.ignasbudreika.portfollow.exception.BusinessLogicException;
 import com.github.ignasbudreika.portfollow.external.helper.EthereumWalletHelper;
 import com.github.ignasbudreika.portfollow.model.EthereumWalletConnection;
 import com.github.ignasbudreika.portfollow.model.Investment;
@@ -14,9 +13,7 @@ import jakarta.persistence.EntityExistsException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
-import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
@@ -35,7 +32,7 @@ public class EthereumWalletService {
     @Autowired
     private EthereumWalletHelper walletHelper;
 
-    public void addConnection(EthereumWalletConnectionDTO connectionDTO, User user) throws Exception {
+    public void addConnection(CreateEthereumWalletConnectionDTO connectionDTO, User user) throws Exception {
         if (connectionRepository.findByUserIdAndStatus(user.getId(), ConnectionStatus.ACTIVE) != null) {
             throw new EntityExistsException(String.format(
                     "Ethereum wallet connection for user: %s already exists", user.getId()

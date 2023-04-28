@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
 @Data
-public class EthereumWalletConnectionDTO {
+public class CreateEthereumWalletConnectionDTO {
     @JsonProperty("address")
     private String address;
 }

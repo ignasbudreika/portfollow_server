@@ -6,7 +6,7 @@ import lombok.Data;
 
 @Data
 @Builder
-public class SpectroCoinConnectionDTO {
+public class CreateSpectroCoinConnectionDTO {
     @JsonProperty("client_id")
     private String clientId;
     @JsonProperty("client_secret")

@@ -1,5 +1,7 @@
 package com.github.ignasbudreika.portfollow.api.controller;
 
+import com.github.ignasbudreika.portfollow.api.dto.request.CreateEthereumWalletConnectionDTO;
+import com.github.ignasbudreika.portfollow.api.dto.request.CreateSpectroCoinConnectionDTO;
 import com.github.ignasbudreika.portfollow.api.dto.response.ConnectionsDTO;
 import com.github.ignasbudreika.portfollow.api.dto.response.EthereumWalletConnectionDTO;
 import com.github.ignasbudreika.portfollow.api.dto.response.SpectroCoinConnectionDTO;
@@ -35,7 +37,7 @@ public class ConnectionController {
     }
 
     @PostMapping("/spectrocoin")
-    public ResponseEntity connectSpectroCoin(@RequestBody com.github.ignasbudreika.portfollow.api.dto.request.SpectroCoinConnectionDTO connectionDTO) throws Exception {
+    public ResponseEntity connectSpectroCoin(@RequestBody CreateSpectroCoinConnectionDTO connectionDTO) throws Exception {
         User user = userService.getByGoogleId(SecurityContextHolder.getContext().getAuthentication().getName());
 
         spectroCoinService.addConnection(connectionDTO, user);
@@ -62,7 +64,7 @@ public class ConnectionController {
     }
 
     @PostMapping("/ethereum")
-    public ResponseEntity connectEthereumWallet(@RequestBody com.github.ignasbudreika.portfollow.api.dto.request.EthereumWalletConnectionDTO walletConnectionDTO) throws Exception {
+    public ResponseEntity connectEthereumWallet(@RequestBody CreateEthereumWalletConnectionDTO walletConnectionDTO) throws Exception {
         User user = userService.getByGoogleId(SecurityContextHolder.getContext().getAuthentication().getName());
 
         walletService.addConnection(walletConnectionDTO, user);

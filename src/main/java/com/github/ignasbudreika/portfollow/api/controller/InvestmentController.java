@@ -1,6 +1,6 @@
 package com.github.ignasbudreika.portfollow.api.controller;
 
-import com.github.ignasbudreika.portfollow.api.dto.request.TransactionDTO;
+import com.github.ignasbudreika.portfollow.api.dto.request.CreateTransactionDTO;
 import com.github.ignasbudreika.portfollow.api.dto.response.InvestmentDTO;
 import com.github.ignasbudreika.portfollow.enums.InvestmentType;
 import com.github.ignasbudreika.portfollow.exception.BusinessLogicException;
@@ -39,7 +39,7 @@ public class InvestmentController {
     }
 
     @PostMapping("/{id}/tx")
-    public ResponseEntity addTransaction(@PathVariable(name = "id") String id, @RequestBody TransactionDTO tx) throws BusinessLogicException, UnauthorizedException {
+    public ResponseEntity addTransaction(@PathVariable(name = "id") String id, @RequestBody CreateTransactionDTO tx) throws BusinessLogicException, UnauthorizedException {
         User user = userService.getByGoogleId(SecurityContextHolder.getContext().getAuthentication().getName());
 
         investmentService.addTransaction(id, tx, user);

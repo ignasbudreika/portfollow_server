@@ -1,6 +1,6 @@
 package com.github.ignasbudreika.portfollow.service;
 
-import com.github.ignasbudreika.portfollow.api.dto.request.TransactionDTO;
+import com.github.ignasbudreika.portfollow.api.dto.request.CreateTransactionDTO;
 import com.github.ignasbudreika.portfollow.api.dto.response.InvestmentDTO;
 import com.github.ignasbudreika.portfollow.enums.InvestmentTransactionType;
 import com.github.ignasbudreika.portfollow.enums.InvestmentType;
@@ -172,7 +172,7 @@ public class InvestmentService {
         return investment;
     }
 
-    public Investment addTransaction(String investmentId, TransactionDTO transaction, User user) throws UnauthorizedException, BusinessLogicException {
+    public Investment addTransaction(String investmentId, CreateTransactionDTO transaction, User user) throws UnauthorizedException, BusinessLogicException {
         Investment investment = investmentRepository.findById(investmentId).orElseThrow(EntityNotFoundException::new);
 
         if (!investment.getUser().getId().equals(user.getId())) {
@@ -271,27 +271,27 @@ public class InvestmentService {
                             try {
                                 switch (investment.getUpdateType()) {
                                     case DAILY -> {
-                                        if (lastTx.getDate().plusDays(1).isBefore(date)) {
+                                        if (!lastTx.getDate().plusDays(1).isAfter(date)) {
                                             createPeriodicTransaction(investment, lastTx.getQuantity(), date);
                                         }
                                     }
                                     case WEEKLY -> {
-                                        if (lastTx.getDate().plusWeeks(1).isBefore(date)) {
+                                        if (!lastTx.getDate().plusWeeks(1).isAfter(date)) {
                                             createPeriodicTransaction(investment, lastTx.getQuantity(), date);
                                         }
                                     }
                                     case MONTHLY -> {
-                                        if (lastTx.getDate().plusMonths(1).isBefore(date)) {
+                                        if (!lastTx.getDate().plusMonths(1).isAfter(date)) {
                                             createPeriodicTransaction(investment, lastTx.getQuantity(), date);
                                         }
                                     }
                                     case QUARTERLY -> {
-                                        if (lastTx.getDate().plusMonths(3).isBefore(date)) {
+                                        if (!lastTx.getDate().plusMonths(3).isAfter(date)) {
                                             createPeriodicTransaction(investment, lastTx.getQuantity(), date);
                                         }
                                     }
                                     case YEARLY -> {
-                                        if (lastTx.getDate().plusYears(1).isBefore(date)) {
+                                        if (!lastTx.getDate().plusYears(1).isAfter(date)) {
                                             createPeriodicTransaction(investment, lastTx.getQuantity(), date);
                                         }
                                     }

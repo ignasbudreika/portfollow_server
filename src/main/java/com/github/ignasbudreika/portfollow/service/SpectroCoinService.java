@@ -1,5 +1,6 @@
 package com.github.ignasbudreika.portfollow.service;
 
+import com.github.ignasbudreika.portfollow.api.dto.request.CreateSpectroCoinConnectionDTO;
 import com.github.ignasbudreika.portfollow.api.dto.response.SpectroCoinConnectionDTO;
 import com.github.ignasbudreika.portfollow.enums.ConnectionStatus;
 import com.github.ignasbudreika.portfollow.enums.InvestmentType;
@@ -36,7 +37,7 @@ public class SpectroCoinService {
     private InvestmentService investmentService;
     private SpectroCoinClient spectroCoinClient;
 
-    public void addConnection(com.github.ignasbudreika.portfollow.api.dto.request.SpectroCoinConnectionDTO connectionDTO, User user) throws Exception {
+    public void addConnection(CreateSpectroCoinConnectionDTO connectionDTO, User user) throws Exception {
         if (spectroCoinConnectionRepository.findByUserIdAndStatus(user.getId(), ConnectionStatus.ACTIVE) != null) {
             throw new EntityExistsException(String.format(
                     "SpectroCoin connection for user: %s already exists", user.getId()

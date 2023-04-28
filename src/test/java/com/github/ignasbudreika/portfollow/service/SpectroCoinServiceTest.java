@@ -1,6 +1,6 @@
 package com.github.ignasbudreika.portfollow.service;
 
-import com.github.ignasbudreika.portfollow.api.dto.request.SpectroCoinConnectionDTO;
+import com.github.ignasbudreika.portfollow.api.dto.request.CreateSpectroCoinConnectionDTO;
 import com.github.ignasbudreika.portfollow.enums.ConnectionStatus;
 import com.github.ignasbudreika.portfollow.exception.BusinessLogicException;
 import com.github.ignasbudreika.portfollow.exception.InvalidExternalRequestException;
@@ -45,7 +45,7 @@ class SpectroCoinServiceTest {
                 .id(USER_ID)
                 .email(USER_EMAIL)
                 .username(USER_USERNAME).build();
-        SpectroCoinConnectionDTO connection = SpectroCoinConnectionDTO.builder().build();
+        CreateSpectroCoinConnectionDTO connection = CreateSpectroCoinConnectionDTO.builder().build();
 
         when(spectroCoinConnectionRepository.findByUserIdAndStatus(user.getId(), ConnectionStatus.ACTIVE))
                 .thenReturn(SpectroCoinConnection.builder().build());
@@ -60,7 +60,7 @@ class SpectroCoinServiceTest {
                 .id(USER_ID)
                 .email(USER_EMAIL)
                 .username(USER_USERNAME).build();
-        SpectroCoinConnectionDTO connection = SpectroCoinConnectionDTO.builder()
+        CreateSpectroCoinConnectionDTO connection = CreateSpectroCoinConnectionDTO.builder()
                 .clientId(CLIENT_ID)
                 .clientSecret(CLIENT_SECRET).build();
 
@@ -77,7 +77,7 @@ class SpectroCoinServiceTest {
                 .id(USER_ID)
                 .email(USER_EMAIL)
                 .username(USER_USERNAME).build();
-        SpectroCoinConnectionDTO connection = SpectroCoinConnectionDTO.builder()
+        CreateSpectroCoinConnectionDTO connection = CreateSpectroCoinConnectionDTO.builder()
                 .clientId(CLIENT_ID)
                 .clientSecret(CLIENT_SECRET).build();
 

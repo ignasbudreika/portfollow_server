@@ -7,7 +7,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 
 @Data
-public class TransactionDTO {
+public class CreateTransactionDTO {
     private BigDecimal quantity;
     private InvestmentTransactionType type;
     private LocalDate date;
