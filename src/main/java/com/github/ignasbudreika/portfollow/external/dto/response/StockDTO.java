@@ -1,5 +1,7 @@
 package com.github.ignasbudreika.portfollow.external.dto.response;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.codehaus.jackson.annotate.JsonIgnoreProperties;
@@ -7,7 +9,9 @@ import org.codehaus.jackson.annotate.JsonProperty;
 import org.codehaus.jackson.map.annotate.JsonRootName;
 
 @Getter
+@Builder
 @NoArgsConstructor
+@AllArgsConstructor
 @JsonRootName(value = "Global Quote")
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class StockDTO {

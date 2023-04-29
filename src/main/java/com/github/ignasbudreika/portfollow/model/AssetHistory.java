@@ -8,7 +8,7 @@ import lombok.NoArgsConstructor;
 import org.hibernate.annotations.GenericGenerator;
 
 import java.math.BigDecimal;
-import java.sql.Date;
+import java.time.LocalDate;
 
 @Data
 @Entity
@@ -25,7 +25,7 @@ public class AssetHistory {
     @JoinColumn(name="asset_id", nullable = false)
     private Asset asset;
     @Column(nullable = false)
-    private Date date;
+    private LocalDate date;
     @Column(precision = 19, scale = 8, nullable = false)
     private BigDecimal price;
 }

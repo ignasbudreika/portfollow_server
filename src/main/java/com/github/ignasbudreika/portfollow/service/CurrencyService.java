@@ -57,7 +57,7 @@ public class CurrencyService {
             CurrencyInvestmentDTO.builder()
                     .id(investment.getId())
                     .symbol(investment.getSymbol())
-                    .quantity(investment.getQuantityAt(date).setScale(4, RoundingMode.HALF_UP))
+                    .quantity(investment.getQuantityAt(date).setScale(8, RoundingMode.HALF_UP))
                     .price(investment.getAsset().getPrice().setScale(8, RoundingMode.HALF_UP))
                     .value(investment.getQuantityAt(date).multiply(investment.getAsset().getPrice()).setScale(2, RoundingMode.HALF_UP))
                     .crypto(investment.getType().equals(InvestmentType.CRYPTO))

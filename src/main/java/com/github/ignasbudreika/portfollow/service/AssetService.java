@@ -9,15 +9,14 @@ import com.github.ignasbudreika.portfollow.model.AssetHistory;
 import com.github.ignasbudreika.portfollow.repository.AssetHistoryRepository;
 import com.github.ignasbudreika.portfollow.repository.AssetRepository;
 import jakarta.transaction.Transactional;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.net.URISyntaxException;
-import java.sql.Date;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
@@ -25,15 +24,13 @@ import java.util.Collection;
 
 @Slf4j
 @Service
+@AllArgsConstructor
 public class AssetService {
     private static final long PRICE_UPDATE_INTERVAL_IN_HOURS = 3L;
     private static final LocalDate PRICE_HISTORY_FETCH_SINCE = LocalDate.of(2022, 12, 1);
 
-    @Autowired
     private AssetRepository assetRepository;
-    @Autowired
     private AssetHistoryRepository assetHistoryRepository;
-    @Autowired
     private AlphaVantageClient alphaVantageClient;
 
     public Asset getAsset(String symbol, InvestmentType type) {
@@ -41,40 +38,21 @@ public class AssetService {
     }
 
     @Transactional
-    public Asset createAsset(String symbol, InvestmentType type) throws URISyntaxException, IOException, BusinessLogicException, InterruptedException {
-        getRecentPrice(symbol, type);
-
+    public Asset getOrCreateAsset(String symbol, InvestmentType type) throws URISyntaxException, IOException, BusinessLogicException, InterruptedException {
         Asset asset = assetRepository.getBySymbolAndType(symbol, type);
-
         if (asset != null) {
-            fetchPriceHistory(asset, type);
-        }
-
-        return asset;
-    }
-
-    public BigDecimal getRecentPrice(String symbol, InvestmentType type) throws IOException, URISyntaxException, BusinessLogicException, InterruptedException {
-        Asset asset = assetRepository.getBySymbolAndType(symbol, type);
-        if (asset != null && asset.getUpdatedAt().isAfter(LocalDateTime.now().minusHours(PRICE_UPDATE_INTERVAL_IN_HOURS))) {
-            log.debug("asset: {} was updated at: {}, returning last fetched price: {}",
-                    asset.getSymbol(), asset.getUpdatedAt().truncatedTo(ChronoUnit.MINUTES), asset.getPrice());
-            return asset.getPrice();
+            return asset;
         }
 
         BigDecimal price = fetchPrice(symbol, type);
+        asset = assetRepository.save(Asset.builder()
+                .symbol(symbol)
+                .type(type)
+                .price(price).build());
 
-        if (asset != null) {
-            asset.setPrice(price);
-            asset.setUpdatedAt(LocalDateTime.now());
-            assetRepository.save(asset);
-            log.info("updated asset: {} price: {}", asset.getSymbol(), asset.getPrice());
-            return price;
-        }
+        fetchPriceHistory(asset);
 
-        asset = assetRepository.save(Asset.builder().symbol(symbol).type(type).price(price).build());
-        log.info("created asset: {} with price: {}", asset.getSymbol(), asset.getPrice());
-
-        return price;
+        return asset;
     }
 
     public BigDecimal fetchPrice(String symbol, InvestmentType type) throws IOException, URISyntaxException, BusinessLogicException, InterruptedException {
@@ -129,8 +107,8 @@ public class AssetService {
         }
     }
 
-    public void fetchPriceHistory(Asset asset, InvestmentType type) throws URISyntaxException, IOException, InterruptedException, BusinessLogicException {
-        switch (type) {
+    public void fetchPriceHistory(Asset asset) throws URISyntaxException, IOException, InterruptedException, BusinessLogicException {
+        switch (asset.getType()) {
             case STOCK -> {
                 try {
                     StockHistoryDailyDTO history = alphaVantageClient.getStockHistoryDaily(asset.getSymbol());
@@ -140,7 +118,7 @@ public class AssetService {
                             .map(entry ->
                                     AssetHistory.builder()
                                             .asset(asset)
-                                            .date(Date.valueOf(entry.getKey()))
+                                            .date(LocalDate.parse(entry.getKey()))
                                             .price(new BigDecimal(entry.getValue().getPrice()).setScale(8, RoundingMode.HALF_UP))
                                             .build()
                             ).toList();
@@ -162,7 +140,7 @@ public class AssetService {
                             .map(entry ->
                                     AssetHistory.builder()
                                             .asset(asset)
-                                            .date(Date.valueOf(entry.getKey()))
+                                            .date(LocalDate.parse(entry.getKey()))
                                             .price(new BigDecimal(entry.getValue().getPrice()).setScale(8, RoundingMode.HALF_UP))
                                             .build()
                             ).toList();
@@ -184,7 +162,7 @@ public class AssetService {
                             .map(entry ->
                                     AssetHistory.builder()
                                             .asset(asset)
-                                            .date(Date.valueOf(entry.getKey()))
+                                            .date(LocalDate.parse(entry.getKey()))
                                             .price(new BigDecimal(entry.getValue().getPrice()).setScale(8, RoundingMode.HALF_UP))
                                             .build()
                             ).toList();
@@ -238,7 +216,6 @@ public class AssetService {
 
                 if (cryptocurrency.getExchangeRate() != null) {
                     price = new BigDecimal(cryptocurrency.getExchangeRate());
-                    priceForHistory = new BigDecimal(cryptocurrency.getExchangeRate());
                 }
             }
             case FIAT -> {
@@ -249,14 +226,8 @@ public class AssetService {
                     log.error("exception occured while fetching forex: {} data", symbol, e);
                 }
 
-                if (forex.getExchangeRate() != null && new BigDecimal(forex.getExchangeRate()).equals(BigDecimal.ZERO)) {
-                    asset.setPrice(new BigDecimal(forex.getExchangeRate()));
-                    asset.setUpdatedAt(LocalDateTime.now());
-                }
-
                 if (forex.getExchangeRate() != null) {
                     price = new BigDecimal(forex.getExchangeRate());
-                    priceForHistory = new BigDecimal(forex.getExchangeRate());
                 }
             }
             default -> {
@@ -268,15 +239,25 @@ public class AssetService {
             asset.setPrice(price);
             asset.setUpdatedAt(LocalDateTime.now());
             asset = assetRepository.save(asset);
+
+            AssetHistory history = assetHistoryRepository.findByAssetIdAndDate(asset.getId(), date);
+            if (history == null) {
+                log.info("saving asset: {} price: {} for: {}", asset.getId(), price, date);
+                assetHistoryRepository.save(AssetHistory.builder().asset(asset).date(date).price(price).build());
+            } else {
+                log.info("updating asset: {} price: {} for: {}", asset.getId(), price, date);
+                history.setPrice(price);
+                assetHistoryRepository.save(history);
+            }
         }
 
         if (!priceForHistory.equals(BigDecimal.ZERO)) {
-            AssetHistory history = assetHistoryRepository.findByAssetIdAndDate(asset.getId(), date);
+            AssetHistory history = assetHistoryRepository.findByAssetIdAndDate(asset.getId(), date.minusDays(1));
             if (history == null) {
-                log.info("saving asset: {} price: {} for: {}", asset.getId(), priceForHistory, date);
-                assetHistoryRepository.save(AssetHistory.builder().asset(asset).date(Date.valueOf(date)).price(priceForHistory).build());
+                log.info("saving asset: {} price: {} for: {}", asset.getId(), priceForHistory, date.minusDays(1));
+                assetHistoryRepository.save(AssetHistory.builder().asset(asset).date(date).price(priceForHistory).build());
             } else {
-                log.info("updating asset: {} price: {} for: {}", asset.getId(), priceForHistory, date);
+                log.info("updating asset: {} price: {} for: {}", asset.getId(), priceForHistory, date.minusDays(1));
                 history.setPrice(priceForHistory);
                 assetHistoryRepository.save(history);
             }
@@ -290,7 +271,7 @@ public class AssetService {
 
         AssetHistory history = assetHistoryRepository.findFirstByAssetIdAndDateBeforeOrderByDateDesc(asset.getId(), date);
         if (history == null) {
-            return BigDecimal.ZERO;
+            return asset.getPrice();
         }
 
         return history.getPrice();

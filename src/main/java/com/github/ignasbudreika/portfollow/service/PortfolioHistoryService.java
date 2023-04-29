@@ -82,7 +82,7 @@ public class PortfolioHistoryService {
                 BigDecimal.ZERO :
                 portfolioHistory.getInvestments().stream().map(investment ->
                     investment.getQuantityAt(LocalDate.now()).multiply(investment.getAsset().getPrice())
-                ).reduce(BigDecimal.ZERO, BigDecimal::add);
+                ).reduce(BigDecimal.ZERO, BigDecimal::add).setScale(2, RoundingMode.HALF_UP);
         boolean isEmpty = !investmentRepository.existsByUserId(user.getId());
 
         PortfolioHistory lastDaysPortfolioHistory = portfolioHistoryRepository.findFirstByUserIdAndDateBeforeOrderByDateDesc(user.getId(), LocalDateTime.now().toLocalDate());
@@ -229,7 +229,7 @@ public class PortfolioHistoryService {
         Collection<PortfolioHistory> portfolioHistories = portfolioHistoryRepository.findAllByUserIdAndDateAfterOrderByDateAsc(user.getId(), from);
 
         return portfolioHistories.stream().map(portfolioHistory -> DateValueDTO.builder()
-                .value(portfolioHistory.getValue().setScale(4, RoundingMode.HALF_UP))
+                .value(portfolioHistory.getValue().setScale(2, RoundingMode.HALF_UP))
                 .date(portfolioHistory.getDate()).build())
                 .toList();
     }

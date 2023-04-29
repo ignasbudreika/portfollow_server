@@ -25,7 +25,7 @@ public class AssetPriceFetchCommand {
                 log.info("updating asset: {} price", asset.getSymbol());
                 if (!assetHistoryService.assetHistoryExists(asset.getId())) {
                     log.info("creating asset: {} price history", asset.getSymbol());
-                        assetService.fetchPriceHistory(asset, asset.getType());
+                        assetService.fetchPriceHistory(asset);
                 }
 
                 assetService.fetchPriceAndSaveInHistory(asset.getSymbol(), asset.getType(), LocalDate.now());

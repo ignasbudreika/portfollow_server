@@ -1,12 +1,12 @@
 package com.github.ignasbudreika.portfollow.service;
 
 import com.github.ignasbudreika.portfollow.repository.AssetHistoryRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
 @Service
+@AllArgsConstructor
 public class AssetHistoryService {
-    @Autowired
     private AssetHistoryRepository assetHistoryRepository;
 
     public boolean assetHistoryExists(String assetId) {

@@ -86,7 +86,7 @@ public class InvestmentService {
     public Investment createInvestment(Investment investment, User user) throws BusinessLogicException, URISyntaxException, IOException, InterruptedException {
         Asset asset = assetService.getAsset(investment.getSymbol(), investment.getType());
         if (asset == null) {
-            asset = assetService.createAsset(investment.getSymbol(), investment.getType());
+            asset = assetService.getOrCreateAsset(investment.getSymbol(), investment.getType());
 
             if (asset == null) {
                 throw new BusinessLogicException("invalid symbol");
@@ -115,7 +115,7 @@ public class InvestmentService {
     public Investment saveInvestmentFetchedFromConnection(Investment investment, String connectionId) throws BusinessLogicException, URISyntaxException, IOException, InterruptedException {
         Asset asset = assetService.getAsset(investment.getSymbol(), investment.getType());
         if (asset == null) {
-            asset = assetService.createAsset(investment.getSymbol(), investment.getType());
+            asset = assetService.getOrCreateAsset(investment.getSymbol(), investment.getType());
 
             if (asset == null) {
                 throw new BusinessLogicException("invalid symbol");
