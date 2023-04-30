@@ -10,8 +10,8 @@ import com.github.ignasbudreika.portfollow.exception.BusinessLogicException;
 import com.github.ignasbudreika.portfollow.model.Investment;
 import com.github.ignasbudreika.portfollow.model.InvestmentTransaction;
 import com.github.ignasbudreika.portfollow.model.User;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -24,12 +24,10 @@ import java.util.Comparator;
 
 @Slf4j
 @Service
+@AllArgsConstructor
 public class CurrencyService {
-    @Autowired
     private StatisticsService statisticsService;
-    @Autowired
     private InvestmentService investmentService;
-    @Autowired
     private PortfolioHistoryService portfolioHistoryService;
 
     public CurrencyInvestmentDTO createCurrencyInvestment(CurrencyDTO currency, User user) throws BusinessLogicException, URISyntaxException, IOException, InterruptedException {
