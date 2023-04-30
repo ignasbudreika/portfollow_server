@@ -13,6 +13,7 @@ import com.github.ignasbudreika.portfollow.repository.InvestmentRepository;
 import com.github.ignasbudreika.portfollow.repository.PortfolioHistoryRepository;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -27,18 +28,13 @@ import java.util.stream.Collectors;
 
 @Slf4j
 @Service
+@AllArgsConstructor
 public class InvestmentService {
-    @Autowired
     private AlphaVantageClient alphaVantageClient;
-    @Autowired
     private AssetService assetService;
-    @Autowired
     private PortfolioHistoryService portfolioHistoryService;
-    @Autowired
     private InvestmentTransactionService transactionService;
-    @Autowired
     private InvestmentRepository investmentRepository;
-    @Autowired
     private PortfolioHistoryRepository historyRepository;
 
     public Collection<InvestmentDTO> getUserInvestments(User user) {
