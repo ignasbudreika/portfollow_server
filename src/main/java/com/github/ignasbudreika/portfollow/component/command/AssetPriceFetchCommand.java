@@ -1,4 +1,4 @@
-package com.github.ignasbudreika.portfollow.command.scheduled;
+package com.github.ignasbudreika.portfollow.component.command;
 
 import com.github.ignasbudreika.portfollow.exception.BusinessLogicException;
 import com.github.ignasbudreika.portfollow.service.AssetHistoryService;
