@@ -10,7 +10,7 @@ import com.github.ignasbudreika.portfollow.model.Investment;
 import com.github.ignasbudreika.portfollow.model.PortfolioHistory;
 import com.github.ignasbudreika.portfollow.model.User;
 import com.github.ignasbudreika.portfollow.repository.PortfolioHistoryRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -23,10 +23,9 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
+@AllArgsConstructor
 public class StatisticsService {
-    @Autowired
     private AssetService assetService;
-    @Autowired
     private PortfolioHistoryRepository portfolioHistoryRepository;
 
     public BigDecimal getAssetDayTrend(Asset asset) {
