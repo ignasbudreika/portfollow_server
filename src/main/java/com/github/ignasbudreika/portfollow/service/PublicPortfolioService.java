@@ -13,6 +13,7 @@ import com.github.ignasbudreika.portfollow.repository.CommentRepository;
 import com.github.ignasbudreika.portfollow.repository.InvestmentRepository;
 import com.github.ignasbudreika.portfollow.repository.PortfolioRepository;
 import jakarta.persistence.EntityNotFoundException;
+import lombok.AllArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -23,20 +24,17 @@ import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 
 @Service
+@AllArgsConstructor
 public class PublicPortfolioService {
     private static final int LIMIT = 3;
-
-    @Autowired
     private PortfolioRepository portfolioRepository;
-    @Autowired
     private StatisticsService statisticsService;
-    @Autowired
     private CommentRepository commentRepository;
-    @Autowired
     private InvestmentRepository investmentRepository;
-    @Autowired PortfolioHistoryService portfolioHistoryService;
+    private PortfolioHistoryService portfolioHistoryService;
 
     public PublicPortfolioListDTO getPublicPortfolios(int index) {
         Page<Portfolio> portfolios = portfolioRepository.findAllByPublished(true, PageRequest.of(index, LIMIT));
@@ -47,8 +45,8 @@ public class PublicPortfolioService {
                     .title(portfolio.getTitle())
                     .description(portfolio.getDescription())
                     .history(portfolio.isHiddenValue() ?
-                            portfolioHistoryService.getUserProfitLossHistory(portfolio.getUser(), HistoryType.MONTHLY).toArray(DateValueDTO[]::new) :
-                            portfolioHistoryService.getUserPerformanceHistory(portfolio.getUser(), HistoryType.MONTHLY).toArray(DateValueDTO[]::new))
+                            portfolioHistoryService.getUserPerformanceHistory(portfolio.getUser(), HistoryType.MONTHLY).toArray(DateValueDTO[]::new) :
+                            portfolioHistoryService.getUserProfitLossHistory(portfolio.getUser(), HistoryType.MONTHLY).toArray(DateValueDTO[]::new))
                     .build()
         ).toArray(PublicPortfolioDTO[]::new);
 
@@ -66,8 +64,8 @@ public class PublicPortfolioService {
                 .title(portfolio.getTitle())
                 .description(portfolio.getDescription())
                 .history(portfolio.isHiddenValue() ?
-                        portfolioHistoryService.getUserProfitLossHistory(portfolio.getUser(), HistoryType.MONTHLY).toArray(DateValueDTO[]::new) :
-                        portfolioHistoryService.getUserPerformanceHistory(portfolio.getUser(), HistoryType.MONTHLY).toArray(DateValueDTO[]::new))
+                        portfolioHistoryService.getUserPerformanceHistory(portfolio.getUser(), HistoryType.MONTHLY).toArray(DateValueDTO[]::new) :
+                        portfolioHistoryService.getUserProfitLossHistory(portfolio.getUser(), HistoryType.MONTHLY).toArray(DateValueDTO[]::new))
                 .build();
     }
 
@@ -153,12 +151,15 @@ public class PublicPortfolioService {
     }
 
     public void deleteComment(User user, String id) throws BusinessLogicException {
-        Comment comment = commentRepository.findById(id).orElseThrow(EntityNotFoundException::new);
-
-        if (!comment.getUser().getId().equals(user.getId()) && !comment.getPortfolio().getUser().getId().equals(user.getId())) {
-            throw new BusinessLogicException(String.format("user: %s cannot delete comment: %s", user.getId(), comment.getId()));
+        Optional<Comment> comment = commentRepository.findById(id);
+        if (comment.isEmpty()) {
+            return;
         }
 
-        commentRepository.delete(comment);
+        if (!comment.get().getUser().getId().equals(user.getId()) && !comment.get().getPortfolio().getUser().getId().equals(user.getId())) {
+            throw new BusinessLogicException(String.format("user: %s cannot delete comment: %s", user.getId(), comment.get().getId()));
+        }
+
+        commentRepository.delete(comment.get());
     }
 }
