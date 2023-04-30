@@ -5,7 +5,7 @@ public enum InvestmentUpdateType {
     SPECTROCOIN("SpectroCoin account"),
     ETHEREUM_WALLET("Ethereum wallet"),
     DAILY("Periodic (daily)"),
-    WEEKLY("Periodic (wekkly)"),
+    WEEKLY("Periodic (weekly)"),
     MONTHLY("Periodic (monthly)"),
     QUARTERLY("Periodic (quarterly)"),
     YEARLY("Periodic (yearly)");
