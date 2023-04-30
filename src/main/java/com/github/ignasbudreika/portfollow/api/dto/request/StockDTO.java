@@ -1,12 +1,16 @@
 package com.github.ignasbudreika.portfollow.api.dto.request;
 
 import com.github.ignasbudreika.portfollow.enums.PeriodicInvestmentPeriod;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class StockDTO {
     private String ticker;
     private PeriodicInvestmentPeriod period;
