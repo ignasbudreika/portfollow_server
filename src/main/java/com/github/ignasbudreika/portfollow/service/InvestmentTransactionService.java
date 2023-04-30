@@ -8,9 +8,8 @@ import com.github.ignasbudreika.portfollow.model.InvestmentTransaction;
 import com.github.ignasbudreika.portfollow.model.User;
 import com.github.ignasbudreika.portfollow.repository.InvestmentRepository;
 import com.github.ignasbudreika.portfollow.repository.InvestmentTransactionRepository;
-import com.github.ignasbudreika.portfollow.repository.PortfolioHistoryRepository;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -20,21 +19,17 @@ import java.util.stream.Collectors;
 
 @Slf4j
 @Service
+@AllArgsConstructor
 public class InvestmentTransactionService {
-    @Autowired
     private InvestmentTransactionRepository transactionRepository;
-    @Autowired
     private InvestmentRepository investmentRepository;
-    @Autowired
     private PortfolioHistoryService portfolioHistoryService;
-    @Autowired
-    private PortfolioHistoryRepository portfolioHistoryRepository;
 
     public InvestmentTransaction createTransaction(Investment investment, BigDecimal quantity, InvestmentTransactionType type, LocalDate date) throws BusinessLogicException {
         log.info("creating: {} transaction for investment: {}", type, investment.getId());
 
         if (date.isBefore(LocalDate.of(2023, 1, 1))) {
-            throw new BusinessLogicException("only investments made since 2023-01-01 are supported");
+            throw new BusinessLogicException("only transactions made since 2023-01-01 are supported");
         }
 
         if (type.equals(InvestmentTransactionType.SELL) && (investment.getLowestQuantitySince(date).compareTo(quantity) < 0)) {
