@@ -269,7 +269,7 @@ public class AssetService {
             return asset.getPrice();
         }
 
-        AssetHistory history = assetHistoryRepository.findFirstByAssetIdAndDateBeforeOrderByDateDesc(asset.getId(), date);
+        AssetHistory history = assetHistoryRepository.findFirstByAssetIdAndDateLessThanEqualOrderByDateDesc(asset.getId(), date);
         if (history == null) {
             return asset.getPrice();
         }

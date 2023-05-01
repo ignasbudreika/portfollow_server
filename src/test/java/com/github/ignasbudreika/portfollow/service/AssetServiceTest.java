@@ -67,7 +67,7 @@ class AssetServiceTest {
         BigDecimal result = target.getLatestAssetPriceForDate(asset, LocalDate.now());
 
 
-        verify(assetHistoryRepository, never()).findFirstByAssetIdAndDateBeforeOrderByDateDesc(eq(ASSET_ID), any(LocalDate.class));
+        verify(assetHistoryRepository, never()).findFirstByAssetIdAndDateLessThanEqualOrderByDateDesc(eq(ASSET_ID), any(LocalDate.class));
 
         Assertions.assertEquals(ASSET_PRICE, result);
     }
@@ -84,7 +84,7 @@ class AssetServiceTest {
         BigDecimal result = target.getLatestAssetPriceForDate(asset, DATE);
 
 
-        verify(assetHistoryRepository).findFirstByAssetIdAndDateBeforeOrderByDateDesc(ASSET_ID, DATE);
+        verify(assetHistoryRepository).findFirstByAssetIdAndDateLessThanEqualOrderByDateDesc(ASSET_ID, DATE);
 
         Assertions.assertEquals(ASSET_PRICE, result);
     }
@@ -101,13 +101,13 @@ class AssetServiceTest {
                 .date(DATE)
                 .price(BigDecimal.valueOf(11)).build();
 
-        when(assetHistoryRepository.findFirstByAssetIdAndDateBeforeOrderByDateDesc(ASSET_ID, DATE)).thenReturn(assetHistory);
+        when(assetHistoryRepository.findFirstByAssetIdAndDateLessThanEqualOrderByDateDesc(ASSET_ID, DATE)).thenReturn(assetHistory);
 
 
         BigDecimal result = target.getLatestAssetPriceForDate(asset, DATE);
 
 
-        verify(assetHistoryRepository).findFirstByAssetIdAndDateBeforeOrderByDateDesc(ASSET_ID, DATE);
+        verify(assetHistoryRepository).findFirstByAssetIdAndDateLessThanEqualOrderByDateDesc(ASSET_ID, DATE);
 
         Assertions.assertEquals(assetHistory.getPrice(), result);
     }
