@@ -69,7 +69,6 @@ public class SpectroCoinService {
 
         return SpectroCoinConnectionDTO.builder()
                 .clientId(connection.getClientId())
-                // todo reuse datetimeformatter throughout the project -> create date utils
                 .lastFetched(connection.getLastFetched().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")))
                 .status(connection.getStatus()).build();
     }

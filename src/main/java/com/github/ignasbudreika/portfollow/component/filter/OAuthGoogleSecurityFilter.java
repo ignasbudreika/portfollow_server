@@ -71,7 +71,6 @@ public class OAuthGoogleSecurityFilter implements Filter {
         }
         User user = userService.getByGoogleId(verified.getPayload().getSubject());
 
-        // todo improve this flow
         UserDetails userDetails = new org.springframework.security.core.userdetails.User(user.getGoogleId(),
                 "", List.of(new SimpleGrantedAuthority("USER")));
 

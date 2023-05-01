@@ -23,8 +23,7 @@ public class AlphaVantageClient {
     private static final String QUERY_PARAM_FUNCTION = "function";
     private static final String QUERY_PARAM_FUNCTION_GLOBAL_QUOTE = "GLOBAL_QUOTE";
     private static final String QUERY_PARAM_FUNCTION_CURRENCY_EXCHANGE_RATE = "CURRENCY_EXCHANGE_RATE";
-    private static final String QUERY_PARAM_TIME_SERIES_DAILY = "TIME_SERIES_DAILY";
-    // todo use this TIME_SERIES_DAILY_ADJUSTED
+    private static final String QUERY_PARAM_TIME_SERIES_DAILY = "TIME_SERIES_DAILY_ADJUSTED";
     private static final String QUERY_PARAM_FUNCTION_FX_DAILY = "FX_DAILY";
     private static final String QUERY_PARAM_FUNCTION_DIGITAL_CURRENCY_DAILY = "DIGITAL_CURRENCY_DAILY";
     private static final String QUERY_PARAM_CURRENCY_FROM = "from_currency";
