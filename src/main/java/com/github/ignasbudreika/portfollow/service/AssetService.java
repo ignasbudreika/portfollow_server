@@ -255,7 +255,7 @@ public class AssetService {
             AssetHistory history = assetHistoryRepository.findByAssetIdAndDate(asset.getId(), date.minusDays(1));
             if (history == null) {
                 log.info("saving asset: {} price: {} for: {}", asset.getId(), priceForHistory, date.minusDays(1));
-                assetHistoryRepository.save(AssetHistory.builder().asset(asset).date(date).price(priceForHistory).build());
+                assetHistoryRepository.save(AssetHistory.builder().asset(asset).date(date.minusDays(1)).price(priceForHistory).build());
             } else {
                 log.info("updating asset: {} price: {} for: {}", asset.getId(), priceForHistory, date.minusDays(1));
                 history.setPrice(priceForHistory);
