@@ -262,7 +262,7 @@ public class InvestmentService {
                 investment.getUpdateType() != InvestmentUpdateType.MANUAL
                         && investment.getUpdateType() != InvestmentUpdateType.SPECTROCOIN
                         && investment.getUpdateType() != InvestmentUpdateType.ETHEREUM_WALLET
-                        && investment.getUpdateType().equals(InvestmentUpdateType.ALPACA)).forEach(investment -> {
+                        && investment.getUpdateType() != InvestmentUpdateType.ALPACA).forEach(investment -> {
                             InvestmentTransaction lastTx = investment.getTransactions().stream()
                                     .sorted(Comparator.comparing(InvestmentTransaction::getDate).reversed())
                                     .findFirst().get();
