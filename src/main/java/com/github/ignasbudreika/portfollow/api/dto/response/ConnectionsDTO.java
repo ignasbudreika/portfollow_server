@@ -11,4 +11,6 @@ public class ConnectionsDTO {
     private SpectroCoinConnectionDTO spectroCoinConnection;
     @JsonProperty("ethereum")
     private EthereumWalletConnectionDTO ethereumWalletConnection;
+    @JsonProperty("alpaca")
+    private AlpacaConnectionDTO alpacaConnection;
 }

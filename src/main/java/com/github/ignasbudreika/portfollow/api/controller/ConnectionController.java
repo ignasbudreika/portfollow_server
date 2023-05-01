@@ -1,11 +1,14 @@
 package com.github.ignasbudreika.portfollow.api.controller;
 
+import com.github.ignasbudreika.portfollow.api.dto.request.CreateAlpacaConnectionDTO;
 import com.github.ignasbudreika.portfollow.api.dto.request.CreateEthereumWalletConnectionDTO;
 import com.github.ignasbudreika.portfollow.api.dto.request.CreateSpectroCoinConnectionDTO;
+import com.github.ignasbudreika.portfollow.api.dto.response.AlpacaConnectionDTO;
 import com.github.ignasbudreika.portfollow.api.dto.response.ConnectionsDTO;
 import com.github.ignasbudreika.portfollow.api.dto.response.EthereumWalletConnectionDTO;
 import com.github.ignasbudreika.portfollow.api.dto.response.SpectroCoinConnectionDTO;
 import com.github.ignasbudreika.portfollow.model.User;
+import com.github.ignasbudreika.portfollow.service.AlpacaService;
 import com.github.ignasbudreika.portfollow.service.EthereumWalletService;
 import com.github.ignasbudreika.portfollow.service.SpectroCoinService;
 import com.github.ignasbudreika.portfollow.service.UserService;
@@ -23,6 +26,8 @@ public class ConnectionController {
     private SpectroCoinService spectroCoinService;
     @Autowired
     private EthereumWalletService walletService;
+    @Autowired
+    private AlpacaService alpacaService;
 
     @GetMapping
     public ResponseEntity<ConnectionsDTO> getConnections() {
@@ -30,10 +35,12 @@ public class ConnectionController {
 
         SpectroCoinConnectionDTO spectro = spectroCoinService.getConnection(user.getId());
         EthereumWalletConnectionDTO ethereumWallet = walletService.getConnectionByUserId(user.getId());
+        AlpacaConnectionDTO alpaca = alpacaService.getConnection(user.getId());
 
         return ResponseEntity.ok(ConnectionsDTO.builder()
                 .spectroCoinConnection(spectro)
-                .ethereumWalletConnection(ethereumWallet).build());
+                .ethereumWalletConnection(ethereumWallet)
+                .alpacaConnection(alpaca).build());
     }
 
     @PostMapping("/spectrocoin")
@@ -86,6 +93,33 @@ public class ConnectionController {
         User user = userService.getByGoogleId(SecurityContextHolder.getContext().getAuthentication().getName());
 
         walletService.removeConnection(user);
+
+        return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/alpaca")
+    public ResponseEntity connectAlpaca(@RequestBody CreateAlpacaConnectionDTO alpacaConnectionDTO) throws Exception {
+        User user = userService.getByGoogleId(SecurityContextHolder.getContext().getAuthentication().getName());
+
+        alpacaService.addConnection(alpacaConnectionDTO, user);
+
+        return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/alpaca/fetch")
+    public ResponseEntity fetchPositions() {
+        User user = userService.getByGoogleId(SecurityContextHolder.getContext().getAuthentication().getName());
+
+        alpacaService.fetchPositions(user);
+
+        return ResponseEntity.noContent().build();
+    }
+
+    @DeleteMapping("/alpaca")
+    public ResponseEntity removeAlpacaConnection() {
+        User user = userService.getByGoogleId(SecurityContextHolder.getContext().getAuthentication().getName());
+
+        alpacaService.removeConnection(user);
 
         return ResponseEntity.noContent().build();
     }

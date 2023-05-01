@@ -30,7 +30,6 @@ public class AlphaVantageClient {
     private static final String QUERY_PARAM_CURRENCY_TO = "to_currency";
     private static final String QUERY_PARAM_SYMBOL_FROM = "from_symbol";
     private static final String QUERY_PARAM_SYMBOL_TO = "to_symbol";
-    // todo add all prices conversion to eur
     private static final String QUERY_PARAM_CURRENCY_TO_EUR = "EUR";
     private static final String QUERY_PARAM_CURRENCY_TO_USD = "USD";
     private static final String QUERY_PARAM_SYMBOL_TO_EUR = "EUR";

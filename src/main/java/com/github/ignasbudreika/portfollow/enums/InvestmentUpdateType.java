@@ -4,6 +4,7 @@ public enum InvestmentUpdateType {
     MANUAL("Manual"),
     SPECTROCOIN("SpectroCoin account"),
     ETHEREUM_WALLET("Ethereum wallet"),
+    ALPACA("Alpaca account"),
     DAILY("Periodic (daily)"),
     WEEKLY("Periodic (weekly)"),
     MONTHLY("Periodic (monthly)"),

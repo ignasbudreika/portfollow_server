@@ -237,7 +237,8 @@ public class InvestmentService {
 
         if (inv.getUpdateType().equals(InvestmentUpdateType.MANUAL)
                 || inv.getUpdateType().equals(InvestmentUpdateType.SPECTROCOIN)
-                || inv.getUpdateType().equals(InvestmentUpdateType.ETHEREUM_WALLET)) {
+                || inv.getUpdateType().equals(InvestmentUpdateType.ETHEREUM_WALLET)
+                || inv.getUpdateType().equals(InvestmentUpdateType.ALPACA)) {
             return;
         }
 
@@ -260,7 +261,8 @@ public class InvestmentService {
         investmentRepository.findAllByUserId(user.getId()).stream().filter(investment ->
                 investment.getUpdateType() != InvestmentUpdateType.MANUAL
                         && investment.getUpdateType() != InvestmentUpdateType.SPECTROCOIN
-                        && investment.getUpdateType() != InvestmentUpdateType.ETHEREUM_WALLET).forEach(investment -> {
+                        && investment.getUpdateType() != InvestmentUpdateType.ETHEREUM_WALLET
+                        && investment.getUpdateType().equals(InvestmentUpdateType.ALPACA)).forEach(investment -> {
                             InvestmentTransaction lastTx = investment.getTransactions().stream()
                                     .sorted(Comparator.comparing(InvestmentTransaction::getDate).reversed())
                                     .findFirst().get();

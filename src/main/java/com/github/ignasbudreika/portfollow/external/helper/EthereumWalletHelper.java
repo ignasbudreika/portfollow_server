@@ -17,8 +17,6 @@ public class EthereumWalletHelper {
     @Value("${web3j.http.service.url}")
     private String serviceUrl;
 
-    // todo consider using builder with scheduled executor
-
     public BigDecimal getWalletBalanceInEther(String address) throws IOException {
         EthGetBalance balance = Web3j.build(new HttpService(serviceUrl)).ethGetBalance(address, DefaultBlockParameterName.LATEST).send();
         BigInteger weiBalance = balance.getBalance();
