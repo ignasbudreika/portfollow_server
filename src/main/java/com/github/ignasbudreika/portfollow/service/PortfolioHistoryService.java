@@ -85,9 +85,7 @@ public class PortfolioHistoryService {
                 ).reduce(BigDecimal.ZERO, BigDecimal::add).setScale(2, RoundingMode.HALF_UP);
         boolean isEmpty = !investmentRepository.existsByUserId(user.getId());
 
-        PortfolioHistory lastDaysPortfolioHistory = portfolioHistoryRepository.findFirstByUserIdAndDateBeforeOrderByDateDesc(user.getId(), LocalDateTime.now().toLocalDate());
-
-        if (portfolioHistory == null || lastDaysPortfolioHistory == null || lastDaysPortfolioHistory.getValue().compareTo(BigDecimal.ZERO) == 0) {
+        if (portfolioHistory == null) {
             return PortfolioDTO.builder()
                     .isEmpty(isEmpty)
                     .totalValue(totalValue)
