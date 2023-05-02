@@ -13,18 +13,6 @@ import org.springframework.stereotype.Service;
 public class UserService {
     private UserRepository repo;
 
-    public boolean existsById(String id) {
-        return repo.existsById(id);
-    }
-
-    public boolean existsByEmail(String email) {
-        return repo.existsByEmail(email);
-    }
-
-    public User getByEmail(String email) {
-        return repo.getByEmail(email);
-    }
-
     public boolean existsByGoogleId(String googleId) {
         return repo.existsByGoogleId(googleId);
     }

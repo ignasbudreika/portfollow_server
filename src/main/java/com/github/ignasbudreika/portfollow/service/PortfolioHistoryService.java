@@ -1,36 +1,30 @@
 package com.github.ignasbudreika.portfollow.service;
 
 import com.github.ignasbudreika.portfollow.api.dto.response.PortfolioDTO;
-import com.github.ignasbudreika.portfollow.api.dto.response.PortfolioDistributionDTO;
 import com.github.ignasbudreika.portfollow.api.dto.response.DateValueDTO;
 import com.github.ignasbudreika.portfollow.enums.HistoryType;
 import com.github.ignasbudreika.portfollow.enums.InvestmentTransactionType;
-import com.github.ignasbudreika.portfollow.enums.InvestmentType;
 import com.github.ignasbudreika.portfollow.model.*;
 import com.github.ignasbudreika.portfollow.repository.InvestmentRepository;
 import com.github.ignasbudreika.portfollow.repository.PortfolioHistoryRepository;
 import jakarta.transaction.Transactional;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
 @Slf4j
 @Service
+@AllArgsConstructor
 public class PortfolioHistoryService {
-    @Autowired
     private AssetService assetService;
-    @Autowired
     private StatisticsService statisticsService;
-    @Autowired
     private PortfolioHistoryRepository portfolioHistoryRepository;
-    @Autowired
     private InvestmentRepository investmentRepository;
 
     @Transactional
@@ -67,31 +61,32 @@ public class PortfolioHistoryService {
         return portfolioHistoryRepository.save(portfolioHistory);
     }
 
-    public void initPortfolio(Portfolio portfolio) {
-        for (LocalDate date = LocalDate.now(); date.isAfter(LocalDate.now().minusDays(7)); date = date.minusDays(1)) {
+    public void initPortfolio(User user) {
+        LocalDate since = LocalDate.now().minusDays(7);
+        for (LocalDate date = LocalDate.now(); date.isAfter(since); date = date.minusDays(1)) {
             portfolioHistoryRepository.save(PortfolioHistory.builder()
                     .date(date)
-                    .user(portfolio.getUser())
+                    .user(user)
                     .value(BigDecimal.ZERO).build());
         }
     }
 
     public PortfolioDTO getUserPortfolio(User user) {
         PortfolioHistory portfolioHistory = portfolioHistoryRepository.findFirstByUserIdOrderByDateDesc(user.getId());
-        BigDecimal totalValue = portfolioHistory == null ?
-                BigDecimal.ZERO :
-                portfolioHistory.getInvestments().stream().map(investment ->
-                    investment.getQuantityAt(LocalDate.now()).multiply(investment.getAsset().getPrice())
-                ).reduce(BigDecimal.ZERO, BigDecimal::add).setScale(2, RoundingMode.HALF_UP);
+
         boolean isEmpty = !investmentRepository.existsByUserId(user.getId());
 
         if (portfolioHistory == null) {
             return PortfolioDTO.builder()
                     .isEmpty(isEmpty)
-                    .totalValue(totalValue)
+                    .totalValue(BigDecimal.ZERO.setScale(2, RoundingMode.HALF_UP))
                     .totalChange(BigDecimal.ZERO.setScale(2, RoundingMode.HALF_UP))
                     .trend(BigDecimal.ZERO.setScale(2, RoundingMode.HALF_UP)).build();
         }
+
+        BigDecimal totalValue = portfolioHistory.getInvestments().stream().map(investment ->
+                investment.getQuantityAt(LocalDate.now()).multiply(investment.getAsset().getPrice())
+        ).reduce(BigDecimal.ZERO, BigDecimal::add).setScale(2, RoundingMode.HALF_UP);
 
         Collection<Investment> investments = investmentRepository.findAllByUserId(user.getId());
 

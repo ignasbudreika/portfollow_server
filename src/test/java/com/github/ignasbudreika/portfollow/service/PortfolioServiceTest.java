@@ -38,7 +38,7 @@ class PortfolioServiceTest {
         Assertions.assertEquals(user, captor.getValue().getUser());
         Assertions.assertFalse(captor.getValue().isPublished());
         Assertions.assertTrue(captor.getValue().isHiddenValue());
-        verify(historyService).initPortfolio(any(Portfolio.class));
+        verify(historyService).initPortfolio(any(User.class));
 
         Assertions.assertEquals(user, result.getUser());
     }

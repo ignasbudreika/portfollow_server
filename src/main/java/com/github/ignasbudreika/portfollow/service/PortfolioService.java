@@ -26,7 +26,7 @@ public class PortfolioService {
                 .hiddenValue(true)
                 .published(false).build());
 
-        historyService.initPortfolio(portfolio);
+        historyService.initPortfolio(user);
 
         return portfolio;
     }
