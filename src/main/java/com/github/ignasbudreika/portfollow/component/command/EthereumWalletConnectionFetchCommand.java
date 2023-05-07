@@ -19,7 +19,7 @@ public class EthereumWalletConnectionFetchCommand {
     @Autowired
     private EthereumWalletService walletService;
 
-    @Scheduled(cron = "0 10 * * * *")
+    @Scheduled(cron = "0 6 * * * *")
     public void fetchEthereumWalletConnections() {
         log.info("fetching Ethereum wallet connections. Current time: {}", LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS));
 

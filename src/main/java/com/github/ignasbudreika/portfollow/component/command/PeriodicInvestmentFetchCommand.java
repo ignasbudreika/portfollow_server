@@ -20,7 +20,7 @@ public class PeriodicInvestmentFetchCommand {
     @Autowired
     private UserService userService;
 
-    @Scheduled(cron = "0 15 * * * *")
+    @Scheduled(cron = "0 8 * * * *")
     public void fetchPeriodicInvestments() {
         log.info("fetching periodic investments. Current time: {}", LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS));
 
