@@ -34,10 +34,11 @@ class SpectroCoinServiceTest {
     private static final String CONNECTION_ID = "799ccaeb-758c-46bf-bc43-487847df5554";
     private static final String CURRENCY_CODE = "ETH";
 
+    private final String supportedCryptocurrencies = "BTC,ETH,SHIB,USDT";
     private final SpectroCoinConnectionRepository spectroCoinConnectionRepository = mock(SpectroCoinConnectionRepository.class);
     private final InvestmentService investmentService = mock(InvestmentService.class);
     private final SpectroCoinClient spectroCoinClient = mock(SpectroCoinClient.class);
-    private final SpectroCoinService target = new SpectroCoinService(spectroCoinConnectionRepository, investmentService, spectroCoinClient);
+    private final SpectroCoinService target = new SpectroCoinService(supportedCryptocurrencies, spectroCoinConnectionRepository, investmentService, spectroCoinClient);
 
     @Test
     void shouldThrowEntityExistsException_whenActiveSpectroCoinConnectionExistsForUser() {
