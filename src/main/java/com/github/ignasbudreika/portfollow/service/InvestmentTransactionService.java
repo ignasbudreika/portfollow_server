@@ -37,7 +37,7 @@ public class InvestmentTransactionService {
                     investment.getId(), date));
         }
 
-        return transactionRepository.saveAndFlush(InvestmentTransaction.builder()
+        return transactionRepository.save(InvestmentTransaction.builder()
                 .investment(investment)
                 .quantity(quantity)
                 .type(type)

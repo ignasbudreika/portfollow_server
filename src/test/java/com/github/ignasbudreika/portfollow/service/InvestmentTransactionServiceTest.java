@@ -47,13 +47,13 @@ class InvestmentTransactionServiceTest {
 
         InvestmentTransaction tx = InvestmentTransaction.builder().type(InvestmentTransactionType.BUY).quantity(QUANTITY).date(date).build();
 
-        when(transactionRepository.saveAndFlush(any(InvestmentTransaction.class))).thenReturn(tx);
+        when(transactionRepository.save(any(InvestmentTransaction.class))).thenReturn(tx);
 
 
         InvestmentTransaction result = target.createTransaction(investmentWithTx, QUANTITY, InvestmentTransactionType.BUY, date);
 
 
-        verify(transactionRepository).saveAndFlush(any(InvestmentTransaction.class));
+        verify(transactionRepository).save(any(InvestmentTransaction.class));
 
         Assertions.assertEquals(QUANTITY, result.getQuantity());
         Assertions.assertEquals(InvestmentTransactionType.BUY, result.getType());
@@ -76,7 +76,7 @@ class InvestmentTransactionServiceTest {
         Assertions.assertThrows(BusinessLogicException.class,  () -> target.createTransaction(investmentWithTx, QUANTITY, InvestmentTransactionType.BUY, date));
 
 
-        verify(transactionRepository, never()).saveAndFlush(any(InvestmentTransaction.class));
+        verify(transactionRepository, never()).save(any(InvestmentTransaction.class));
     }
 
     @Test
@@ -95,7 +95,7 @@ class InvestmentTransactionServiceTest {
         Assertions.assertThrows(BusinessLogicException.class,  () -> target.createTransaction(investmentWithTx, QUANTITY.add(BigDecimal.ONE), InvestmentTransactionType.SELL, date));
 
 
-        verify(transactionRepository, never()).saveAndFlush(any(InvestmentTransaction.class));
+        verify(transactionRepository, never()).save(any(InvestmentTransaction.class));
     }
 
     @Test
