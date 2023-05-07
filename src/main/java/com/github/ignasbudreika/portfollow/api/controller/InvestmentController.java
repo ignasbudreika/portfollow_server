@@ -9,6 +9,7 @@ import com.github.ignasbudreika.portfollow.model.User;
 import com.github.ignasbudreika.portfollow.service.InvestmentService;
 import com.github.ignasbudreika.portfollow.service.InvestmentTransactionService;
 import com.github.ignasbudreika.portfollow.service.UserService;
+import jakarta.validation.Valid;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -39,7 +40,7 @@ public class InvestmentController {
     }
 
     @PostMapping("/{id}/tx")
-    public ResponseEntity addTransaction(@PathVariable(name = "id") String id, @RequestBody CreateTransactionDTO tx) throws BusinessLogicException, UnauthorizedException {
+    public ResponseEntity addTransaction(@PathVariable(name = "id") String id, @Valid @RequestBody CreateTransactionDTO tx) throws BusinessLogicException, UnauthorizedException {
         User user = userService.getByGoogleId(SecurityContextHolder.getContext().getAuthentication().getName());
 
         investmentService.addTransaction(id, tx, user);

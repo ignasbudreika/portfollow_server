@@ -32,7 +32,7 @@ public class PortfolioHistoryService {
         LocalDate date = LocalDate.now();
         PortfolioHistory portfolioHistory = portfolioHistoryRepository.findFirstByUserIdAndDate(userId, date);
         if (portfolioHistory == null) {
-            PortfolioHistory lastDaysPortfolioHistory = portfolioHistoryRepository.findFirstByUserIdAndDateBeforeOrderByDateDesc(userId, date);
+            PortfolioHistory lastDaysPortfolioHistory = portfolioHistoryRepository.findFirstByUserIdAndDateLessThanEqualOrderByDateDesc(userId, date);
             if (lastDaysPortfolioHistory == null) {
                 return portfolioHistoryRepository.save(PortfolioHistory.builder()
                         .user(User.builder().id(userId).build())
@@ -247,7 +247,7 @@ public class PortfolioHistoryService {
 
                 portfolioHistory.setValue(totalValue);
             } else {
-                PortfolioHistory lastDaysPortfolioHistory = portfolioHistoryRepository.findFirstByUserIdAndDate(investment.getUser().getId(), date.minusDays(1));
+                PortfolioHistory lastDaysPortfolioHistory = portfolioHistoryRepository.findFirstByUserIdAndDateLessThanEqualOrderByDateDesc(investment.getUser().getId(), date.minusDays(1));
                 if (lastDaysPortfolioHistory != null) {
                     Collection<Investment> investments = lastDaysPortfolioHistory.getInvestments()
                             .stream().filter(i -> !i.getId().equals(investment.getId())).collect(Collectors.toList());

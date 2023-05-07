@@ -1,6 +1,7 @@
 package com.github.ignasbudreika.portfollow.api.dto.request;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import jakarta.validation.constraints.NotEmpty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -11,8 +12,10 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class CreateSpectroCoinConnectionDTO {
+    @NotEmpty(message = "client ID is required")
     @JsonProperty("client_id")
     private String clientId;
+    @NotEmpty(message = "client secret is required")
     @JsonProperty("client_secret")
     private String clientSecret;
 }

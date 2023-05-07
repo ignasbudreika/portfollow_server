@@ -6,6 +6,7 @@ import com.github.ignasbudreika.portfollow.exception.BusinessLogicException;
 import com.github.ignasbudreika.portfollow.model.User;
 import com.github.ignasbudreika.portfollow.service.PublicPortfolioService;
 import com.github.ignasbudreika.portfollow.service.UserService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -42,7 +43,7 @@ public class PublicPortfolioController {
     }
 
     @PostMapping("/{id}/comment")
-    public ResponseEntity comment(@PathVariable(value = "id") String id, @RequestBody CommentDTO commentDTO) throws BusinessLogicException {
+    public ResponseEntity comment(@PathVariable(value = "id") String id, @Valid @RequestBody CommentDTO commentDTO) throws BusinessLogicException {
         User user = userService.getByGoogleId(SecurityContextHolder.getContext().getAuthentication().getName());
 
         portfolioService.comment(user, id, commentDTO);

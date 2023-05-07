@@ -7,6 +7,7 @@ import com.github.ignasbudreika.portfollow.exception.BusinessLogicException;
 import com.github.ignasbudreika.portfollow.model.User;
 import com.github.ignasbudreika.portfollow.service.CurrencyService;
 import com.github.ignasbudreika.portfollow.service.UserService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -25,7 +26,7 @@ public class CurrencyController {
     private CurrencyService currencyService;
 
     @PostMapping
-    public CurrencyInvestmentDTO createCurrencyInvestment(@RequestBody CurrencyDTO currencyDTO) throws BusinessLogicException, URISyntaxException, IOException, InterruptedException {
+    public CurrencyInvestmentDTO createCurrencyInvestment(@Valid @RequestBody CurrencyDTO currencyDTO) throws BusinessLogicException, URISyntaxException, IOException, InterruptedException {
         User user = userService.getByGoogleId(SecurityContextHolder.getContext().getAuthentication().getName());
 
         return currencyService.createCurrencyInvestment(currencyDTO, user);

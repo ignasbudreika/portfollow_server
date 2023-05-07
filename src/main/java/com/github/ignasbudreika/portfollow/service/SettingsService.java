@@ -31,7 +31,6 @@ public class SettingsService {
                         .description(portfolio.getDescription())
                         .isPublic(portfolio.isPublished())
                         .revealValue(!portfolio.isHiddenValue())
-                        .currencyEur(portfolio.isCurrencyEur())
                         .allowedUsers(portfolio.getAllowedUsers() == null ?
                                 new String[]{} :
                                 portfolio.getAllowedUsers().split(",")).build())
@@ -51,7 +50,6 @@ public class SettingsService {
         portfolio.setDescription(settings.getDescription());
         portfolio.setPublished(settings.isPublic());
         portfolio.setHiddenValue(settings.isHideValue());
-        portfolio.setCurrencyEur(settings.isCurrencyEur());
         portfolio.setAllowedUsers(settings.getAllowedUsers());
 
         portfolioRepository.save(portfolio);
@@ -66,7 +64,6 @@ public class SettingsService {
                         .description(portfolio.getDescription())
                         .isPublic(portfolio.isPublished())
                         .revealValue(!portfolio.isHiddenValue())
-                        .currencyEur(portfolio.isCurrencyEur())
                         .allowedUsers(portfolio.getAllowedUsers() == null ?
                                 new String[]{} :
                                 portfolio.getAllowedUsers().split(",")).build())

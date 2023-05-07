@@ -499,6 +499,7 @@ class InvestmentServiceTest {
                 .date(LocalDate.now())
                 .type(InvestmentType.CRYPTO)
                 .connectionId(CONNECTION_ID)
+                .updateType(MANUAL)
                 .transactions(Set.of(InvestmentTransaction.builder().type(InvestmentTransactionType.BUY).date(LocalDate.now()).quantity(BigDecimal.TEN).build()))
                 .quantity(QUANTITY).build();
 

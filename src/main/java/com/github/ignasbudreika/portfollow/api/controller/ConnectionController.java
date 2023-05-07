@@ -12,6 +12,7 @@ import com.github.ignasbudreika.portfollow.service.AlpacaService;
 import com.github.ignasbudreika.portfollow.service.EthereumWalletService;
 import com.github.ignasbudreika.portfollow.service.SpectroCoinService;
 import com.github.ignasbudreika.portfollow.service.UserService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -44,7 +45,7 @@ public class ConnectionController {
     }
 
     @PostMapping("/spectrocoin")
-    public ResponseEntity connectSpectroCoin(@RequestBody CreateSpectroCoinConnectionDTO connectionDTO) throws Exception {
+    public ResponseEntity connectSpectroCoin(@Valid @RequestBody CreateSpectroCoinConnectionDTO connectionDTO) throws Exception {
         User user = userService.getByGoogleId(SecurityContextHolder.getContext().getAuthentication().getName());
 
         spectroCoinService.addConnection(connectionDTO, user);
@@ -71,7 +72,7 @@ public class ConnectionController {
     }
 
     @PostMapping("/ethereum")
-    public ResponseEntity connectEthereumWallet(@RequestBody CreateEthereumWalletConnectionDTO walletConnectionDTO) throws Exception {
+    public ResponseEntity connectEthereumWallet(@Valid @RequestBody CreateEthereumWalletConnectionDTO walletConnectionDTO) throws Exception {
         User user = userService.getByGoogleId(SecurityContextHolder.getContext().getAuthentication().getName());
 
         walletService.addConnection(walletConnectionDTO, user);
@@ -98,7 +99,7 @@ public class ConnectionController {
     }
 
     @PostMapping("/alpaca")
-    public ResponseEntity connectAlpaca(@RequestBody CreateAlpacaConnectionDTO alpacaConnectionDTO) throws Exception {
+    public ResponseEntity connectAlpaca(@Valid @RequestBody CreateAlpacaConnectionDTO alpacaConnectionDTO) throws Exception {
         User user = userService.getByGoogleId(SecurityContextHolder.getContext().getAuthentication().getName());
 
         alpacaService.addConnection(alpacaConnectionDTO, user);

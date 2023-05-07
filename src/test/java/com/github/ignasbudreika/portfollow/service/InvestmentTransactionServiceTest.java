@@ -2,6 +2,7 @@ package com.github.ignasbudreika.portfollow.service;
 
 import com.github.ignasbudreika.portfollow.enums.InvestmentTransactionType;
 import com.github.ignasbudreika.portfollow.enums.InvestmentType;
+import com.github.ignasbudreika.portfollow.enums.InvestmentUpdateType;
 import com.github.ignasbudreika.portfollow.exception.BusinessLogicException;
 import com.github.ignasbudreika.portfollow.exception.UnauthorizedException;
 import com.github.ignasbudreika.portfollow.model.Investment;
@@ -117,6 +118,7 @@ class InvestmentTransactionServiceTest {
                 .user(user)
                 .date(LocalDate.of(2023, 1, 1))
                 .type(InvestmentType.CRYPTO)
+                .updateType(InvestmentUpdateType.MANUAL)
                 .transactions(Set.of(tx))
                 .quantity(QUANTITY).build();
 
@@ -159,6 +161,7 @@ class InvestmentTransactionServiceTest {
                 .user(user)
                 .date(LocalDate.of(2023, 1, 1))
                 .type(InvestmentType.CRYPTO)
+                .updateType(InvestmentUpdateType.MANUAL)
                 .transactions(Set.of(buyTx, sellTx))
                 .quantity(QUANTITY).build();
 

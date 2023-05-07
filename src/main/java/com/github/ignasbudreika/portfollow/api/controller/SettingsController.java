@@ -5,6 +5,7 @@ import com.github.ignasbudreika.portfollow.api.dto.response.SettingsDTO;
 import com.github.ignasbudreika.portfollow.model.User;
 import com.github.ignasbudreika.portfollow.service.SettingsService;
 import com.github.ignasbudreika.portfollow.service.UserService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -26,7 +27,7 @@ public class SettingsController {
     }
 
     @PatchMapping
-    public ResponseEntity<SettingsDTO> updateUserSettings(@RequestBody SettingsUpdateDTO settings) {
+    public ResponseEntity<SettingsDTO> updateUserSettings(@Valid @RequestBody SettingsUpdateDTO settings) {
         User user = userService.getByGoogleId(SecurityContextHolder.getContext().getAuthentication().getName());
 
         return ResponseEntity.ok(settingsService.updateUserSettings(settings, user));

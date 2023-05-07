@@ -7,6 +7,7 @@ import com.github.ignasbudreika.portfollow.exception.BusinessLogicException;
 import com.github.ignasbudreika.portfollow.model.User;
 import com.github.ignasbudreika.portfollow.service.StockService;
 import com.github.ignasbudreika.portfollow.service.UserService;
+import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -41,7 +42,7 @@ public class StockController {
     }
 
     @PostMapping
-    public ResponseEntity<StockInvestmentDTO> createStockInvestment(@RequestBody StockDTO stock) throws BusinessLogicException, URISyntaxException, IOException, InterruptedException {
+    public ResponseEntity<StockInvestmentDTO> createStockInvestment(@Valid @RequestBody StockDTO stock) throws BusinessLogicException, URISyntaxException, IOException, InterruptedException {
         User user = userService.getByGoogleId(SecurityContextHolder.getContext().getAuthentication().getName());
 
         return ResponseEntity.ok(stockService.createStockInvestment(stock, user));

@@ -5,6 +5,7 @@ import com.github.ignasbudreika.portfollow.api.dto.response.PortfolioDTO;
 import com.github.ignasbudreika.portfollow.enums.HistoryType;
 import com.github.ignasbudreika.portfollow.enums.InvestmentTransactionType;
 import com.github.ignasbudreika.portfollow.enums.InvestmentType;
+import com.github.ignasbudreika.portfollow.enums.InvestmentUpdateType;
 import com.github.ignasbudreika.portfollow.model.*;
 import com.github.ignasbudreika.portfollow.repository.InvestmentRepository;
 import com.github.ignasbudreika.portfollow.repository.PortfolioHistoryRepository;
@@ -63,7 +64,7 @@ public class PortfolioHistoryServiceTest {
                 .quantity(QUANTITY).build();
 
         when(portfolioHistoryRepository.findFirstByUserIdAndDate(eq(USER_ID), any())).thenReturn(null);
-        when(portfolioHistoryRepository.findFirstByUserIdAndDateBeforeOrderByDateDesc(eq(USER_ID), any()))
+        when(portfolioHistoryRepository.findFirstByUserIdAndDateLessThanEqualOrderByDateDesc(eq(USER_ID), any()))
                 .thenReturn(PortfolioHistory.builder()
                                 .investments(List.of(investmentWithTx))
                                 .build());
@@ -79,7 +80,7 @@ public class PortfolioHistoryServiceTest {
 
 
         verify(portfolioHistoryRepository).findFirstByUserIdAndDate(eq(USER_ID), any());
-        verify(portfolioHistoryRepository).findFirstByUserIdAndDateBeforeOrderByDateDesc(eq(USER_ID), any());
+        verify(portfolioHistoryRepository).findFirstByUserIdAndDateLessThanEqualOrderByDateDesc(eq(USER_ID), any());
         verify(portfolioHistoryRepository).save(any());
 
         Assertions.assertEquals(USER_ID, result.getUser().getId());
@@ -89,7 +90,7 @@ public class PortfolioHistoryServiceTest {
     @Test
     void shouldCreateEmptyPortfolio_whenNoPortfoliosExist() {
         when(portfolioHistoryRepository.findFirstByUserIdAndDate(eq(USER_ID), any())).thenReturn(null);
-        when(portfolioHistoryRepository.findFirstByUserIdAndDateBeforeOrderByDateDesc(eq(USER_ID), any())).thenReturn(null);
+        when(portfolioHistoryRepository.findFirstByUserIdAndDateLessThanEqualOrderByDateDesc(eq(USER_ID), any())).thenReturn(null);
         when(portfolioHistoryRepository.save(any()))
                 .thenReturn(PortfolioHistory.builder()
                         .user(User.builder().id(USER_ID).build())
@@ -102,7 +103,7 @@ public class PortfolioHistoryServiceTest {
 
 
         verify(portfolioHistoryRepository).findFirstByUserIdAndDate(eq(USER_ID), any());
-        verify(portfolioHistoryRepository).findFirstByUserIdAndDateBeforeOrderByDateDesc(eq(USER_ID), any());
+        verify(portfolioHistoryRepository).findFirstByUserIdAndDateLessThanEqualOrderByDateDesc(eq(USER_ID), any());
         verify(portfolioHistoryRepository).save(any());
 
         Assertions.assertEquals(USER_ID, result.getUser().getId());
@@ -369,6 +370,7 @@ public class PortfolioHistoryServiceTest {
                 .asset(asset)
                 .date(date)
                 .type(InvestmentType.CRYPTO)
+                .updateType(InvestmentUpdateType.MANUAL)
                 .connectionId(CONNECTION_ID)
                 .transactions(Set.of(InvestmentTransaction.builder().type(InvestmentTransactionType.BUY).date(date).quantity(QUANTITY).build()))
                 .quantity(QUANTITY).build();
@@ -385,7 +387,7 @@ public class PortfolioHistoryServiceTest {
         target.createOrUpdatePortfolioHistory(investmentWithTx);
 
 
-        verify(portfolioHistoryRepository, times(2)).findFirstByUserIdAndDate(eq(USER_ID), any());
+        verify(portfolioHistoryRepository).findFirstByUserIdAndDate(eq(USER_ID), any());
         ArgumentCaptor<PortfolioHistory> captor = ArgumentCaptor.forClass(PortfolioHistory.class);
         verify(portfolioHistoryRepository).save(captor.capture());
 
@@ -416,6 +418,7 @@ public class PortfolioHistoryServiceTest {
                 .asset(asset)
                 .date(date)
                 .type(InvestmentType.CRYPTO)
+                .updateType(InvestmentUpdateType.MANUAL)
                 .connectionId(CONNECTION_ID)
                 .transactions(Set.of(InvestmentTransaction.builder().type(InvestmentTransactionType.BUY).date(date).quantity(QUANTITY).build()))
                 .quantity(QUANTITY).build();
@@ -427,7 +430,7 @@ public class PortfolioHistoryServiceTest {
         target.createOrUpdatePortfolioHistory(investmentWithTx);
 
 
-        verify(portfolioHistoryRepository, times(2)).findFirstByUserIdAndDate(eq(USER_ID), any());
+        verify(portfolioHistoryRepository).findFirstByUserIdAndDate(eq(USER_ID), any());
         ArgumentCaptor<PortfolioHistory> captor = ArgumentCaptor.forClass(PortfolioHistory.class);
         verify(portfolioHistoryRepository).save(captor.capture());
 

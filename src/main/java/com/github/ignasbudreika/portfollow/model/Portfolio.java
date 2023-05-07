@@ -23,8 +23,6 @@ public class Portfolio {
     private boolean published;
     @Column(name = "hidden_value")
     private boolean hiddenValue;
-    @Column(name = "currency_eur")
-    private boolean currencyEur;
     @Column(name = "allowed_users")
     private String allowedUsers;
     @OneToOne

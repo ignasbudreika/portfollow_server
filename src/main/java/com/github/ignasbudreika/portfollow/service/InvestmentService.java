@@ -181,6 +181,11 @@ public class InvestmentService {
             throw new UnauthorizedException();
         }
 
+        if (investment.getUpdateType().equals(InvestmentUpdateType.SPECTROCOIN) || investment.getUpdateType().equals(InvestmentUpdateType.ALPACA)
+            || investment.getUpdateType().equals(InvestmentUpdateType.ETHEREUM_WALLET)) {
+            throw new BusinessLogicException("cannot add tx for connection investments");
+        }
+
         InvestmentTransaction created = transactionService.createTransaction(investment, transaction.getQuantity(), transaction.getType(), transaction.getDate());
         Set<InvestmentTransaction> transactions = investment.getTransactions().stream().collect(Collectors.toSet());
         transactions.add(created);

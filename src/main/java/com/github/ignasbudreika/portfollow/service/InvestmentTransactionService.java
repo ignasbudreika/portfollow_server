@@ -1,6 +1,7 @@
 package com.github.ignasbudreika.portfollow.service;
 
 import com.github.ignasbudreika.portfollow.enums.InvestmentTransactionType;
+import com.github.ignasbudreika.portfollow.enums.InvestmentUpdateType;
 import com.github.ignasbudreika.portfollow.exception.BusinessLogicException;
 import com.github.ignasbudreika.portfollow.exception.UnauthorizedException;
 import com.github.ignasbudreika.portfollow.model.Investment;
@@ -56,6 +57,11 @@ public class InvestmentTransactionService {
 
         if (!tx.getInvestment().getUser().getId().equals(user.getId())) {
             throw new UnauthorizedException();
+        }
+
+        if (tx.getInvestment().getUpdateType().equals(InvestmentUpdateType.SPECTROCOIN) || tx.getInvestment().getUpdateType().equals(InvestmentUpdateType.ALPACA)
+                || tx.getInvestment().getUpdateType().equals(InvestmentUpdateType.ETHEREUM_WALLET)) {
+            throw new BusinessLogicException("cannot delete connection investment tx");
         }
 
         if (tx.getType().equals(InvestmentTransactionType.BUY)
