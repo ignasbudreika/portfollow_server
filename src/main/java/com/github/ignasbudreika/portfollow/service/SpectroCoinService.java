@@ -17,8 +17,6 @@ import jakarta.persistence.EntityExistsException;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -27,13 +25,16 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
+import java.util.List;
 
 @Slf4j
 @Service
 @AllArgsConstructor
 public class SpectroCoinService {
-    @Value("${http.client.spectrocoin.supported.cryptocurrencies}")
-    private String supportedCryptocurrencies;
+    private static final List<String> SUPPORTED_CRYPTOCURRENCIES = List.of("BTC","ETH","APT","SAND","MASK",
+            "EUROC","BUSD","BNB","DASH","XEM","LTC","XLM","XRP","ZEC","BNK","USDC","TUSD","USDP","wBTC","LINK","DAI",
+            "UNI","MKR","AAVE","COMP","ZRX","BAT","SUSHI","ALGO","DOGE","SHIB","MATIC","MANA","UMA","HOT","CHZ","GRT",
+            "SNX","ENJ","ADA","SOL","DOT","FIL","VET","ZIL","MIOTA","ONT","ATOM","EOS","TRX","CGLD","NEO","XTZ","1INCH","USDT");
 
     private SpectroCoinConnectionRepository spectroCoinConnectionRepository;
     private InvestmentService investmentService;
@@ -117,7 +118,7 @@ public class SpectroCoinService {
                 AccountsDTO accounts = spectroCoinClient.getAccountData(connection.getClientId(), connection.getClientSecret());
 
                 Arrays.stream(accounts.getAccounts()).forEach(account -> {
-                    if (Arrays.stream(StringUtils.splitByWholeSeparator(supportedCryptocurrencies, ",")).toList().contains(account.getCurrencyCode())
+                    if (SUPPORTED_CRYPTOCURRENCIES.contains(account.getCurrencyCode())
                             && account.getBalance().compareTo(BigDecimal.ZERO) > 0) {
                         try {
                             investmentService.saveInvestmentFetchedFromConnection(Investment.builder()
