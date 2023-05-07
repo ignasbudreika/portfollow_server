@@ -34,6 +34,7 @@ public class CurrencyService {
         Investment investment = Investment.builder()
                 .symbol(currency.getSymbol())
                 .quantity(currency.getQuantity())
+                .amount(currency.getAmount())
                 .type(currency.isCrypto() ? InvestmentType.CRYPTO : InvestmentType.FIAT)
                 .updateType(InvestmentUpdateType.getUpdateType(currency.getPeriod()))
                 .date(currency.getDate()).build();

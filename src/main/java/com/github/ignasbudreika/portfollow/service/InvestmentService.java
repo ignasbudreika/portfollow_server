@@ -93,6 +93,12 @@ public class InvestmentService {
             throw new BusinessLogicException("only investments made since 2023-01-01 are supported");
         }
 
+        if (investment.getUpdateType().equals(InvestmentUpdateType.DAILY) || investment.getUpdateType().equals(InvestmentUpdateType.WEEKLY)
+         || investment.getUpdateType().equals(InvestmentUpdateType.MONTHLY) || investment.getUpdateType().equals(InvestmentUpdateType.QUARTERLY)
+         || investment.getUpdateType().equals(InvestmentUpdateType.YEARLY)) {
+            investment.setQuantity(investment.getAmount().divide(asset.getPrice(), 8, RoundingMode.HALF_UP));
+        }
+
         investment.setUser(user);
         investment.setAsset(asset);
         investment = investmentRepository.save(investment);
@@ -265,36 +271,40 @@ public class InvestmentService {
                         && investment.getUpdateType() != InvestmentUpdateType.ALPACA).forEach(investment -> {
                             InvestmentTransaction lastTx = investment.getTransactions().stream()
                                     .sorted(Comparator.comparing(InvestmentTransaction::getDate).reversed())
-                                    .findFirst().get();
+                                    .findFirst().orElse(null);
                             try {
-                                switch (investment.getUpdateType()) {
-                                    case DAILY -> {
-                                        if (!lastTx.getDate().plusDays(1).isAfter(date)) {
-                                            createPeriodicTransaction(investment, lastTx.getQuantity(), date);
+                                if (lastTx == null) {
+                                        createPeriodicTransaction(investment, date);
+                                } else {
+                                    switch (investment.getUpdateType()) {
+                                        case DAILY -> {
+                                            if (!lastTx.getDate().plusDays(1).isAfter(date)) {
+                                                createPeriodicTransaction(investment, date);
+                                            }
                                         }
-                                    }
-                                    case WEEKLY -> {
-                                        if (!lastTx.getDate().plusWeeks(1).isAfter(date)) {
-                                            createPeriodicTransaction(investment, lastTx.getQuantity(), date);
+                                        case WEEKLY -> {
+                                            if (!lastTx.getDate().plusWeeks(1).isAfter(date)) {
+                                                createPeriodicTransaction(investment, date);
+                                            }
                                         }
-                                    }
-                                    case MONTHLY -> {
-                                        if (!lastTx.getDate().plusMonths(1).isAfter(date)) {
-                                            createPeriodicTransaction(investment, lastTx.getQuantity(), date);
+                                        case MONTHLY -> {
+                                            if (!lastTx.getDate().plusMonths(1).isAfter(date)) {
+                                                createPeriodicTransaction(investment, date);
+                                            }
                                         }
-                                    }
-                                    case QUARTERLY -> {
-                                        if (!lastTx.getDate().plusMonths(3).isAfter(date)) {
-                                            createPeriodicTransaction(investment, lastTx.getQuantity(), date);
+                                        case QUARTERLY -> {
+                                            if (!lastTx.getDate().plusMonths(3).isAfter(date)) {
+                                                createPeriodicTransaction(investment, date);
+                                            }
                                         }
-                                    }
-                                    case YEARLY -> {
-                                        if (!lastTx.getDate().plusYears(1).isAfter(date)) {
-                                            createPeriodicTransaction(investment, lastTx.getQuantity(), date);
+                                        case YEARLY -> {
+                                            if (!lastTx.getDate().plusYears(1).isAfter(date)) {
+                                                createPeriodicTransaction(investment, date);
+                                            }
                                         }
-                                    }
-                                    default -> {
-                                        log.info("not a periodic investment: {}, skipping transaction creation", investment.getId());
+                                        default -> {
+                                            log.info("not a periodic investment: {}, skipping transaction creation", investment.getId());
+                                        }
                                     }
                                 }
                             } catch (BusinessLogicException e) {
@@ -303,7 +313,9 @@ public class InvestmentService {
         });
     }
 
-    private void createPeriodicTransaction(Investment investment, BigDecimal quantity, LocalDate date) throws BusinessLogicException {
+    private void createPeriodicTransaction(Investment investment, LocalDate date) throws BusinessLogicException {
+        BigDecimal quantity = investment.getAmount().divide(investment.getAsset().getPrice(), 8, RoundingMode.HALF_UP);
+
         InvestmentTransaction created = transactionService.createTransaction(investment, quantity, InvestmentTransactionType.BUY, date);
         Set<InvestmentTransaction> transactions = investment.getTransactions().stream().collect(Collectors.toSet());
         transactions.add(created);

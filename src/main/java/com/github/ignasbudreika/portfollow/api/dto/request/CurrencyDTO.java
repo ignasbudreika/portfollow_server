@@ -16,6 +16,7 @@ import java.time.LocalDate;
 public class CurrencyDTO {
     private String symbol;
     private BigDecimal quantity;
+    private BigDecimal amount;
     private PeriodicInvestmentPeriod period;
     private LocalDate date;
     private boolean crypto;

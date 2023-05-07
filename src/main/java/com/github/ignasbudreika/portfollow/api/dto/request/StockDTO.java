@@ -17,5 +17,6 @@ public class StockDTO {
     private String ticker;
     private PeriodicInvestmentPeriod period;
     private BigDecimal quantity;
+    private BigDecimal amount;
     private LocalDate date;
 }

@@ -30,6 +30,8 @@ public class Investment {
     private String symbol;
     @Column(precision = 19, scale = 8, nullable = false)
     private BigDecimal quantity;
+    @Column(precision = 19, scale = 8, nullable = false)
+    private BigDecimal amount;
     @Column(nullable = false)
     private InvestmentType type;
     @ManyToOne

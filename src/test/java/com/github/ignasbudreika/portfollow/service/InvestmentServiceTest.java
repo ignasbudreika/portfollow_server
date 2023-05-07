@@ -19,6 +19,7 @@ import org.mockito.ArgumentCaptor;
 
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.net.URISyntaxException;
 import java.time.LocalDate;
 import java.util.*;
@@ -35,6 +36,7 @@ class InvestmentServiceTest {
     private static final BigDecimal ASSET_PRICE = BigDecimal.TEN;
     private static final String ASSET_SYMBOL = "AAPL";
     private static final BigDecimal QUANTITY = BigDecimal.ONE;
+    private static final BigDecimal AMOUNT = BigDecimal.TEN;
     private static final String CONNECTION_ID = "43a29381-fd45-4fe7-8962-51973ca7ef9b";
     private final AlphaVantageClient alphaVantageClient = mock(AlphaVantageClient.class);
     private final AssetService assetService = mock(AssetService.class);
@@ -179,6 +181,7 @@ class InvestmentServiceTest {
                 .symbol(ASSET_SYMBOL)
                 .date(LocalDate.of(2023, 1, 1))
                 .type(InvestmentType.CRYPTO)
+                .updateType(MANUAL)
                 .quantity(QUANTITY).build();
 
         when(assetService.getAsset(ASSET_SYMBOL, InvestmentType.CRYPTO)).thenReturn(cryptoAsset);
@@ -219,6 +222,7 @@ class InvestmentServiceTest {
                 .symbol(ASSET_SYMBOL)
                 .date(LocalDate.of(2023, 1, 1))
                 .type(InvestmentType.CRYPTO)
+                .updateType(MANUAL)
                 .quantity(QUANTITY).build();
 
         when(assetService.getAsset(ASSET_SYMBOL, InvestmentType.CRYPTO)).thenReturn(null);
@@ -605,6 +609,12 @@ class InvestmentServiceTest {
                 .email(USER_EMAIL)
                 .username(USER_USERNAME).build();
 
+        Asset asset = Asset.builder()
+                .id(ASSET_ID)
+                .price(ASSET_PRICE)
+                .symbol(ASSET_SYMBOL)
+                .type(InvestmentType.CRYPTO).build();
+
         LocalDate date = LocalDate.now();
 
         InvestmentTransaction tx = InvestmentTransaction.builder().type(InvestmentTransactionType.BUY).date(LocalDate.of(2023, 1, 1)).quantity(BigDecimal.TEN).build();
@@ -612,6 +622,8 @@ class InvestmentServiceTest {
                 .quantity(BigDecimal.TEN)
                 .transactions(Set.of(tx))
                 .id(INVESTMENT_ID)
+                .amount(AMOUNT)
+                .asset(asset)
                 .user(user)
                 .updateType(type).build();
 
@@ -643,10 +655,10 @@ class InvestmentServiceTest {
         }
 
         if (createSince.isAfter(tx.getDate())) {
-            verify(transactionService).createTransaction(periodicInvestment, BigDecimal.TEN, InvestmentTransactionType.BUY, date);
+            verify(transactionService).createTransaction(periodicInvestment, BigDecimal.ONE.setScale(8, RoundingMode.HALF_UP), InvestmentTransactionType.BUY, date);
             verify(investmentRepository).save(any(Investment.class));
         } else {
-            verify(transactionService, never()).createTransaction(periodicInvestment, BigDecimal.TEN, InvestmentTransactionType.BUY, date);
+            verify(transactionService, never()).createTransaction(periodicInvestment, BigDecimal.ONE.setScale(8, RoundingMode.HALF_UP), InvestmentTransactionType.BUY, date);
             verify(investmentRepository, never()).save(any(Investment.class));
         }
     }
