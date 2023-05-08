@@ -96,7 +96,11 @@ public class InvestmentService {
         if (investment.getUpdateType().equals(InvestmentUpdateType.DAILY) || investment.getUpdateType().equals(InvestmentUpdateType.WEEKLY)
          || investment.getUpdateType().equals(InvestmentUpdateType.MONTHLY) || investment.getUpdateType().equals(InvestmentUpdateType.QUARTERLY)
          || investment.getUpdateType().equals(InvestmentUpdateType.YEARLY)) {
-            investment.setQuantity(investment.getAmount().divide(asset.getPrice(), 8, RoundingMode.HALF_UP));
+            if (asset.getPrice().equals(BigDecimal.ZERO)) {
+                investment.setQuantity(BigDecimal.ZERO.setScale(8, RoundingMode.HALF_UP));
+            } else {
+                investment.setQuantity(investment.getAmount().divide(asset.getPrice(), 8, RoundingMode.HALF_UP));
+            }
         }
 
         investment.setUser(user);
@@ -319,6 +323,10 @@ public class InvestmentService {
     }
 
     private void createPeriodicTransaction(Investment investment, LocalDate date) throws BusinessLogicException {
+        if (investment.getAsset().getPrice().equals(BigDecimal.ZERO)) {
+            return;
+        }
+
         BigDecimal quantity = investment.getAmount().divide(investment.getAsset().getPrice(), 8, RoundingMode.HALF_UP);
 
         InvestmentTransaction created = transactionService.createTransaction(investment, quantity, InvestmentTransactionType.BUY, date);

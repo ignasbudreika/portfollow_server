@@ -174,7 +174,7 @@ class EthereumWalletServiceTest {
     }
 
     @Test
-    void shouldNotFetchBalance_whenActiveConnectionDoesNotExist() throws IOException {
+    void shouldNotFetchBalance_whenActiveConnectionDoesNotExist() throws IOException, BusinessLogicException {
         User user = User.builder()
                 .id(USER_ID)
                 .email(USER_EMAIL)

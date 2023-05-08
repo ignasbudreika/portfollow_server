@@ -58,47 +58,42 @@ public class AssetService {
     public BigDecimal fetchPrice(String symbol, InvestmentType type) throws IOException, URISyntaxException, BusinessLogicException, InterruptedException {
         switch (type) {
             case STOCK -> {
-                StockDTO stock = new StockDTO();
+                StockDTO stock = null;
                 try {
                     stock = alphaVantageClient.getStockData(symbol);
                 } catch (BusinessLogicException e) {
                     throw e;
                 } catch (Exception e) {
                     log.error("exception occured while fetching stock: {} data", symbol, e);
-                    throw e;
                 }
 
-//                BigDecimal usdEur = getRecentPrice(USD, InvestmentType.FOREX);
-
-                return stock.getPrice() == null ?
+                return stock == null || stock.getPrice() == null ?
                         BigDecimal.ZERO : new BigDecimal(stock.getPrice());
             }
             case CRYPTO -> {
-                CryptocurrencyDTO cryptocurrency = new CryptocurrencyDTO();
+                CryptocurrencyDTO cryptocurrency = null;
                 try {
                     cryptocurrency = alphaVantageClient.getCryptocurrencyData(symbol);
                 } catch (BusinessLogicException e) {
                     throw e;
                 } catch (Exception e) {
                     log.error("exception occured while fetching stock: {} data", symbol, e);
-                    throw e;
                 }
 
-                return cryptocurrency.getExchangeRate() == null ?
+                return cryptocurrency == null || cryptocurrency.getExchangeRate() == null ?
                         BigDecimal.ZERO : new BigDecimal(cryptocurrency.getExchangeRate());
             }
             case FIAT -> {
-                ForexDTO forex = new ForexDTO();
+                ForexDTO forex = null;
                 try {
                     forex = alphaVantageClient.getCurrencyData(symbol);
                 } catch (BusinessLogicException e) {
                     throw e;
                 } catch (Exception e) {
                     log.error("exception occured while fetching stock: {} data", symbol, e);
-                    throw e;
                 }
 
-                return forex.getExchangeRate() == null ?
+                return forex == null || forex.getExchangeRate() == null ?
                         BigDecimal.ZERO : new BigDecimal(forex.getExchangeRate());
             }
             default -> {

@@ -7,6 +7,7 @@ import com.github.ignasbudreika.portfollow.api.dto.response.AlpacaConnectionDTO;
 import com.github.ignasbudreika.portfollow.api.dto.response.ConnectionsDTO;
 import com.github.ignasbudreika.portfollow.api.dto.response.EthereumWalletConnectionDTO;
 import com.github.ignasbudreika.portfollow.api.dto.response.SpectroCoinConnectionDTO;
+import com.github.ignasbudreika.portfollow.exception.BusinessLogicException;
 import com.github.ignasbudreika.portfollow.model.User;
 import com.github.ignasbudreika.portfollow.service.AlpacaService;
 import com.github.ignasbudreika.portfollow.service.EthereumWalletService;
@@ -81,7 +82,7 @@ public class ConnectionController {
     }
 
     @PostMapping("/ethereum/fetch")
-    public ResponseEntity fetchWallets() {
+    public ResponseEntity fetchWallets() throws BusinessLogicException {
         User user = userService.getByGoogleId(SecurityContextHolder.getContext().getAuthentication().getName());
 
         walletService.fetchBalance(user);
