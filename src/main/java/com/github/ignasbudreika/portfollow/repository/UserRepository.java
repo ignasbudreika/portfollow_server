@@ -6,8 +6,7 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface UserRepository extends CrudRepository<User, String> {
-    public boolean existsByEmail(String email);
-    public User getByEmail(String email);
-    public boolean existsByGoogleId(String googleId);
-    public User getByGoogleId(String googleId);
+    boolean existsByEmail(String email);
+    boolean existsByGoogleId(String googleId);
+    User getByGoogleId(String googleId);
 }

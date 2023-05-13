@@ -17,6 +17,4 @@ public interface InvestmentRepository extends CrudRepository<Investment, String>
     boolean existsByUserId(String userId);
     Investment findBySymbolAndConnectionId(String symbol, String connectionId);
     Collection<Investment> findAllByConnectionId(String connectionId);
-    Collection<Investment> findByPortfolioHistoriesId(String portfolioId);
-    Collection<Investment> findByTypeAndPortfolioHistoriesId(InvestmentType type, String portfolioId);
 }

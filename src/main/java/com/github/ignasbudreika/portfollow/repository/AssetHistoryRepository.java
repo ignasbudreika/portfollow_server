@@ -11,5 +11,4 @@ public interface AssetHistoryRepository extends CrudRepository<AssetHistory, Str
     AssetHistory findFirstByAssetIdAndDateLessThanEqualOrderByDateDesc(String id, LocalDate date);
     AssetHistory findByAssetIdAndDate(String id, LocalDate date);
     boolean existsByAssetId(String id);
-    boolean existsByAssetIdAndDate(String id, LocalDate date);
 }
