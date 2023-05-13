@@ -7,7 +7,6 @@ import com.github.ignasbudreika.portfollow.enums.InvestmentType;
 import com.github.ignasbudreika.portfollow.enums.InvestmentUpdateType;
 import com.github.ignasbudreika.portfollow.exception.BusinessLogicException;
 import com.github.ignasbudreika.portfollow.exception.UnauthorizedException;
-import com.github.ignasbudreika.portfollow.external.client.AlphaVantageClient;
 import com.github.ignasbudreika.portfollow.model.*;
 import com.github.ignasbudreika.portfollow.repository.InvestmentRepository;
 import com.github.ignasbudreika.portfollow.repository.PortfolioHistoryRepository;
@@ -15,7 +14,6 @@ import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -30,7 +28,14 @@ import java.util.stream.Collectors;
 @Service
 @AllArgsConstructor
 public class InvestmentService {
-    private AlphaVantageClient alphaVantageClient;
+    private static final List<InvestmentUpdateType> PERIODIC_INVESTMENT_TYPES = List.of(
+            InvestmentUpdateType.DAILY,
+            InvestmentUpdateType.WEEKLY,
+            InvestmentUpdateType.MONTHLY,
+            InvestmentUpdateType.QUARTERLY,
+            InvestmentUpdateType.YEARLY
+    );
+
     private AssetService assetService;
     private PortfolioHistoryService portfolioHistoryService;
     private InvestmentTransactionService transactionService;
@@ -82,7 +87,7 @@ public class InvestmentService {
     public Investment createInvestment(Investment investment, User user) throws BusinessLogicException, URISyntaxException, IOException, InterruptedException {
         Asset asset = assetService.getAsset(investment.getSymbol(), investment.getType());
         if (asset == null) {
-            asset = assetService.getOrCreateAsset(investment.getSymbol(), investment.getType());
+            asset = assetService.createAsset(investment.getSymbol(), investment.getType());
 
             if (asset == null) {
                 throw new BusinessLogicException("invalid symbol");
@@ -121,7 +126,7 @@ public class InvestmentService {
     public Investment saveInvestmentFetchedFromConnection(Investment investment, String connectionId) throws BusinessLogicException, URISyntaxException, IOException, InterruptedException {
         Asset asset = assetService.getAsset(investment.getSymbol(), investment.getType());
         if (asset == null) {
-            asset = assetService.getOrCreateAsset(investment.getSymbol(), investment.getType());
+            asset = assetService.createAsset(investment.getSymbol(), investment.getType());
 
             if (asset == null) {
                 throw new BusinessLogicException("invalid symbol");
@@ -273,53 +278,51 @@ public class InvestmentService {
 
     @Transactional
     public void fetchPeriodicInvestments(User user, LocalDate date) {
-        investmentRepository.findAllByUserId(user.getId()).stream().filter(investment ->
-                investment.getUpdateType() != InvestmentUpdateType.MANUAL
-                        && investment.getUpdateType() != InvestmentUpdateType.SPECTROCOIN
-                        && investment.getUpdateType() != InvestmentUpdateType.ETHEREUM_WALLET
-                        && investment.getUpdateType() != InvestmentUpdateType.ALPACA).forEach(investment -> {
-                            InvestmentTransaction lastTx = investment.getTransactions().stream()
-                                    .sorted(Comparator.comparing(InvestmentTransaction::getDate).reversed())
-                                    .findFirst().orElse(null);
-                            try {
-                                if (lastTx == null) {
-                                        createPeriodicTransaction(investment, date);
-                                } else {
-                                    switch (investment.getUpdateType()) {
-                                        case DAILY -> {
-                                            if (!lastTx.getDate().plusDays(1).isAfter(date)) {
-                                                createPeriodicTransaction(investment, date);
-                                            }
-                                        }
-                                        case WEEKLY -> {
-                                            if (!lastTx.getDate().plusWeeks(1).isAfter(date)) {
-                                                createPeriodicTransaction(investment, date);
-                                            }
-                                        }
-                                        case MONTHLY -> {
-                                            if (!lastTx.getDate().plusMonths(1).isAfter(date)) {
-                                                createPeriodicTransaction(investment, date);
-                                            }
-                                        }
-                                        case QUARTERLY -> {
-                                            if (!lastTx.getDate().plusMonths(3).isAfter(date)) {
-                                                createPeriodicTransaction(investment, date);
-                                            }
-                                        }
-                                        case YEARLY -> {
-                                            if (!lastTx.getDate().plusYears(1).isAfter(date)) {
-                                                createPeriodicTransaction(investment, date);
-                                            }
-                                        }
-                                        default -> {
-                                            log.info("not a periodic investment: {}, skipping transaction creation", investment.getId());
-                                        }
-                                    }
+        investmentRepository.findAllByUserIdAndUpdateTypeIn(user.getId(), PERIODIC_INVESTMENT_TYPES)
+            .forEach(investment -> {
+                InvestmentTransaction lastTx = investment.getTransactions().stream()
+                        .sorted(Comparator.comparing(InvestmentTransaction::getDate).reversed())
+                        .findFirst().orElse(null);
+                try {
+                    if (lastTx == null) {
+                            createPeriodicTransaction(investment, date);
+                    } else {
+                        switch (investment.getUpdateType()) {
+                            case DAILY -> {
+                                if (!lastTx.getDate().plusDays(1).isAfter(date)) {
+                                    createPeriodicTransaction(investment, date);
                                 }
-                            } catch (BusinessLogicException e) {
-                                log.error("failed to create periodic transaction for investment: {}", investment.getId(), e);
                             }
-        });
+                            case WEEKLY -> {
+                                if (!lastTx.getDate().plusWeeks(1).isAfter(date)) {
+                                    createPeriodicTransaction(investment, date);
+                                }
+                            }
+                            case MONTHLY -> {
+                                if (!lastTx.getDate().plusMonths(1).isAfter(date)) {
+                                    createPeriodicTransaction(investment, date);
+                                }
+                            }
+                            case QUARTERLY -> {
+                                if (!lastTx.getDate().plusMonths(3).isAfter(date)) {
+                                    createPeriodicTransaction(investment, date);
+                                }
+                            }
+                            case YEARLY -> {
+                                if (!lastTx.getDate().plusYears(1).isAfter(date)) {
+                                    createPeriodicTransaction(investment, date);
+                                }
+                            }
+                            default -> {
+                                log.info("not a periodic investment: {}, skipping transaction creation", investment.getId());
+                            }
+                        }
+                    }
+                } catch (BusinessLogicException e) {
+                    log.error("failed to create periodic transaction for investment: {}", investment.getId(), e);
+                }
+            }
+        );
     }
 
     private void createPeriodicTransaction(Investment investment, LocalDate date) throws BusinessLogicException {

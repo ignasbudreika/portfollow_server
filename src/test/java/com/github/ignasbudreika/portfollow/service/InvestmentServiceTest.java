@@ -38,14 +38,12 @@ class InvestmentServiceTest {
     private static final BigDecimal QUANTITY = BigDecimal.ONE;
     private static final BigDecimal AMOUNT = BigDecimal.TEN;
     private static final String CONNECTION_ID = "43a29381-fd45-4fe7-8962-51973ca7ef9b";
-    private final AlphaVantageClient alphaVantageClient = mock(AlphaVantageClient.class);
     private final AssetService assetService = mock(AssetService.class);
     private final PortfolioHistoryService portfolioHistoryService = mock(PortfolioHistoryService.class);
     private final InvestmentTransactionService transactionService = mock(InvestmentTransactionService.class);
     private final InvestmentRepository investmentRepository = mock(InvestmentRepository.class);
     private final PortfolioHistoryRepository historyRepository = mock(PortfolioHistoryRepository.class);
-    private final InvestmentService target = new InvestmentService(alphaVantageClient,
-                                                                   assetService,
+    private final InvestmentService target = new InvestmentService(assetService,
                                                                    portfolioHistoryService,
                                                                    transactionService,
                                                                    investmentRepository,
@@ -226,7 +224,7 @@ class InvestmentServiceTest {
                 .quantity(QUANTITY).build();
 
         when(assetService.getAsset(ASSET_SYMBOL, InvestmentType.CRYPTO)).thenReturn(null);
-        when(assetService.getOrCreateAsset(ASSET_SYMBOL, InvestmentType.CRYPTO)).thenReturn(cryptoAsset);
+        when(assetService.createAsset(ASSET_SYMBOL, InvestmentType.CRYPTO)).thenReturn(cryptoAsset);
         when(investmentRepository.save(any())).thenReturn(investment);
         when(transactionService.createTransaction(investment, QUANTITY, InvestmentTransactionType.BUY, investment.getDate())).thenReturn(
                 InvestmentTransaction.builder()
@@ -240,7 +238,7 @@ class InvestmentServiceTest {
 
 
         verify(assetService).getAsset(investment.getSymbol(), investment.getType());
-        verify(assetService).getOrCreateAsset(investment.getSymbol(), investment.getType());
+        verify(assetService).createAsset(investment.getSymbol(), investment.getType());
         verify(investmentRepository).save(any());
         verify(transactionService).createTransaction(investment, QUANTITY, InvestmentTransactionType.BUY, investment.getDate());
         verify(portfolioHistoryService).createOrUpdatePortfolioHistory(any());
@@ -262,14 +260,14 @@ class InvestmentServiceTest {
                 .quantity(QUANTITY).build();
 
         when(assetService.getAsset(ASSET_SYMBOL, InvestmentType.CRYPTO)).thenReturn(null);
-        when(assetService.getOrCreateAsset(ASSET_SYMBOL, InvestmentType.CRYPTO)).thenReturn(null);
+        when(assetService.createAsset(ASSET_SYMBOL, InvestmentType.CRYPTO)).thenReturn(null);
 
 
         Assertions.assertThrows(BusinessLogicException.class, () -> target.createInvestment(investment, user));
 
 
         verify(assetService).getAsset(investment.getSymbol(), investment.getType());
-        verify(assetService).getOrCreateAsset(investment.getSymbol(), investment.getType());
+        verify(assetService).createAsset(investment.getSymbol(), investment.getType());
         verify(investmentRepository, never()).save(any());
     }
 
@@ -293,14 +291,14 @@ class InvestmentServiceTest {
                 .quantity(QUANTITY).build();
 
         when(assetService.getAsset(ASSET_SYMBOL, InvestmentType.CRYPTO)).thenReturn(null);
-        when(assetService.getOrCreateAsset(ASSET_SYMBOL, InvestmentType.CRYPTO)).thenReturn(cryptoAsset);
+        when(assetService.createAsset(ASSET_SYMBOL, InvestmentType.CRYPTO)).thenReturn(cryptoAsset);
 
 
         Assertions.assertThrows(BusinessLogicException.class, () -> target.createInvestment(investment, user));
 
 
         verify(assetService).getAsset(investment.getSymbol(), investment.getType());
-        verify(assetService).getOrCreateAsset(investment.getSymbol(), investment.getType());
+        verify(assetService).createAsset(investment.getSymbol(), investment.getType());
         verify(investmentRepository, never()).save(any());
     }
 
@@ -321,7 +319,7 @@ class InvestmentServiceTest {
 
 
         when(assetService.getAsset(ASSET_SYMBOL, InvestmentType.CRYPTO)).thenReturn(null);
-        when(assetService.getOrCreateAsset(ASSET_SYMBOL, InvestmentType.CRYPTO)).thenReturn(cryptoAsset);
+        when(assetService.createAsset(ASSET_SYMBOL, InvestmentType.CRYPTO)).thenReturn(cryptoAsset);
         when(investmentRepository.findBySymbolAndConnectionId(ASSET_SYMBOL, CONNECTION_ID)).thenReturn(null);
         when(investmentRepository.save(any())).thenReturn(investment);
         when(transactionService.createTransaction(investment, QUANTITY, InvestmentTransactionType.BUY, investment.getDate())).thenReturn(
@@ -336,7 +334,7 @@ class InvestmentServiceTest {
 
 
         verify(assetService).getAsset(investment.getSymbol(), investment.getType());
-        verify(assetService).getOrCreateAsset(investment.getSymbol(), investment.getType());
+        verify(assetService).createAsset(investment.getSymbol(), investment.getType());
         verify(investmentRepository).findBySymbolAndConnectionId(ASSET_SYMBOL, CONNECTION_ID);
         verify(investmentRepository).save(any());
         verify(transactionService).createTransaction(investment, QUANTITY, InvestmentTransactionType.BUY, investment.getDate());
@@ -369,7 +367,7 @@ class InvestmentServiceTest {
                 .quantity(QUANTITY).build();
 
         when(assetService.getAsset(ASSET_SYMBOL, InvestmentType.CRYPTO)).thenReturn(null);
-        when(assetService.getOrCreateAsset(ASSET_SYMBOL, InvestmentType.CRYPTO)).thenReturn(cryptoAsset);
+        when(assetService.createAsset(ASSET_SYMBOL, InvestmentType.CRYPTO)).thenReturn(cryptoAsset);
         when(investmentRepository.findBySymbolAndConnectionId(ASSET_SYMBOL, CONNECTION_ID)).thenReturn(investmentWithTx);
         when(investmentRepository.save(any())).thenReturn(investment);
 
@@ -378,7 +376,7 @@ class InvestmentServiceTest {
 
 
         verify(assetService).getAsset(investment.getSymbol(), investment.getType());
-        verify(assetService).getOrCreateAsset(investment.getSymbol(), investment.getType());
+        verify(assetService).createAsset(investment.getSymbol(), investment.getType());
         verify(investmentRepository).findBySymbolAndConnectionId(ASSET_SYMBOL, CONNECTION_ID);
         verify(investmentRepository, never()).save(any());
 
@@ -409,7 +407,7 @@ class InvestmentServiceTest {
                 .quantity(QUANTITY).build();
 
         when(assetService.getAsset(ASSET_SYMBOL, InvestmentType.CRYPTO)).thenReturn(null);
-        when(assetService.getOrCreateAsset(ASSET_SYMBOL, InvestmentType.CRYPTO)).thenReturn(cryptoAsset);
+        when(assetService.createAsset(ASSET_SYMBOL, InvestmentType.CRYPTO)).thenReturn(cryptoAsset);
         when(investmentRepository.findBySymbolAndConnectionId(ASSET_SYMBOL, CONNECTION_ID)).thenReturn(investmentWithTx);
         when(investmentRepository.save(any(Investment.class))).thenReturn(investmentWithTx);
         when(transactionService.createTransaction(investmentWithTx, BigDecimal.TEN, InvestmentTransactionType.BUY, investment.getDate())).thenReturn(
@@ -424,7 +422,7 @@ class InvestmentServiceTest {
 
 
         verify(assetService).getAsset(investment.getSymbol(), investment.getType());
-        verify(assetService).getOrCreateAsset(investment.getSymbol(), investment.getType());
+        verify(assetService).createAsset(investment.getSymbol(), investment.getType());
         verify(investmentRepository).findBySymbolAndConnectionId(ASSET_SYMBOL, CONNECTION_ID);
         verify(investmentRepository).save(any());
         verify(transactionService).createTransaction(investmentWithTx, BigDecimal.TEN, InvestmentTransactionType.BUY, investment.getDate());
@@ -457,7 +455,7 @@ class InvestmentServiceTest {
                 .quantity(QUANTITY).build();
 
         when(assetService.getAsset(ASSET_SYMBOL, InvestmentType.CRYPTO)).thenReturn(null);
-        when(assetService.getOrCreateAsset(ASSET_SYMBOL, InvestmentType.CRYPTO)).thenReturn(cryptoAsset);
+        when(assetService.createAsset(ASSET_SYMBOL, InvestmentType.CRYPTO)).thenReturn(cryptoAsset);
         when(investmentRepository.findBySymbolAndConnectionId(ASSET_SYMBOL, CONNECTION_ID)).thenReturn(investmentWithTx);
         when(investmentRepository.save(any(Investment.class))).thenReturn(investmentWithTx);
         when(transactionService.createTransaction(investmentWithTx, BigDecimal.valueOf(9), InvestmentTransactionType.SELL, investment.getDate())).thenReturn(
@@ -472,7 +470,7 @@ class InvestmentServiceTest {
 
 
         verify(assetService).getAsset(investment.getSymbol(), investment.getType());
-        verify(assetService).getOrCreateAsset(investment.getSymbol(), investment.getType());
+        verify(assetService).createAsset(investment.getSymbol(), investment.getType());
         verify(investmentRepository).findBySymbolAndConnectionId(ASSET_SYMBOL, CONNECTION_ID);
         verify(investmentRepository).save(any());
         verify(transactionService).createTransaction(investmentWithTx, BigDecimal.valueOf(9), InvestmentTransactionType.SELL, investment.getDate());
@@ -628,7 +626,7 @@ class InvestmentServiceTest {
                 .user(user)
                 .updateType(type).build();
 
-        when(investmentRepository.findAllByUserId(user.getId())).thenReturn(List.of(periodicInvestment));
+        when(investmentRepository.findAllByUserIdAndUpdateTypeIn(eq(user.getId()), anyList())).thenReturn(List.of(periodicInvestment));
 
         when(transactionService.createTransaction(periodicInvestment, BigDecimal.TEN, InvestmentTransactionType.SELL, date)).thenReturn(
                 InvestmentTransaction.builder()
@@ -641,7 +639,7 @@ class InvestmentServiceTest {
         target.fetchPeriodicInvestments(user, date);
 
 
-        verify(investmentRepository).findAllByUserId(user.getId());
+        verify(investmentRepository).findAllByUserIdAndUpdateTypeIn(eq(user.getId()), anyList());
         LocalDate createSince = LocalDate.now();
         if (type.equals(DAILY)) {
             createSince = createSince.minusDays(1);

@@ -19,7 +19,7 @@ public class AlpacaConnectionFetchCommand {
     @Autowired
     private AlpacaService alpacaService;
 
-    @Scheduled(cron = "0 4 * * * *")
+    @Scheduled(cron = "0 4 */12 * * *")
     public void fetchAlpacaConnections() {
         log.info("fetching Alpaca connections. Current time: {}", LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS));
 

@@ -140,7 +140,6 @@ class AssetServiceTest {
                 .type(INVESTMENT_TYPE)
                 .price(new BigDecimal("11")).build();
 
-        when(assetRepository.getBySymbolAndType(ASSET_SYMBOL, INVESTMENT_TYPE)).thenReturn(null);
         when(alphaVantageClient.getStockData(ASSET_SYMBOL)).thenReturn(StockDTO.builder()
                 .price("11").build());
         when(assetRepository.save(any())).thenReturn(asset);
@@ -148,10 +147,9 @@ class AssetServiceTest {
                 .history(new HashMap<>()).build());
 
 
-        Asset result = target.getOrCreateAsset(ASSET_SYMBOL, INVESTMENT_TYPE);
+        Asset result = target.createAsset(ASSET_SYMBOL, INVESTMENT_TYPE);
 
 
-        verify(assetRepository).getBySymbolAndType(ASSET_SYMBOL, INVESTMENT_TYPE);
         ArgumentCaptor<Asset> captor = ArgumentCaptor.forClass(Asset.class);
         verify(assetRepository).save(captor.capture());
         Assertions.assertEquals(ASSET_SYMBOL, captor.getValue().getSymbol());
@@ -159,25 +157,6 @@ class AssetServiceTest {
         Assertions.assertEquals(asset.getPrice(), captor.getValue().getPrice());
         verify(alphaVantageClient).getStockHistoryDaily(ASSET_SYMBOL);
         verify(assetHistoryRepository).saveAll(anyCollection());
-
-        Assertions.assertEquals(ASSET_ID, result.getId());
-    }
-
-    @Test
-    void shouldReturnAsset_whenAssetExists() throws URISyntaxException, IOException, BusinessLogicException, InterruptedException {
-        Asset asset = Asset.builder()
-                .id(ASSET_ID)
-                .symbol(ASSET_SYMBOL)
-                .type(INVESTMENT_TYPE)
-                .price(ASSET_PRICE).build();
-
-        when(assetRepository.getBySymbolAndType(ASSET_SYMBOL, INVESTMENT_TYPE)).thenReturn(asset);
-
-
-        Asset result = target.getOrCreateAsset(ASSET_SYMBOL, INVESTMENT_TYPE);
-
-
-        verify(assetRepository).getBySymbolAndType(ASSET_SYMBOL, INVESTMENT_TYPE);
 
         Assertions.assertEquals(ASSET_ID, result.getId());
     }

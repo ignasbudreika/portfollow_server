@@ -23,7 +23,7 @@ public class PortfolioValueCollectorCommand {
     private PortfolioHistoryService portfolioHistoryService;
 
     @Scheduled(cron = "0 10 * * * *")
-    public void retrievePortfolioValues() {
+    public void updatePortfolioValues() {
         log.info("updating portfolios values. Current time: {}", LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS));
 
         Iterable<User> users = userService.getAll();

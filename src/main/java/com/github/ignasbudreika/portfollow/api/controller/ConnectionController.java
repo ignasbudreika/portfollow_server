@@ -82,7 +82,7 @@ public class ConnectionController {
     }
 
     @PostMapping("/ethereum/fetch")
-    public ResponseEntity fetchWallets() throws BusinessLogicException {
+    public ResponseEntity fetchWallet() throws BusinessLogicException {
         User user = userService.getByGoogleId(SecurityContextHolder.getContext().getAuthentication().getName());
 
         walletService.fetchBalance(user);

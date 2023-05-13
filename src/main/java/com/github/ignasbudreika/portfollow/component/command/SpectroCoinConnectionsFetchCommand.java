@@ -19,7 +19,7 @@ public class SpectroCoinConnectionsFetchCommand {
     @Autowired
     private UserService userService;
 
-    @Scheduled(cron = "0 2 * * * *")
+    @Scheduled(cron = "0 2 */12 * * *")
     public void fetchSpectroCoinConnections() {
         log.info("fetching SpectroCoin connections. Current time: {}", LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS));
 

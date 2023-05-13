@@ -38,14 +38,10 @@ public class AssetService {
     }
 
     @Transactional
-    public Asset getOrCreateAsset(String symbol, InvestmentType type) throws URISyntaxException, IOException, BusinessLogicException, InterruptedException {
-        Asset asset = assetRepository.getBySymbolAndType(symbol, type);
-        if (asset != null) {
-            return asset;
-        }
-
+    public Asset createAsset(String symbol, InvestmentType type) throws URISyntaxException, IOException, BusinessLogicException, InterruptedException {
         BigDecimal price = fetchPrice(symbol, type);
-        asset = assetRepository.save(Asset.builder()
+
+        Asset asset = assetRepository.save(Asset.builder()
                 .symbol(symbol)
                 .type(type)
                 .price(price).build());
@@ -61,10 +57,9 @@ public class AssetService {
                 StockDTO stock = null;
                 try {
                     stock = alphaVantageClient.getStockData(symbol);
-                } catch (BusinessLogicException e) {
-                    throw e;
                 } catch (Exception e) {
                     log.error("exception occured while fetching stock: {} data", symbol, e);
+                    throw e;
                 }
 
                 return stock == null || stock.getPrice() == null ?
@@ -74,10 +69,9 @@ public class AssetService {
                 CryptocurrencyDTO cryptocurrency = null;
                 try {
                     cryptocurrency = alphaVantageClient.getCryptocurrencyData(symbol);
-                } catch (BusinessLogicException e) {
-                    throw e;
                 } catch (Exception e) {
                     log.error("exception occured while fetching stock: {} data", symbol, e);
+                    throw e;
                 }
 
                 return cryptocurrency == null || cryptocurrency.getExchangeRate() == null ?
@@ -87,10 +81,9 @@ public class AssetService {
                 ForexDTO forex = null;
                 try {
                     forex = alphaVantageClient.getCurrencyData(symbol);
-                } catch (BusinessLogicException e) {
-                    throw e;
                 } catch (Exception e) {
                     log.error("exception occured while fetching stock: {} data", symbol, e);
+                    throw e;
                 }
 
                 return forex == null || forex.getExchangeRate() == null ?
@@ -119,8 +112,6 @@ public class AssetService {
                             ).toList();
 
                     assetHistoryRepository.saveAll(assetHistory);
-                } catch (BusinessLogicException e) {
-                    throw e;
                 } catch (Exception e) {
                     log.error("exception occured while fetching stock: {} data", asset.getSymbol(), e);
                     throw e;
@@ -141,8 +132,6 @@ public class AssetService {
                             ).toList();
 
                     assetHistoryRepository.saveAll(assetHistory);
-                } catch (BusinessLogicException e) {
-                    throw e;
                 } catch (Exception e) {
                     log.error("exception occured while fetching stock: {} data", asset.getSymbol(), e);
                     throw e;
@@ -165,6 +154,7 @@ public class AssetService {
                     assetHistoryRepository.saveAll(assetHistory);
                 } catch (Exception e) {
                     log.warn("exception occured while fetching cryptocurrency historical data", e);
+                    throw e;
                 }
             }
             default -> {
