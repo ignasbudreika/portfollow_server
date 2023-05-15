@@ -7,9 +7,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.GenericGenerator;
 
-import java.util.HashSet;
-import java.util.Set;
-
 @Data
 @Entity
 @Builder
@@ -27,10 +24,4 @@ public class User {
     private String username;
     @Column(nullable = false)
     private String googleId;
-    @OneToMany(mappedBy = "user")
-    private Set<Investment> investments = new HashSet<>();
-    @OneToMany(fetch = FetchType.LAZY, mappedBy = "id")
-    private Set<SpectroCoinConnection> spectroCoinConnections = new HashSet<>();
-    @OneToMany(fetch = FetchType.LAZY, mappedBy = "id")
-    private Set<EthereumWalletConnection> ethereumWalletConnections = new HashSet<>();
 }

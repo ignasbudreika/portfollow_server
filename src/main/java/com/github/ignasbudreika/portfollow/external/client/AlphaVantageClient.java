@@ -30,9 +30,7 @@ public class AlphaVantageClient {
     private static final String QUERY_PARAM_CURRENCY_TO = "to_currency";
     private static final String QUERY_PARAM_SYMBOL_FROM = "from_symbol";
     private static final String QUERY_PARAM_SYMBOL_TO = "to_symbol";
-    private static final String QUERY_PARAM_CURRENCY_TO_EUR = "EUR";
     private static final String QUERY_PARAM_CURRENCY_TO_USD = "USD";
-    private static final String QUERY_PARAM_SYMBOL_TO_EUR = "EUR";
     private static final String QUERY_PARAM_API_KEY = "apikey";
     private static final String QUERY_PARAM_MARKET = "market";
     private static final String QUERY_PARAM_TICKER = "symbol";

@@ -32,8 +32,4 @@ class PortfollowApplicationIT {
             ).applyTo(configurableApplicationContext.getEnvironment());
         }
     }
-
-    @Test
-    void contextLoads() {
-    }
 }

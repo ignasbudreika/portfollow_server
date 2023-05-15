@@ -26,7 +26,7 @@ import java.util.Collection;
 @Service
 @AllArgsConstructor
 public class AssetService {
-    private static final long PRICE_UPDATE_INTERVAL_IN_HOURS = 3L;
+    private static final String LOG_FORMAT = "exception occured while fetching asset: %s of type: %s data";
     private static final LocalDate PRICE_HISTORY_FETCH_SINCE = LocalDate.of(2022, 12, 1);
 
     private AssetRepository assetRepository;
@@ -58,7 +58,7 @@ public class AssetService {
                 try {
                     stock = alphaVantageClient.getStockData(symbol);
                 } catch (Exception e) {
-                    log.error("exception occured while fetching stock: {} data", symbol, e);
+                    log.error(String.format(LOG_FORMAT, symbol, type), e);
                     throw e;
                 }
 
@@ -70,7 +70,7 @@ public class AssetService {
                 try {
                     cryptocurrency = alphaVantageClient.getCryptocurrencyData(symbol);
                 } catch (Exception e) {
-                    log.error("exception occured while fetching stock: {} data", symbol, e);
+                    log.error(String.format(LOG_FORMAT, symbol, type), e);
                     throw e;
                 }
 
@@ -82,7 +82,7 @@ public class AssetService {
                 try {
                     forex = alphaVantageClient.getCurrencyData(symbol);
                 } catch (Exception e) {
-                    log.error("exception occured while fetching stock: {} data", symbol, e);
+                    log.error(String.format(LOG_FORMAT, symbol, type), e);
                     throw e;
                 }
 
@@ -113,7 +113,7 @@ public class AssetService {
 
                     assetHistoryRepository.saveAll(assetHistory);
                 } catch (Exception e) {
-                    log.error("exception occured while fetching stock: {} data", asset.getSymbol(), e);
+                    log.error(String.format(LOG_FORMAT, asset.getSymbol(), asset.getType()), e);
                     throw e;
                 }
             }
@@ -133,7 +133,7 @@ public class AssetService {
 
                     assetHistoryRepository.saveAll(assetHistory);
                 } catch (Exception e) {
-                    log.error("exception occured while fetching stock: {} data", asset.getSymbol(), e);
+                    log.error(String.format(LOG_FORMAT, asset.getSymbol(), asset.getType()), e);
                     throw e;
                 }
             }
@@ -153,11 +153,9 @@ public class AssetService {
 
                     assetHistoryRepository.saveAll(assetHistory);
                 } catch (Exception e) {
-                    log.warn("exception occured while fetching cryptocurrency historical data", e);
+                    log.warn(String.format(LOG_FORMAT, asset.getSymbol(), asset.getType()), e);
                     throw e;
                 }
-            }
-            default -> {
             }
         }
     }
@@ -178,7 +176,7 @@ public class AssetService {
                 try {
                     stock = alphaVantageClient.getStockData(symbol);
                 } catch (Exception e) {
-                    log.error("exception occured while fetching stock: {} data", symbol, e);
+                    log.error(String.format(LOG_FORMAT, asset.getSymbol(), asset.getType()), e);
                 }
 
 //                BigDecimal usdEur = getRecentPrice(USD, InvestmentType.FOREX);
@@ -196,7 +194,7 @@ public class AssetService {
                 try {
                     cryptocurrency = alphaVantageClient.getCryptocurrencyData(symbol);
                 } catch (Exception e) {
-                    log.error("exception occured while fetching crypto: {} data", symbol, e);
+                    log.error(String.format(LOG_FORMAT, asset.getSymbol(), asset.getType()), e);
                 }
 
                 if (cryptocurrency.getExchangeRate() != null) {
@@ -208,14 +206,12 @@ public class AssetService {
                 try {
                     forex = alphaVantageClient.getCurrencyData(symbol);
                 } catch (Exception e) {
-                    log.error("exception occured while fetching forex: {} data", symbol, e);
+                    log.error(String.format(LOG_FORMAT, asset.getSymbol(), asset.getType()), e);
                 }
 
                 if (forex.getExchangeRate() != null) {
                     price = new BigDecimal(forex.getExchangeRate());
                 }
-            }
-            default -> {
             }
         }
 

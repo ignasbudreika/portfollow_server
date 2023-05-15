@@ -286,35 +286,32 @@ public class InvestmentService {
                 try {
                     if (lastTx == null) {
                             createPeriodicTransaction(investment, date);
-                    } else {
-                        switch (investment.getUpdateType()) {
-                            case DAILY -> {
-                                if (!lastTx.getDate().plusDays(1).isAfter(date)) {
-                                    createPeriodicTransaction(investment, date);
-                                }
+                            return;
+                    }
+                    switch (investment.getUpdateType()) {
+                        case DAILY -> {
+                            if (!lastTx.getDate().plusDays(1).isAfter(date)) {
+                                createPeriodicTransaction(investment, date);
                             }
-                            case WEEKLY -> {
-                                if (!lastTx.getDate().plusWeeks(1).isAfter(date)) {
-                                    createPeriodicTransaction(investment, date);
-                                }
+                        }
+                        case WEEKLY -> {
+                            if (!lastTx.getDate().plusWeeks(1).isAfter(date)) {
+                                createPeriodicTransaction(investment, date);
                             }
-                            case MONTHLY -> {
-                                if (!lastTx.getDate().plusMonths(1).isAfter(date)) {
-                                    createPeriodicTransaction(investment, date);
-                                }
+                        }
+                        case MONTHLY -> {
+                            if (!lastTx.getDate().plusMonths(1).isAfter(date)) {
+                                createPeriodicTransaction(investment, date);
                             }
-                            case QUARTERLY -> {
-                                if (!lastTx.getDate().plusMonths(3).isAfter(date)) {
-                                    createPeriodicTransaction(investment, date);
-                                }
+                        }
+                        case QUARTERLY -> {
+                            if (!lastTx.getDate().plusMonths(3).isAfter(date)) {
+                                createPeriodicTransaction(investment, date);
                             }
-                            case YEARLY -> {
-                                if (!lastTx.getDate().plusYears(1).isAfter(date)) {
-                                    createPeriodicTransaction(investment, date);
-                                }
-                            }
-                            default -> {
-                                log.info("not a periodic investment: {}, skipping transaction creation", investment.getId());
+                        }
+                        case YEARLY -> {
+                            if (!lastTx.getDate().plusYears(1).isAfter(date)) {
+                                createPeriodicTransaction(investment, date);
                             }
                         }
                     }

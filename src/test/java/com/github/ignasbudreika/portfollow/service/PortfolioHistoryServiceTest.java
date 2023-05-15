@@ -27,7 +27,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
-public class PortfolioHistoryServiceTest {
+class PortfolioHistoryServiceTest {
     private static final String ASSET_ID = "9f259780-8b4d-48ba-9c65-103ef1ea15a2";
     private static final BigDecimal ASSET_PRICE = BigDecimal.TEN;
     private static final String ASSET_SYMBOL = "AAPL";
